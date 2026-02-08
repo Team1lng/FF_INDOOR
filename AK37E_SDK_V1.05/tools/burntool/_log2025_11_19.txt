@@ -1,0 +1,79 @@
+
+
+=============Transc Information =============
+Print Time: 2025-11-19 16:00:42
+
+[16:00:42]GetLastError
+[16:00:42]USBName:E, idex:4, attachUSB_state:1
+[16:00:43]NULL
+[16:00:43]GetLastError
+[16:00:43]USBName:E, idex:4, attachUSB_state:1
+[16:00:44]NULL
+
+
+=============Transc Information =============
+Print Time: 2025-11-19 16:34:02
+
+[16:34:02]GetLastError
+[16:34:02]USBName:E, idex:4, attachUSB_state:1
+[16:34:03]NULL
+[16:34:03]GetLastError
+[16:34:03]USBName:E, idex:4, attachUSB_state:1
+[16:34:04]NULL
+
+
+=============Transc Information =============
+Print Time: 2025-11-19 17:00:09
+
+[17:00:09]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:00:19]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:00:26]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:00:45]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:00:59]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:03:03]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:05:05]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:05:10]87
+[17:05:10]deviceDesc NULL 
+[17:05:38]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:08:34]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:09:20]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:10:14]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:10:56]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:12:41]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:23:25]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[17:34:15]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[18:21:45]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[18:22:29]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:02:31]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:03:26]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:04:09]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:04:49]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:11:15]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:19:09]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:23:02]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:24:15]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:44:48]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:44:49]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:44:58]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:45:19]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:48:58]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:49:41]87
+[19:49:41]deviceDesc NULL 
+[19:50:09]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:50:40]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:51:23]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:51:42]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:52:18]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:53:58]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:55:40]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:56:40]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:56:53]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:57:06]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:57:22]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:57:42]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:57:47]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:57:52]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[19:58:11]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[20:02:22]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[20:05:55]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
+[20:13:30]BT_DriverName_IsCurrentFlag: The driver name is no current pid and  vid
