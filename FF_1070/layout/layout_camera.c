@@ -772,32 +772,14 @@ static void camera_ticker_task(lv_task_t *task_t)
         }
     }
 
-    // 持续检测听筒状态并更新按钮图片
+    // 持续检测听筒状态；按钮图片固定为 hangup，不再在 up/hangup 间切换。
     static bool last_hook_state = false;
     bool current_hook_state = hook_state_get();
     
     if (current_hook_state != last_hook_state)
     {
         last_hook_state = current_hook_state;
-        lv_obj_t *hang_up_btn = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_HANG_UP_BTN_ID);
-        
-        if (hang_up_btn != NULL)
-        {
-            if (current_hook_state)
-            {
-                // 听筒被拿起，切换为挂机图片
-                camera_in_talk_state = true;
-                static rom_bin_info hangup_info = rom_bin_info_get(ROM_UI_CAMERA_HANGUP_PNG);
-                lv_obj_set_style_local_pattern_image(hang_up_btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &hangup_info);
-            }
-            else
-            {
-                // 听筒被放下，切换为拿起图片
-                camera_in_talk_state = false;
-                static rom_bin_info up_info = rom_bin_info_get(ROM_UI_CAMERA_UP_PNG);
-                lv_obj_set_style_local_pattern_image(hang_up_btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &up_info);
-            }
-        }
+        camera_in_talk_state = current_hook_state;
     }
 }
 
@@ -1516,36 +1498,22 @@ static void camera_setting_window_display_enable(bool en)
 	lv_obj_set_hidden(win, !en);
 }
 
-
-
-static void camera_exit_btn_up(lv_obj_t *obj)
-{
-	door_audio_talk(AUDIO_CH_CLOSE);
-	goto_layout(pLAYOUT(home));
-}
-
 static void camera_hang_up_btn_click(lv_obj_t *obj)
 {
-	static rom_bin_info info = rom_bin_info_get(ROM_UI_CAMERA_HANGUP_PNG);
-	if (camera_in_talk_state)
+	if (ringplay_ing_check() == true)
 	{
-		camera_exit_btn_up(obj);
-		camera_in_talk_state = false;
-		goto_layout(pLAYOUT(home));
+		ringplay_play_stop();
 	}
-	else
-	{
-		camera_in_talk_state = true;
-		door_audio_talk(AUDIO_CH_DOOR1);
-		lv_obj_set_style_local_pattern_image(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info);
-	}
+	door_audio_talk(AUDIO_CH_CLOSE);
+	camera_in_talk_state = false;
+	goto_layout(pLAYOUT(standby));
 }
 
 // 创建hang up按钮
 static void camera_hang_up_btn_create(lv_obj_t *parent)
 {
 	static obj_click_data btn_data = obj_click_data_up_create(camera_hang_up_btn_click);
-	static rom_bin_info info = rom_bin_info_get(ROM_UI_CAMERA_UP_PNG);
+	static rom_bin_info info = rom_bin_info_get(ROM_UI_CAMERA_HANGUP_PNG);
 	lv_obj_t *btn = camera_img_btn_create(parent, camera_btn_area[CAMERA_HANG_UP_BTN_ID], NULL, &btn_data, &info);
 	lv_obj_set_id(btn, CAMERA_HANG_UP_BTN_ID);
 	camera_in_talk_state = false;
@@ -1827,26 +1795,7 @@ static void LAYOUT_ENTER_FUNC(camera)
 		monitor_enter_mask_set(MON_ENTER_TALK);
 	}
 
-	//新增通话功能图片变化 lynn 26.3.23
-	lv_obj_t *hang_up_btn = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_HANG_UP_BTN_ID);
-    if (hook_state_get() == true)  // 检测听筒是否拿起
-    {
-        camera_in_talk_state = true;  // 标记为通话状态
-        if (hang_up_btn != NULL)
-        {
-            static rom_bin_info hangup_info = rom_bin_info_get(ROM_UI_CAMERA_HANGUP_PNG);
-            lv_obj_set_style_local_pattern_image(hang_up_btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &hangup_info);
-        }
-    }
-    else 
-    {
-        camera_in_talk_state = false;
-        if (hang_up_btn != NULL)
-        {
-            static rom_bin_info up_info = rom_bin_info_get(ROM_UI_CAMERA_UP_PNG);
-            lv_obj_set_style_local_pattern_image(hang_up_btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &up_info);
-        }
-    }
+	camera_in_talk_state = hook_state_get();
 	
 	// lv_layout_task_create(camera_bell_detaction_task, 10, LV_TASK_PRIO_HIGH, NULL);
 }
