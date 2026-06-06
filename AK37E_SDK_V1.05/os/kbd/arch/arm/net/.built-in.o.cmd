@@ -1,1 +1,1 @@
-cmd_arch/arm/net/built-in.o :=  rm -f arch/arm/net/built-in.o; /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ar rcsD arch/arm/net/built-in.o
+cmd_arch/arm/net/built-in.o :=  rm -f arch/arm/net/built-in.o; /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ar rcsD arch/arm/net/built-in.o

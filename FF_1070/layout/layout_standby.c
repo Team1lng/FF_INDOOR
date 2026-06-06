@@ -216,6 +216,7 @@ static void standby_bg_click_event_cb(lv_obj_t *obj)
 
 static void LAYOUT_ENTER_FUNC(standby)
 {
+	printf("Entering standby layout.\n");
 	standby_timer_close();
 	backlight_enable(false);
 
@@ -241,6 +242,7 @@ void delay_backlight_open_task(lv_task_t *task)
 
 static void LAYOUT_QUIT_FUNC(standby)
 {
+	printf("Exiting standby layout.\n");
 	// 清理移动侦测资源
 	standby_resource_release_sfunc(true);
 	

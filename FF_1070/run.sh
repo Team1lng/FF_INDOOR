@@ -1,3 +1,3 @@
-killall TABA.BIN
+killall FF.BIN
 # \cp -rf res/rom.bin /etc/config/run
-./build/TABA.BIN &
+./build/FF.BIN &

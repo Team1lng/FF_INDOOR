@@ -15,60 +15,60 @@ static char current_call_file[128] = {0}; // 门口机的当前call记录
 **   door_station: 门口机编号 (1或2)
 ** 返回参数说明：成功返回true，失败返回false
 ***/
-bool call_record_start(bool is_door_station, call_door_station door_station, int call_num)
-{
-    memset(current_call_file, 0, sizeof(current_call_file));
-    char file_path[128] = {0};
-    char ch = 0;
-    int target_call_num = 0;
+// bool call_record_start(bool is_door_station, call_door_station door_station, int call_num)
+// {
+//     memset(current_call_file, 0, sizeof(current_call_file));
+//     char file_path[128] = {0};
+//     char ch = 0;
+//     int target_call_num = 0;
 
-    // 1. 参数合法性校验
-    if (is_door_station)
-    {
-        // 门口机场景：仅支持1/2
-        if (door_station != CALL_DOOR_STATION_1 && door_station != CALL_DOOR_STATION_2)
-        {
-            printf("Invalid door station number: %d\n", door_station);
-            return false;
-        }
-        ch = (door_station == CALL_DOOR_STATION_1) ? '1' : '2'; // 沿用原有门口机编号
-    }
-    else
-    {
-        // 普通call_num场景：校验0<call_num<257
-        if (call_num <= 0 || call_num >= 257)
-        {
-            printf("Invalid call_num: %d (must be 1~256)\n", call_num);
-            return false;
-        }
-        target_call_num = call_num;
-        ch = '0'; // 普通场景用ch=0区分，避免与门口机1/2冲突
-    }
+//     // 1. 参数合法性校验
+//     if (is_door_station)
+//     {
+//         // 门口机场景：仅支持1/2
+//         if (door_station != CALL_DOOR_STATION_1 && door_station != CALL_DOOR_STATION_2)
+//         {
+//             printf("Invalid door station number: %d\n", door_station);
+//             return false;
+//         }
+//         ch = (door_station == CALL_DOOR_STATION_1) ? '1' : '2'; // 沿用原有门口机编号
+//     }
+//     else
+//     {
+//         // 普通call_num场景：校验0<call_num<257
+//         if (call_num <= 0 || call_num >= 257)
+//         {
+//             printf("Invalid call_num: %d (must be 1~256)\n", call_num);
+//             return false;
+//         }
+//         target_call_num = call_num;
+//         ch = '0'; // 普通场景用ch=0区分，避免与门口机1/2冲突
+//     }
 
-    // 创建call记录文件
-    if (!media_call_record_create(ch, target_call_num, is_door_station, file_path))
-    {
-        printf("Failed to create call record for door station %d\n", door_station);
-        return false;
-    }
-    int fd = open(file_path, O_CREAT | O_WRONLY);
-    if (fd >= 0)
-    {
-        close(fd);
-    }
-    media_file_bad_check(file_path);
+//     // 创建call记录文件
+//     if (!media_call_record_create(ch, target_call_num, is_door_station, file_path))
+//     {
+//         printf("Failed to create call record for door station %d\n", door_station);
+//         return false;
+//     }
+//     int fd = open(file_path, O_CREAT | O_WRONLY);
+//     if (fd >= 0)
+//     {
+//         close(fd);
+//     }
+//     media_file_bad_check(file_path);
 
-    strncpy(current_call_file, file_path, sizeof(current_call_file) - 1);
+//     strncpy(current_call_file, file_path, sizeof(current_call_file) - 1);
 
-    printf("Call record started for door station %d: %s\n", door_station, file_path);
+//     printf("Call record started for door station %d: %s\n", door_station, file_path);
 
-    // 标记有新的call记录
-    system("sync");
-    user_data_get()->new_call_record_flag = true;
-    user_data_save();
+//     // 标记有新的call记录
+//     system("sync");
+//     user_data_get()->new_call_record_flag = true;
+//     user_data_save();
 
-    return true;
-}
+//     return true;
+// }
 
 /***
 ** 日期: 2022-05-17 11:28

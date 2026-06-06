@@ -1,1 +1,1 @@
-cmd_drivers/usb/gadget/legacy/g_mass_storage.o := /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL   -r -o drivers/usb/gadget/legacy/g_mass_storage.o drivers/usb/gadget/legacy/mass_storage.o 
+cmd_drivers/usb/gadget/legacy/g_mass_storage.o := /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL    -r -o drivers/usb/gadget/legacy/g_mass_storage.o drivers/usb/gadget/legacy/mass_storage.o 

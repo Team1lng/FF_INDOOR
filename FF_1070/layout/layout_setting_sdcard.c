@@ -229,7 +229,7 @@ static void sdcard_select_btn_create(lv_obj_t * parent)
 {
     lv_obj_t *cont = lv_cont_create(parent, NULL);
     // lv_obj_set_pos(cont,286,233);
-    lv_obj_set_size(cont, 452, 134);
+    lv_obj_set_size(cont, 500, 150);
     lv_obj_align(cont, NULL, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_local_bg_opa(cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_100);
     lv_obj_set_style_local_bg_color(cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x434242));

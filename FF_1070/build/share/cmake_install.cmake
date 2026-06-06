@@ -1,4 +1,4 @@
-# Install script for directory: /home/sl/share/FF_Indoor/FF_1070/share
+# Install script for directory: /home/leo/workspace/FF_Indoor/FF_1070/share
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -37,38 +37,33 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
   set(CMAKE_CROSSCOMPILING "FALSE")
 endif()
 
-# Set default install directory permissions.
-if(NOT DEFINED CMAKE_OBJDUMP)
-  set(CMAKE_OBJDUMP "/opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-objdump")
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("/home/leo/workspace/FF_Indoor/FF_1070/build/share/mad/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/sl/share/FF_Indoor/FF_1070/build/share/mad/cmake_install.cmake")
+  include("/home/leo/workspace/FF_Indoor/FF_1070/build/share/lvgl/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/sl/share/FF_Indoor/FF_1070/build/share/lvgl/cmake_install.cmake")
+  include("/home/leo/workspace/FF_Indoor/FF_1070/build/share/freetype/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/sl/share/FF_Indoor/FF_1070/build/share/freetype/cmake_install.cmake")
+  include("/home/leo/workspace/FF_Indoor/FF_1070/build/share/tuya/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/sl/share/FF_Indoor/FF_1070/build/share/tuya/cmake_install.cmake")
+  include("/home/leo/workspace/FF_Indoor/FF_1070/build/share/xls/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/sl/share/FF_Indoor/FF_1070/build/share/xls/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
-  include("/home/sl/share/FF_Indoor/FF_1070/build/share/zlib/cmake_install.cmake")
+  include("/home/leo/workspace/FF_Indoor/FF_1070/build/share/zlib/cmake_install.cmake")
 endif()
 

@@ -25,5 +25,5 @@
 	.ascii	" -ffreestanding -fno-stack-protector -fstack-usage\000"
 .LASF1:
 	.ascii	"/dev/null\000"
-	.ident	"GCC: (Buildroot 2018.02.7_V1.0.03-g9ff3371) 4.9.4"
+	.ident	"GCC: (Buildroot 2018.02.7_V1.0.05-gec2d034) 4.9.4"
 	.section	.note.GNU-stack,"",%progbits

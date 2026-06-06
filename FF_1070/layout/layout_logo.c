@@ -5,7 +5,7 @@
 #include "tuya/tuya_uuid_and_key.h"
 
 extern bool LEO_FAST_ENTER_SYSTEM_FLAG;
-
+static void logo_version_display(void);
 unsigned long long calibrate_rtc_timestamp = 0;
 
 /***
@@ -30,7 +30,7 @@ static void logo_logo_icon_display(void)
 	// 	lv_obj_set_style_local_pattern_image(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info3);
 	// }
 
-	lv_obj_set_size(obj, 386, 180);
+	lv_obj_set_size(obj, 406, 184);
 	lv_obj_set_style_local_bg_opa(lv_scr_act(), LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
 	lv_obj_set_style_local_bg_opa(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
 	// lv_obj_set_style_local_pattern_image(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info);
@@ -61,6 +61,26 @@ static void time_calibrate_task(lv_task_t *task)
 }
 extern void lv_ft_font_set_type(int type);
 void lv_font_afresh_init(void);
+
+// static int intercom_uart_fd = -1;
+
+// static void UartReceiveDataTask(lv_task_t *t)
+// {
+// 	char string[8] = {0};
+// 	if (uart_read(intercom_uart_fd, string, sizeof(string) - 1) < 0)
+// 	{
+// 		return;
+// 	}
+// 	printf("[%s:%d]: %s\n", __func__, __LINE__, string);
+// }
+
+// static void UartSendDataTask(lv_task_t *t)
+// {
+// 	static int count = 0;
+// 	char string[8] = {0};
+// 	sprintf(string, "%02d", count++);
+// 	uart_write(intercom_uart_fd, string, strlen(string));
+// }
 /***
 ** 日期: 2022-05-18 09:23
 ** 作者: leo.liu
@@ -96,9 +116,19 @@ static void layout_logo_loding_task(lv_task_t *task)
 	/*****  初始化播放 *****/
 	video_play_init();
 	/*****  户户通处理线程 *****/
-	intercom_init();
+	// intercom_init();
+	
+	mbIntercomInterfaceInit();
+	IntercomUartTaskStart();
+	// intercom_service_start();
+
 	/***** gpio口初始化 *****/
 	layout_gpio_init();
+	// IntercomInterfaceRegister();
+	// IntercomUartTaskStart();
+	// SetLocRoomNumber(user_data_get()->device_id, 2);
+	// intercom_event_global_register();
+	MsgUpdateNativeId(user_data_get()->device_id[0] * 10 + user_data_get()->device_id[1]);//lynn 26.4.3
 
 	/*****  注册按键音信息 *****/
 	rom_bin_info info = rom_bin_info_get(ROM_UI_KEY_SOUND_PCM);
@@ -109,6 +139,7 @@ static void layout_logo_loding_task(lv_task_t *task)
 	/*****  call呼叫 *****/
 	layout_door1_call_callback_register(layout_door1_call_default);
 	layout_door2_call_callback_register(layout_door2_call_default);
+	layout_call_camera_callback_register(layout_call_camera_default); // lynn 26.3.14
 	/*****  听筒状态改变 *****/
 	layout_custom_event_callback_register(layout_hook_state_change_default);
 	/*****  室内机开锁事件 *****/
@@ -117,7 +148,9 @@ static void layout_logo_loding_task(lv_task_t *task)
 	// layout_power_led_handler_register(power_led_handler_default_func);
 
 	/*****  sd卡状态改变默认回调 *****/
-	lyaout_sd_state_callback_register(layout_sdcard_state_change_default);
+	layout_sd_state_callback_register(layout_sdcard_state_change_default);
+	/*****  户户通事件处理 *****/
+	layout_intercom_out_callback_register(layout_intercom_out_default);
 
 	media_file_list_init();
 	/***** 初始化tp9950 *****/
@@ -145,7 +178,7 @@ static void layout_logo_loding_task(lv_task_t *task)
 	// if (user_data_get()->setting.time_display_enable == true)
 	// {
 	// 	goto_layout(pLAYOUT(standby));user_data_get()->setting.language = LANG_ENGLISH;
-	user_data_get()->setting.language = LANG_ENGLISH;
+	// user_data_get()->setting.language = LANG_ENGLISH;
 	lv_ft_font_set_type(user_data_get()->setting.language);
 	lv_font_afresh_init();
 	user_data_save();
@@ -154,6 +187,11 @@ static void layout_logo_loding_task(lv_task_t *task)
 	// {
 	goto_layout(pLAYOUT(home));
 	// }
+	
+	// intercom_uart_fd = uart_open("ttySAK2", 9600, 8, 1, 'n');
+	// printf("[%s:%d]: intercom_uart_fd：%d\n", __func__, __LINE__, intercom_uart_fd);
+	// lv_task_create(UartReceiveDataTask, 1000, LV_TASK_PRIO_MID, NULL);
+	// lv_task_create(UartSendDataTask, 1000, LV_TASK_PRIO_MID, NULL);
 }
 
 // #include <time.h>
@@ -189,17 +227,6 @@ static void layout_logo_enter_system(void)
 	// task->clean_lock = false;
 }
 
-static void LAYOUT_ENTER_FUNC(logo)
-{
-	layout_logo_enter_system();
-}
-
-static void LAYOUT_QUIT_FUNC(logo)
-{
-}
-
-CREATE_LAYOUT(logo);
-
 void get_curr_relesse_date(int *day, int *month, int *year)
 {
 	const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug",
@@ -220,3 +247,44 @@ void get_curr_relesse_date(int *day, int *month, int *year)
 
 	// Debug("Release Date : %d-%d-%d\n\r",*year,*month,*day);
 }
+/***
+**   日期:2022-07-13 13:41:14
+**   作者: leo.liu
+**   函数作用：显示版本号
+**   参数说明:
+***/
+static void logo_version_display(void)
+{
+	lv_obj_t *cont = lv_cont_create(lv_scr_act(), NULL);
+	lv_obj_set_size(cont, 250, 28);
+	lv_obj_set_pos(cont, 387, 528);
+	lv_obj_set_style_local_bg_color(cont, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x000000));
+	lv_obj_set_style_local_bg_opa(cont, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+	lv_obj_set_style_local_radius(cont, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 20);
+	lv_obj_t *version_label = lv_label_create(cont, NULL);
+	lv_label_set_align(version_label, LV_LABEL_ALIGN_CENTER);
+	int day = 0, month = 0, year = 0;
+	get_curr_relesse_date(&day, &month, &year);
+	lv_label_set_text_fmt(version_label, "%s : %02d.%d.%d", str_get(LAYOUT_ABOUT_LANG_VERSION_ID), year % 100, month, day);
+	// if(user_data_get()->setting.language == LANG_ENGLISH)
+	// {
+	//     lv_obj_align(version_label, model_label, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 12);
+	// }
+	// else
+	// {
+	//     lv_obj_align(version_label, model_label, LV_ALIGN_OUT_BOTTOM_RIGHT, 0, 12);
+	// }
+}
+
+
+static void LAYOUT_ENTER_FUNC(logo)
+{
+	logo_version_display();
+	layout_logo_enter_system();
+}
+
+static void LAYOUT_QUIT_FUNC(logo)
+{
+}
+
+CREATE_LAYOUT(logo);

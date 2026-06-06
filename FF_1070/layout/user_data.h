@@ -55,15 +55,12 @@ typedef struct
 	// 0->波斯日历 1->西方日历
 	uint8_t calendar;
 
-	bool window_display_enable;
-
 	uint8_t record_mode;
 
 	int door1_tone;
 	int door2_tone;
 	// min:0 max:4
-	int door1_ring_volume;
-	int door2_ring_volume;
+	int door_ring_volume;
 	bool key_tone_enable;
 	int ring_time;
 
@@ -113,7 +110,9 @@ typedef struct
 	/*****  password *****/
 	unsigned int password;
 	bool sd_card_pattion;
-	unsigned int device_id;
+	unsigned char device_id[2];  // intercom本地房号
+	unsigned char other_id[2];  // intercom其他(对方的房号
+
 	bool room_no_flag;
 	bool upgrade_success_flag;
 	bool new_photo_file_flag;

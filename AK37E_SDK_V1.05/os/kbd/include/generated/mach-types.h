@@ -1,5 +1,5 @@
 /*
- * This was automagically generated from /home/xiaoxiao/workspace/EP-Linux/AK37E_SDK_V1.05/os/kernel/arch/arm/tools/mach-types!
+ * This was automagically generated from /home/blueen/samba/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/tools/mach-types!
  * Do NOT edit
  */
 

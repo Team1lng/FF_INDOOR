@@ -24,7 +24,7 @@ lv_obj_t *message_box_create(lv_obj_t *parent, const char *title, obj_click_data
 {
     // 1. 创建消息框容器
     lv_obj_t *cont = lv_cont_create(parent, NULL);
-    lv_obj_set_size(cont, 466, 158);
+    lv_obj_set_size(cont, 540, 190);
     lv_obj_align(cont, NULL, LV_ALIGN_CENTER, 0, 0);
     
     lv_obj_set_style_local_bg_opa(cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_100);
@@ -35,7 +35,7 @@ lv_obj_t *message_box_create(lv_obj_t *parent, const char *title, obj_click_data
     lv_obj_set_style_local_value_str(cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, title);
     lv_obj_set_style_local_value_color(cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFFFFFF));
     lv_obj_set_style_local_value_align(cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, LV_ALIGN_CENTER);
-    lv_obj_set_style_local_value_ofs_y(cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, -(lv_obj_get_height(cont) / 4));
+    lv_obj_set_style_local_value_ofs_y(cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, -(lv_obj_get_height(cont) / 4 - 12));
     lv_obj_set_style_local_value_font(cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, FONT_SIZE(24));
 
     // ---------------------- YES 按钮（保留原图 + 按下光晕）----------------------

@@ -1,1 +1,1 @@
-cmd_crypto/lrw.ko := /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL -r  -T /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/scripts/module-common.lds --build-id  -o crypto/lrw.ko crypto/lrw.o crypto/lrw.mod.o
+cmd_crypto/lrw.ko := /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL -r  -T /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/scripts/module-common.lds --build-id  -o crypto/lrw.ko crypto/lrw.o crypto/lrw.mod.o

@@ -1,1 +1,1 @@
-cmd_drivers/video/backlight/built-in.o :=  rm -f drivers/video/backlight/built-in.o; /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ar rcsD drivers/video/backlight/built-in.o
+cmd_drivers/video/backlight/built-in.o :=  rm -f drivers/video/backlight/built-in.o; /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ar rcsD drivers/video/backlight/built-in.o

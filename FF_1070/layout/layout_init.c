@@ -11,25 +11,52 @@
 #define SETTING_format_SD_BIN_ID 0x12
 #define SETTING_SD_CHECK_LABEL_ID 0x13
 
-static bool is_no_sd_scenario = false;
-static lv_obj_t *no_sd_label = NULL;  // 保存No SD标签指针，避免内存泄漏
-static int exit_time_count = 0;
-lv_obj_t *label_sd_format = NULL;
+static bool is_no_sd_scenario = false; // 是否处于无SD卡场景，控制SD卡检测任务的显示逻辑
+static lv_obj_t *no_sd_label = NULL;   // No SD标签指针
+static int exit_time_count = 0;// 退出计时器
+lv_obj_t *label_sd_format = NULL;// 格式化状态标签指针
+static bool is_sd_formatting = false;  // 是否正在格式化SD卡
 
+static void sd_card_detect_task(lv_task_t *task)
+{
 
-// static void sd_card_detect_task(lv_task_t *task)
-// {
-//     // 仅在有"No SD"标签时才检测（避免不必要的循环）
-//     if (no_sd_label == NULL) return;
-
-//     // 检测SD卡状态：如果从「未插入」变为「插入」，删除No SD标签
-//     if (media_sdcard_insert_check())
-//     {
-//         lv_obj_del(no_sd_label);  // 插入SD卡，删除No SD标签
-//         no_sd_label = NULL;
-//         is_no_sd_scenario = false;  // 重置场景标记
-//     }
-// }
+    // 格式化中不检测SD卡状态，避免No SD标签错误显示
+    if (is_sd_formatting)
+    {
+        return; 
+    }
+    // 1. 获取当前SD卡实际状态
+    bool sd_inserted = media_sdcard_insert_check();
+    printf("SD卡状态:%d\n", sd_inserted);
+    // 2. 场景1：无SD卡（拔卡）→ 创建/显示No SD标签
+    if (!sd_inserted)
+    {
+        is_no_sd_scenario = true;
+        if (no_sd_label == NULL)
+        {
+            no_sd_label = lv_label_create(lv_scr_act(), NULL);
+            if (no_sd_label == NULL)
+            {
+                printf("Failed to create No SD label!\n");
+                return;
+            }
+            lv_label_set_text(no_sd_label, str_get(COMMON_LANG_NO_SD_ID));
+            lv_obj_set_style_local_text_font(no_sd_label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, FONT_SIZE(24));
+            lv_obj_set_style_local_text_color(no_sd_label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFF3030));
+            lv_obj_align(no_sd_label, NULL, LV_ALIGN_IN_TOP_MID, 0, 160);
+        }
+    }
+    else
+    {
+        is_no_sd_scenario = false;
+        // 标签存在时才删除（避免空指针）
+        if (no_sd_label != NULL)
+        {
+            lv_obj_del(no_sd_label);
+            no_sd_label = NULL;
+        }
+    }
+}
 
 /* setting 图标 */
 static void setting_icon_create(lv_obj_t *parent)
@@ -48,9 +75,11 @@ static void setting_icon_create(lv_obj_t *parent)
 	lv_obj_align(setting_icon_obj, Time_label, LV_ALIGN_OUT_LEFT_MID, -5, 0);
 }
 
-// 修复：返回按钮清理所有残留资源（关键！避免跳转时资源未释放）
 static void back_btn_up(lv_obj_t *obj)
 {
+    // 重置格式化状态标记
+    is_sd_formatting = false;
+    
     // 清理No SD标签
     if (no_sd_label != NULL)
     {
@@ -76,7 +105,7 @@ static void reset_system_btn_up(lv_obj_t *obj)
     user_data_reset();
     if(user_data_get()->setting.language != lang)
     {
-        /***** 設置字庫 *****/
+        /***** 设置字库 *****/
         extern void lv_ft_font_set_type(int type);
         lv_ft_font_set_type(user_data_get()->setting.language);
         
@@ -93,15 +122,15 @@ static void back_btn_create(lv_obj_t *parent)
 	lv_obj_set_size(back_icon_obj, 50, 37);
 	lv_obj_set_id(back_icon_obj, HOME_BACK_OBJ_ID);
 	static rom_bin_info info1 = rom_bin_info_get(ROM_UI_TIME_BACK_PNG);
-	lv_obj_set_style_local_pattern_image(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info1);
+	lv_obj_set_style_local_pattern_image(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info1); 
+    lv_obj_set_style_local_pattern_recolor(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, lv_color_hex(0x000000));
+    lv_obj_set_style_local_pattern_recolor_opa(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, LV_OPA_50); // 按下叠加50%黑色
     static obj_click_data btn_data = obj_click_data_up_create(back_btn_up);
     obj_click_event_listen(back_icon_obj, &btn_data);
 }
   
-// 修复：格式化状态任务（核心优化，解决死机问题）
 static void sd_format_state_display_task(lv_task_t *task_t)
 {
-    // 空指针防护（避免崩溃）
     if (task_t == NULL)
     {
         printf("Error: task is NULL!\n");
@@ -125,6 +154,9 @@ static void sd_format_state_display_task(lv_task_t *task_t)
     // 格式化完成/失败（media_format_sd_state()返回false）
     if (media_format_sd_state() == false)
     {
+        // 格式化完成，重置状态标记
+        is_sd_formatting = false;
+        
         // 显示格式化成功提示（仅SD卡插入时）
         if (media_sdcard_insert_check() && exit_time_count > 3)
         {
@@ -134,13 +166,13 @@ static void sd_format_state_display_task(lv_task_t *task_t)
             exit_time_count = 3;  // 倒计时3秒跳转
         }
 
-        // 修复：先判断exit_time_count>0再自减，避免负数导致死循环
+        // 先判断exit_time_count>0再自减，避免负数导致死循环
         if (exit_time_count > 0)
         {
             exit_time_count--;
             if (exit_time_count <= 0)
             {
-                // 清理所有资源后再跳转（关键！避免资源泄漏）
+                // 清理所有资源后再跳转
                 lv_obj_del(state_label);
                 if (label_sd_format != NULL)
                 {
@@ -180,9 +212,14 @@ static void sd_format_state_display_task(lv_task_t *task_t)
     }
 }
 
-
 static void no_sd_label_display(lv_obj_t *center_cont)
 {
+    // 格式化中不显示No SD标签
+    if (is_sd_formatting)
+    {
+        return;
+    }
+    
     if (!media_sdcard_insert_check())
     {
         is_no_sd_scenario = true;
@@ -192,15 +229,12 @@ static void no_sd_label_display(lv_obj_t *center_cont)
             printf("Failed to create No SD label!\n");
             return;
         }
-
         lv_label_set_text(no_sd_label, str_get(COMMON_LANG_NO_SD_ID));
         lv_obj_set_style_local_text_font(no_sd_label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, FONT_SIZE(24));
         lv_obj_set_style_local_text_color(no_sd_label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFF5555));
         lv_obj_align(no_sd_label, NULL, LV_ALIGN_IN_TOP_MID, 0, 160);
-
-        //lv_layout_task_create(sd_format_state_display_task, 1000, LV_TASK_PRIO_LOWEST, no_sd_label);
     }
-     else
+    else
     {
         is_no_sd_scenario = false;
         if (no_sd_label != NULL)
@@ -211,18 +245,17 @@ static void no_sd_label_display(lv_obj_t *center_cont)
     }
 }
 
-
-// 修复：格式化按钮点击回调（解决阻塞、资源泄漏问题）
+// 格式化按钮点击回调
 static void format_sd_btn_up(lv_obj_t *obj)
 {
     // 1. 正在格式化时禁止重复点击
-    if (media_format_sd_state())
+    if (media_format_sd_state() || is_sd_formatting)
     {
         printf("Format is in progress, ignore click!\n");
         return;
     }
 
-    // 2. 清理所有残留资源（避免标签重叠、内存泄漏）
+    // 2. 清理所有残留资源
     if (no_sd_label != NULL)
     {
         lv_obj_del(no_sd_label);
@@ -239,11 +272,15 @@ static void format_sd_btn_up(lv_obj_t *obj)
     
     if (media_sdcard_insert_check())
     {
+        // 标记为格式化中
+        is_sd_formatting = true;
+        
         // SD卡已插入：创建格式化相关标签
         lv_obj_t *state_label = lv_label_create(lv_scr_act(), NULL);
         if (state_label == NULL)
         {
             printf("Failed to create format state label!\n");
+            is_sd_formatting = false; // 失败时重置标记
             return;
         }
 
@@ -255,6 +292,7 @@ static void format_sd_btn_up(lv_obj_t *obj)
             {
                 printf("Failed to create loading label!\n");
                 lv_obj_del(state_label);
+                is_sd_formatting = false; // 失败时重置标记
                 return;
             }
             lv_obj_set_style_local_text_font(label_sd_format, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, FONT_SIZE(24));
@@ -268,9 +306,7 @@ static void format_sd_btn_up(lv_obj_t *obj)
 
         // 关键：如果media_format_sd()是阻塞函数，建议用LVGL任务异步执行（避免界面卡死）
         // 这里用lv_task_once创建一次性任务执行格式化，不阻塞主线程
-       
-            media_format_sd();  // 执行格式化（阻塞操作放在子任务）
-            
+        media_format_sd();  // 执行格式化（阻塞操作放在子任务）
 
         exit_time_count = 3 + 1;  // 初始化倒计时（+1满足exit_time_count>3判断）
         lv_layout_task_create(sd_format_state_display_task, 200, LV_TASK_PRIO_LOWEST, state_label);
@@ -293,6 +329,7 @@ static void format_sd_btn_up(lv_obj_t *obj)
         lv_layout_task_create(sd_format_state_display_task, 1000, LV_TASK_PRIO_LOWEST, no_sd_label);
     }
 }
+
 
 void create_init_page(lv_obj_t *center_cont)
 {
@@ -327,18 +364,14 @@ static void LAYOUT_ENTER_FUNC(init)
     lv_obj_set_size(center_cont, 534, 294);  
     lv_obj_set_id(center_cont, 100);
     lv_obj_align(center_cont, parent, LV_ALIGN_CENTER, 0, 0);  
-    lv_obj_set_style_local_bg_color(center_cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x333355));
+    lv_obj_set_style_local_bg_color(center_cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x838383));
     lv_obj_set_style_local_radius(center_cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, 10);
-    lv_obj_set_style_local_bg_opa(center_cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_80);
+    lv_obj_set_style_local_bg_opa(center_cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_40);
     back_btn_create(parent);
     setting_icon_create(parent);
     top_time_date_text_create(parent);
     create_init_page(center_cont);
     
-    if (no_sd_label != NULL) {
-        lv_obj_del(no_sd_label);
-        no_sd_label = NULL;
-    }
     if (label_sd_format != NULL) {
         lv_obj_del(label_sd_format);
         label_sd_format = NULL;
@@ -346,26 +379,19 @@ static void LAYOUT_ENTER_FUNC(init)
 
     no_sd_label_display(center_cont);
     exit_time_count = 0;
+
+    lv_layout_task_create(sd_card_detect_task, 500, LV_TASK_PRIO_LOWEST, NULL);
+
 }
 
-
-// 修复：布局退出时清理所有资源（关键！避免切换布局后资源残留）
+// 布局退出时清理所有资源
 static void LAYOUT_QUIT_FUNC(init)
 {
-    if (no_sd_label != NULL)
-    {
-        lv_obj_del(no_sd_label);
-        no_sd_label = NULL;
-    }
-    if (label_sd_format != NULL)
-    {
-        lv_obj_del(label_sd_format);
-        label_sd_format = NULL;
-    }
+    is_sd_formatting = false;
     is_no_sd_scenario = false;
     exit_time_count = 0;
 
-    
+
 }
 
 CREATE_LAYOUT(init);

@@ -1,25 +1,36 @@
-
-# Consider dependencies only in project.
-set(CMAKE_DEPENDS_IN_PROJECT_ONLY OFF)
-
 # The set of languages for which implicit dependencies are needed:
 set(CMAKE_DEPENDS_LANGUAGES
+  "C"
+  )
+# The set of files for implicit dependencies of each language:
+set(CMAKE_DEPENDS_CHECK_C
+  "/home/leo/workspace/FF_Indoor/FF_1070/share/tuya/tuya_api.c" "/home/leo/workspace/FF_Indoor/FF_1070/build/share/tuya/CMakeFiles/tuya.dir/tuya_api.c.o"
+  "/home/leo/workspace/FF_Indoor/FF_1070/share/tuya/tuya_api_common.c" "/home/leo/workspace/FF_Indoor/FF_1070/build/share/tuya/CMakeFiles/tuya.dir/tuya_api_common.c.o"
+  "/home/leo/workspace/FF_Indoor/FF_1070/share/tuya/tuya_p2ptransfer.c" "/home/leo/workspace/FF_Indoor/FF_1070/build/share/tuya/CMakeFiles/tuya.dir/tuya_p2ptransfer.c.o"
+  "/home/leo/workspace/FF_Indoor/FF_1070/share/tuya/tuya_uuid_and_key.c" "/home/leo/workspace/FF_Indoor/FF_1070/build/share/tuya/CMakeFiles/tuya.dir/tuya_uuid_and_key.c.o"
+  )
+set(CMAKE_C_COMPILER_ID "GNU")
+
+# The include file search paths:
+set(CMAKE_C_TARGET_INCLUDE_PATH
+  "../include"
+  "../include/anyka37d"
+  "../include/common"
+  "../include/tuya"
+  "../share"
+  "../share/include"
+  "../share/lvgl"
+  "../common"
+  "../layout"
+  "../res"
+  "/home/leo/workspace/FF_Indoor/FF_1070/share/tuya/."
+  "/home/leo/workspace/FF_Indoor/FF_1070/share/tuya/../../include/tuya"
+  "/home/leo/workspace/FF_Indoor/FF_1070/share/tuya/../include/tuya"
+  "/home/leo/workspace/FF_Indoor/FF_1070/share/tuya/../include/libxls"
   )
 
-# The set of dependency files which are needed:
-set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/sl/share/FF_Indoor/FF_1070/share/tuya/tuya_api.c" "share/tuya/CMakeFiles/tuya.dir/tuya_api.c.o" "gcc" "share/tuya/CMakeFiles/tuya.dir/tuya_api.c.o.d"
-  "/home/sl/share/FF_Indoor/FF_1070/share/tuya/tuya_api_common.c" "share/tuya/CMakeFiles/tuya.dir/tuya_api_common.c.o" "gcc" "share/tuya/CMakeFiles/tuya.dir/tuya_api_common.c.o.d"
-  "/home/sl/share/FF_Indoor/FF_1070/share/tuya/tuya_p2ptransfer.c" "share/tuya/CMakeFiles/tuya.dir/tuya_p2ptransfer.c.o" "gcc" "share/tuya/CMakeFiles/tuya.dir/tuya_p2ptransfer.c.o.d"
-  "/home/sl/share/FF_Indoor/FF_1070/share/tuya/tuya_uuid_and_key.c" "share/tuya/CMakeFiles/tuya.dir/tuya_uuid_and_key.c.o" "gcc" "share/tuya/CMakeFiles/tuya.dir/tuya_uuid_and_key.c.o.d"
-  )
-
-# Targets to which this target links which contain Fortran sources.
-set(CMAKE_Fortran_TARGET_LINKED_INFO_FILES
-  )
-
-# Targets to which this target links which contain Fortran sources.
-set(CMAKE_Fortran_TARGET_FORWARD_LINKED_INFO_FILES
+# Targets to which this target links.
+set(CMAKE_TARGET_LINKED_INFO_FILES
   )
 
 # Fortran module output directory.

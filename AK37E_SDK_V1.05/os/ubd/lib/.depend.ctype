@@ -1,3 +1,2 @@
-/home/xiaoxiao/workspace/EP-Linux/AK37E_SDK_V1.05/os/ubd/lib/ctype.o: \
- ctype.c \
- /home/xiaoxiao/workspace/EP-Linux/AK37E_SDK_V1.05/os/uboot/include/linux/ctype.h
+/home/blueen/samba/FF_Indoor/AK37E_SDK_V1.05/os/ubd/lib/ctype.o: ctype.c \
+ /home/blueen/samba/FF_Indoor/AK37E_SDK_V1.05/os/uboot/include/linux/ctype.h

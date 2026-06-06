@@ -320,7 +320,6 @@ static lv_obj_t *setting_btn_sub_string_with_double_arrows_create(lv_obj_t *pare
 		lv_obj_set_style_local_pattern_image(left_arrow_btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &left_arrow_img);
 		lv_obj_set_style_local_pattern_image(left_arrow_btn, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, &left_arrow_PRE_img);
 		lv_obj_set_style_local_pattern_align(left_arrow_btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_ALIGN_CENTER);
-
 		obj_click_event_listen(left_arrow_btn, left_arrow_click_data);
 	}
 
@@ -494,12 +493,6 @@ static lv_obj_t *setting_btn_sub_checkbox_create(lv_obj_t *parent, int x, int y,
 ** 函数作用：创建开关的按钮
 ** 返回参数说明：
 ***/
-/***
-** 日期: 2022-05-05 14:31
-** 作者: leo.liu
-** 函数作用：创建开关的按钮
-** 返回参数说明：
-***/
 static lv_obj_t *setting_btn_sub_switch_create(lv_obj_t *parent, int x, int y, int w, int h, const char *main_string, bool focus)
 {
 	lv_obj_t *lv_switch = lv_switch_create(parent == NULL ? lv_scr_act() : parent, NULL);
@@ -524,7 +517,7 @@ static lv_obj_t *setting_btn_sub_switch_create(lv_obj_t *parent, int x, int y, i
 		lv_obj_set_style_local_value_align(lv_switch, LV_SWITCH_PART_BG, LV_STATE_DEFAULT, LV_ALIGN_IN_LEFT_MID);
 		lv_obj_set_style_local_value_ofs_x(lv_switch, LV_SWITCH_PART_BG, LV_STATE_DEFAULT, -w + 100);
 		lv_obj_set_style_local_value_color(lv_switch, LV_SWITCH_PART_BG, LV_STATE_DEFAULT, lv_color_make(0xFF, 0xFF, 0xFF)); /* 白色 */
-		lv_obj_set_style_local_value_color(lv_switch, LV_SWITCH_PART_BG, LV_STATE_PRESSED, lv_color_make(0xFF, 0xFF, 0xFF)); /* 灰色 */
+		lv_obj_set_style_local_value_color(lv_switch, LV_SWITCH_PART_BG, LV_STATE_PRESSED, lv_color_make(0x80, 0x80, 0x80)); /* 灰色 */
 	}
 
 	if (focus)

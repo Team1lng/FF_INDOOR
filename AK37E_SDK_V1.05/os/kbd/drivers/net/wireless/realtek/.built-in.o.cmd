@@ -1,1 +1,1 @@
-cmd_drivers/net/wireless/realtek/built-in.o :=  rm -f drivers/net/wireless/realtek/built-in.o; /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ar rcsD drivers/net/wireless/realtek/built-in.o
+cmd_drivers/net/wireless/realtek/built-in.o :=  rm -f drivers/net/wireless/realtek/built-in.o; /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ar rcsD drivers/net/wireless/realtek/built-in.o

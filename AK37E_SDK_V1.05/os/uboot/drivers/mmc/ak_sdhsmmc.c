@@ -797,7 +797,7 @@ static bool send_cmd(struct mmc *mmc, unsigned char cmd_index, unsigned char res
         while(1) {
             status = REG32((T_U32)priv_data->base_addr + s_SdRegStatus); 
             if ((status & CMD_TIME_OUT)||(status & CMD_CRC_FAIL)) {
-                printf("send cmd %d error, status = %x\n", cmd_index, status);
+                // printf("send cmd %d error, status = %x\n", cmd_index, status);
                 return AK_FALSE;       
             }
             else if (status & CMD_RESP_END) {
@@ -1148,7 +1148,7 @@ static int ak_mmc_send_cmd(struct mmc *mmc, struct mmc_cmd *cmd,
 
     /* normal send sd cmd */
     if (!send_cmd(mmc, cmd->cmdidx, flags, cmd->cmdarg)) {
-        printf("block rw command %d is failed!\n", cmd->cmdidx);
+        // printf("block rw command %d is failed!\n", cmd->cmdidx);
         return -1;
     }
 	/* get send sd cmd  response*/

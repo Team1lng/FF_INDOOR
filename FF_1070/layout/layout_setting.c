@@ -48,6 +48,8 @@ static void back_btn_create(lv_obj_t *parent)
     lv_obj_set_pos(back_icon_obj, 920, 25);
 	lv_obj_set_size(back_icon_obj, 50, 37);
 	lv_obj_set_id(back_icon_obj, HOME_BACK_OBJ_ID);
+	lv_obj_set_style_local_pattern_recolor(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, lv_color_hex(0x000000));
+	lv_obj_set_style_local_pattern_recolor_opa(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, LV_OPA_50); // 按下叠加50%黑色（深色）
 	static rom_bin_info info1 = rom_bin_info_get(ROM_UI_TIME_BACK_PNG);
 	lv_obj_set_style_local_pattern_image(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info1);
     static obj_click_data btn_data = obj_click_data_up_create(back_btn_up);
@@ -66,7 +68,7 @@ static void setting_icon_create(lv_obj_t *parent)
     lv_obj_t *Setting_label = lv_label_create(parent, NULL);
     lv_obj_set_pos(Setting_label, 87, 28);
 	lv_obj_set_size(Setting_label, 90, 31);
-    lv_label_set_text(Setting_label, "Setting");
+    lv_label_set_text(Setting_label,str_get(COMMON_LANG_LEFT_HEAD_SETTING_ID));
 	lv_obj_align(setting_icon_obj, Setting_label, LV_ALIGN_OUT_LEFT_MID, -5, 0);
 }
 
@@ -250,22 +252,6 @@ static bool setting_motion_detection_btn_create(lv_obj_t *center_cont)
 	lv_obj_set_ext_click_area(btn, 200, 50, 20, 20);
 
 }
-
-
-// static bool setting_motion_detection_btn_create(lv_obj_t *center_cont)
-// {
-// 	static obj_click_data click_data = obj_click_data_up_create(setting_motion_detection_btn_up);
-// 	setting_right_btn_base_create(center_cont, 220, 193 + (50 * 0), 390, 32,
-// 								  str_get(LAYOUT_SETTING_LANG_MOTION_DETECTION_ID),
-// 								  user_data_get()->motion.enable ? str_get(LAYOUT_SETTING_LANG_ON_ID) : str_get(LAYOUT_SETTING_LANG_OFF_ID),
-// 								  &click_data,
-// 								  SETTING_MOTION_DETECT);
-// 	return true;
-// }
-
-
-
-
 
 static void LAYOUT_ENTER_FUNC(setting)
 {

@@ -86,25 +86,33 @@ bool call_ring_to_outdoor_ctrl(AUDIO_CH ch, bool en);
 **   参数说明:
 ***/
 void monitor_record_pin_enable(bool en);
-
+/***
+** 日期: 2026-03-18 09:51
+** 作者: lynn
+** 函数作用：管理员通话控制
+** 返回参数说明：
+***/
+void guard_talking_pin_ctrl(bool en);
 /***
 ** 日期: 2022-05-20 14:11
 ** 作者: leo.liu
 ** 函数作用：音频传输到door1
 ** 返回参数说明：
 ***/
-// void audio_to_outdoor1_pin_ctrl(bool en);
+void audio_to_outdoor1_pin_ctrl(bool en);
 /***
 ** 日期: 2022-05-20 14:13
 ** 作者: leo.liu
 ** 函数作用：音频传输到door2
 ** 返回参数说明：
 ***/
-// void audio_to_outdoor2_pin_ctrl(bool en);
+void audio_to_outdoor2_pin_ctrl(bool en);
+
+void audio_to_inter_line_select_pin_ctrl(bool en);
 
 void gate_unlock_pin_ctrl(bool en);
 
-void elevator_on_pin_ctrl(bool en);
+// void elevator_on_pin_ctrl(bool en);
 
 void door1_power_enable(bool en);
 
@@ -112,14 +120,18 @@ void door2_power_enable(bool en);
 
 bool hook_state_get(void);
 
-bool rs485_send_recv_ctrl(int mask);
+// bool rs485_send_recv_ctrl(int mask);
 
 void ring_volume_set(int vol);
 
+void cctv1_power_pin_ctrl(bool en);
+
+void cctv2_power_pin_ctrl(bool en);
+
 // （false：door1 true：door2）
-void door_audio_video_select_pin_ctrl(bool en);
-// （false：断开 true：导通）
-void door_audio_video_enable_pin_ctrl(bool en);
+// void door_audio_video_select_pin_ctrl(bool en);
+// // （false：断开 true：导通）
+// void door_audio_video_enable_pin_ctrl(bool en);
 /***
 **   日期:2022-05-26 16:47:55
 **   作者: leo.liu
@@ -135,7 +147,8 @@ bool sercurity_sensor1_normal_check(void);
 ***/
 bool sercurity_sensor2_normal_check(void);
 // （false：cctv1 true：cctv2）
-void cctv_audio_video_enable_pin_ctrl(bool en);
+// void cctv_audio_video_enable_pin_ctrl(bool en);   lynn 26.3.10
+
 // 电源指示灯
 void power_led_enable(bool en);
 #endif

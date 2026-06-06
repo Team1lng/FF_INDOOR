@@ -1,1 +1,1 @@
-cmd_fs/ramfs/built-in.o :=  /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL   -r -o fs/ramfs/built-in.o fs/ramfs/ramfs.o 
+cmd_fs/ramfs/built-in.o :=  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL    -r -o fs/ramfs/built-in.o fs/ramfs/ramfs.o 

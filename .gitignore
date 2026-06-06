@@ -1,0 +1,53 @@
+# 所有压缩包（不上传）
+*.tar.gz
+*.tar
+*.gz
+*.bz2
+*.zip
+*.rar
+*.7z
+
+# Anyka SDK 构建产物
+*.BIN
+*.bin
+*.elf
+*.img
+*.hex
+*.dir/
+*.out/
+obj/
+out/
+build/
+build_*/
+install/
+release/
+
+# CMake 产物
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+
+# C/C++ 编译产物
+*.o
+*.a
+*.so
+*.so.*
+*.gch
+*.d
+*.dSYM/
+
+# 日志和临时文件
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# 白名单：只允许提交源码和配置
+!**/CMakeLists.txt
+!**/*.c
+!**/*.h
+!**/*.hpp
+!README.md

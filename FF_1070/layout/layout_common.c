@@ -1,6 +1,8 @@
 #include "layout_define.h"
 #include "ringplay.h"
+
 #define HOME_TOP_TIME_DATE_ID 0x1001
+
 /***
 ** 日期: 2022-05-20 17:30
 ** 作者: leo.liu
@@ -38,7 +40,7 @@ void layout_obj_click_down_func(lv_obj_t *obj)
 void ringplay_doorcall_start_default_func(int index)
 {
 	MON_CH ch = monitor_channel_get();
-	ring_volume_set(ch == MON_CH_DOOR1 ? user_data_get()->setting.door1_ring_volume : user_data_get()->setting.door2_ring_volume);
+	ring_volume_set(ch == MON_CH_DOOR1 ? user_data_get()->setting.door_ring_volume : user_data_get()->setting.door_ring_volume); // lynn 26.3.13
 	call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, true);
 }
 /***
@@ -66,13 +68,13 @@ void layout_door1_call_default(void)
 	if (cur_layout_get() != pLAYOUT(camera) /* && cur_layout_get() != pLAYOUT(intercom_talk) */)
 	{
 
-		intercom_state_set(INTERCOM_STATE_HUNG_UP);
+		intercom_state_set(IDLE_WAITING);  /* 修改：替换为IDLE_WAITING */
 		monitor_channel_set(MON_CH_DOOR1);
 		monitor_enter_mask_set(MON_ENTER_CALL);
 		goto_layout(pLAYOUT(camera));
 		// if (hook_state_get() == false)
 		// {
-		// ringplay_play_form_index(user_data_get()->setting.door1_tone, 100, ringplay_doorcall_start_default_func, ringplay_doorcall_finish_default_func, false);
+		// 	ringplay_play_form_index(user_data_get()->setting.door1_tone, user_data_get()->setting.door_ring_volume, ringplay_doorcall_start_default_func, ringplay_doorcall_finish_default_func, false);
 		// }
 	}
 }
@@ -88,16 +90,31 @@ void layout_door2_call_default(void)
 	monitor_valid_channel_set(MON_CH_DOOR2, true);
 	if (cur_layout_get() != pLAYOUT(camera) /* && cur_layout_get() != pLAYOUT(intercom_talk) */)
 	{
-		intercom_state_set(INTERCOM_STATE_HUNG_UP);
+		intercom_state_set(IDLE_WAITING);  /* 修改：替换为IDLE_WAITING */
 		monitor_channel_set(MON_CH_DOOR2);
 		monitor_enter_mask_set(MON_ENTER_CALL);
 		goto_layout(pLAYOUT(camera));
 		// if (hook_state_get() == false)
 		// {
-		// ringplay_play_form_index(user_data_get()->setting.door2_tone, 100, ringplay_doorcall_start_default_func, ringplay_doorcall_finish_default_func, false);
+		// ringplay_play_form_index(user_data_get()->setting.door2_tone, user_data_get()->setting.door_ring_volume, ringplay_doorcall_start_default_func, ringplay_doorcall_finish_default_func, false);
 		// }
 	}
 }
+
+/***
+** 日期: 2022-05-12 10:27
+** 作者: leo.liu
+** 函数作用：call camera 默认处理函数
+** 返回参数说明：
+***/
+void layout_call_camera_default(void)
+{
+
+	power_amplifier_enable(false);
+	ringplay_play_stop();
+	goto_layout(pLAYOUT(calling));
+
+} // lynn 26.3.14
 
 #define GATE_OPEN_DELAY 1000 // ms
 #define ELEVATOR_CALL_DELAY 1000
@@ -109,14 +126,14 @@ static void gate_open_task(lv_task_t *task_t)
 	gate_open_task_t = NULL;
 }
 
-static lv_task_t *elevator_call_task_t = NULL;
+// static lv_task_t *elevator_call_task_t = NULL;
 
-static void elevator_call_task(lv_task_t *task_t)
-{
-	elevator_on_pin_ctrl(false);
-	lv_task_del(elevator_call_task_t);
-	elevator_call_task_t = NULL;
-}
+// static void elevator_call_task(lv_task_t *task_t)
+// {
+// 	elevator_on_pin_ctrl(false);
+// 	lv_task_del(elevator_call_task_t);
+// 	elevator_call_task_t = NULL;
+// }
 void open_ring_play_start_default_func(int index)
 {
 	ring_volume_set(OPEN_TONE_VOL);
@@ -147,16 +164,16 @@ void layout_gate_open_default(void)
 ** 函数作用：室内机呼梯键按下 默认处理函数
 ** 返回参数说明：
 ***/
-void layout_elevator_call_default(void)
-{
-	if (elevator_call_task_t == NULL)
-	{
-		elevator_on_pin_ctrl(true);
-		ringplay_play_form_index(7, 100, open_ring_play_start_default_func, open_ring_play_finish_default_func, false);
-		elevator_call_task_t = lv_layout_task_create(elevator_call_task, ELEVATOR_CALL_DELAY, LV_TASK_PRIO_LOW, NULL);
-		elevator_call_task_t->clean_lock = false;
-	}
-}
+// void layout_elevator_call_default(void)
+// {
+// 	if (elevator_call_task_t == NULL)
+// 	{
+// 		elevator_on_pin_ctrl(true);
+// 		ringplay_play_form_index(7, 100, open_ring_play_start_default_func, open_ring_play_finish_default_func, false);
+// 		elevator_call_task_t = lv_layout_task_create(elevator_call_task, ELEVATOR_CALL_DELAY, LV_TASK_PRIO_LOW, NULL);
+// 		elevator_call_task_t->clean_lock = false;
+// 	}
+// }
 /***
 ** 日期: 2022-05-12 10:27
 ** 作者: leo.liu
@@ -171,6 +188,11 @@ bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg)
 	}
 	else if (cur_layout_get() == pLAYOUT(standby))
 	{
+		if (cmd == true)
+		{
+			printf("=============>>>  home \n");
+			goto_layout(pLAYOUT(home));
+		}
 		return true;
 	}
 	else if (cur_layout_get() == pLAYOUT(camera))
@@ -187,18 +209,18 @@ bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg)
 			{
 				printf("=========================>>>> door1 talking \n");
 				door_audio_talk(AUDIO_CH_DOOR1);
-				if (call_record_answered(CALL_DOOR_STATION_1))
-				{
-					printf("Call answered for door station 1\n");
-				}
+				// if (call_record_answered(CALL_DOOR_STATION_1))
+				// {
+				// 	printf("Call answered for door station 1\n");
+				// }
 			}
 			else if (ch == MON_CH_DOOR2)
 			{
 				printf("=========================>>>> door2 talking \n");
-				if (call_record_answered(CALL_DOOR_STATION_2))
-				{
-					printf("Call answered for door station 1\n");
-				}
+				// if (call_record_answered(CALL_DOOR_STATION_2))
+				// {
+				// 	printf("Call answered for door station 1\n");
+				// }
 				door_audio_talk(AUDIO_CH_DOOR2);
 			}
 			extern void camera_timeout_value_reset(void);
@@ -213,17 +235,21 @@ bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg)
 	}
 	else if (cur_layout_get() == pLAYOUT(intercom_in))
 	{
-		if (cmd == true && intercom_state_get() != INTERCOM_STATE_HUNG_UP && intercom_state_get() != INTERCOM_STATE_IDLE)
+		/* 摘机接听：须调 MsgCallAccept 与底层协议一致 */
+		if (cmd == true && intercom_state_get() == INTERCOM_STATE_CALLING_IN)
 		{
 			ringplay_play_stop();
 			call_record_answered(0);
-			printf("=============>>> intercom in talking \n");
+			printf("=============>>> intercom in talking (hook)\n");
+			MsgCallAccept();
 			goto_layout(pLAYOUT(intercom_talk));
 		}
 		else if (cmd == false)
 		{
-			printf("=============>>> 挂断 \n");
-			intercom_state_set(INTERCOM_STATE_HUNG_UP);
+			printf("=============>>> 挂断\n");
+			guard_talking_pin_ctrl(false);
+			MsgCallEnd();
+			intercom_state_set(INTERCOM_STATE_IDLE);
 			goto_layout(pLAYOUT(standby));
 		}
 	}
@@ -232,7 +258,9 @@ bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg)
 		if (cmd == false)
 		{
 			printf("=============>>> 挂断 \n");
-			intercom_state_set(INTERCOM_STATE_HUNG_UP);
+			guard_talking_pin_ctrl(false);
+			MsgCallEnd();
+			intercom_state_set(INTERCOM_STATE_IDLE);
 			goto_layout(pLAYOUT(standby));
 		}
 	}
@@ -241,7 +269,9 @@ bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg)
 		if (cmd == false)
 		{
 			printf("=============>>> 挂断 \n");
-			intercom_state_set(INTERCOM_STATE_HUNG_UP);
+			guard_talking_pin_ctrl(false);
+			MsgCallEnd();
+			intercom_state_set(INTERCOM_STATE_IDLE);
 			goto_layout(pLAYOUT(standby));
 		}
 	}
@@ -255,6 +285,14 @@ bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg)
 		}
 	}
 	return true;
+}
+
+void layout_intercom_out_default(unsigned int send_id, unsigned int cmd)
+{
+		printf("=============>>> huchu \n");
+		guard_talking_pin_ctrl(false);
+		intercom_state_set(INTERCOM_STATE_CALL_OUT);
+		goto_layout(pLAYOUT(intercom_out));
 }
 
 /***
@@ -486,7 +524,7 @@ void monitor_display_color_vol_set(int vol)
 // 重新封装铃声播放函数
 void ring_play(int index, int volume, ringplay_callback start, ringplay_callback finish, bool loop)
 {
-	if (0 == (monitor_channel_get() == MON_CH_DOOR1 ? user_data_get()->setting.door1_ring_volume : user_data_get()->setting.door2_ring_volume))
+	if (0 == (monitor_channel_get() == MON_CH_DOOR1 ? user_data_get()->setting.door_ring_volume : user_data_get()->setting.door_ring_volume)) // lynn 26.3.13
 	{
 		power_amplifier_enable(false);
 	}
@@ -501,7 +539,7 @@ void ring_play(int index, int volume, ringplay_callback start, ringplay_callback
 lv_obj_t *photo_and_video_btn_create(lv_obj_t *parent, custom_area btn_area, const char *string, obj_click_data *btn_pdata, const void *icon_src, bool underline, bool string_select)
 {
 	lv_obj_t *btn_obj = lv_obj_create(parent, NULL);
-	//lv_obj_set_ext_click_area(btn_obj, 12, 12, 10, 15);
+	// lv_obj_set_ext_click_area(btn_obj, 12, 12, 10, 15);
 	lv_obj_set_pos(btn_obj, btn_area.x, btn_area.y);
 	lv_obj_set_size(btn_obj, btn_area.w, btn_area.h);
 	if (icon_src != NULL)
@@ -518,10 +556,10 @@ lv_obj_t *photo_and_video_btn_create(lv_obj_t *parent, custom_area btn_area, con
 	// lv_obj_set_style_local_pattern_recolor_opa(btn_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, LV_OPA_50); // 按下叠加50%黑色（深色）
 
 	lv_obj_set_style_local_bg_color(btn_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFFFFFF)); // 白色背景（或与父容器同色）
-	lv_obj_set_style_local_bg_opa(btn_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0); // 完全透明，默认不显示
+	lv_obj_set_style_local_bg_opa(btn_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);				  // 完全透明，默认不显示
 
 	lv_obj_set_style_local_bg_color(btn_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, lv_color_hex(0xAAAAAA)); // 深灰色背景
-	lv_obj_set_style_local_bg_opa(btn_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, LV_OPA_100); // 完全不透明，显示区域
+	lv_obj_set_style_local_bg_opa(btn_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, LV_OPA_100);				  // 完全不透明，显示区域
 
 	if (string != NULL)
 	{
@@ -591,7 +629,6 @@ static void home_time_display_task(lv_task_t *task_t)
 	prev_tm = tm;
 }
 
-
 bool top_time_date_text_create(lv_obj_t *parent) // 正上方时间显示 非sdandby时间
 {
 	/***** 创建时间容器 *****/
@@ -628,7 +665,7 @@ bool top_time_date_text_create(lv_obj_t *parent) // 正上方时间显示 非sda
 
 //     lv_obj_t *left_head_label = lv_label_create(parent, NULL);
 //     if(left_head_label != NULL) {
-//         lv_label_set_text(left_head_label, str_get(id)); 
+//         lv_label_set_text(left_head_label, str_get(id));
 //         lv_obj_set_style_local_text_color(left_head_label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFFFFFF));
 //         lv_obj_set_style_local_text_font(left_head_label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, FONT_SIZE(24));
 //         lv_obj_align(left_head_label, setting_icon_obj, LV_ALIGN_OUT_LEFT_MID, -5, 0);

@@ -12,29 +12,29 @@
 	.file	"asm-offsets.c"
 @ GNU C (Buildroot 2018.02.7_V1.0.05-gec2d034) version 4.9.4 (arm-anykav500-linux-uclibcgnueabi)
 @	compiled by GNU C version 5.4.0 20160609, GMP version 6.1.2, MPFR version 3.1.6, MPC version 1.0.3
-@ warning: GMP header version 6.1.2 differs from library version 6.2.1.
-@ warning: MPFR header version 3.1.6 differs from library version 4.1.0.
-@ warning: MPC header version 1.0.3 differs from library version 1.2.1.
+@ warning: MPFR header version 3.1.6 differs from library version 4.0.1.
+@ warning: MPC header version 1.0.3 differs from library version 1.1.0.
 @ GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
-@ 传递的选项：  -nostdinc
-@ -I /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include
+@ options passed:  -nostdinc
+@ -I /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include
 @ -I arch/arm/include/generated/uapi -I arch/arm/include/generated
-@ -I /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include -I include
-@ -I /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/uapi
+@ -I /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include
+@ -I include
+@ -I /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/uapi
 @ -I arch/arm/include/generated/uapi
-@ -I /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi
+@ -I /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi
 @ -I include/generated/uapi
-@ -I /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/. -I .
-@ -I /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/mach-anycloud/include
-@ -iprefix /opt/arm-anykav500-linux-uclibcgnueabi/bin/../lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/
-@ -isysroot /opt/arm-anykav500-linux-uclibcgnueabi/arm-anykav500-linux-uclibcgnueabi/sysroot
+@ -I /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/. -I .
+@ -I /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/mach-anycloud/include
+@ -iprefix /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/../lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/
+@ -isysroot /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/arm-anykav500-linux-uclibcgnueabi/sysroot
 @ -D __KERNEL__ -D __LINUX_ARM_ARCH__=5 -U arm -D CC_HAVE_ASM_GOTO
 @ -D KBUILD_STR(s)=#s -D KBUILD_BASENAME=KBUILD_STR(asm_offsets)
 @ -D KBUILD_MODNAME=KBUILD_STR(asm_offsets)
-@ -isystem /opt/arm-anykav500-linux-uclibcgnueabi/bin/../lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/include
-@ -include /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/kconfig.h
+@ -isystem /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/../lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/include
+@ -include /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/kconfig.h
 @ -MD arch/arm/kernel/.asm-offsets.s.d
-@ /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c
+@ /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c
 @ -mlittle-endian -mapcs -mno-sched-prolog -mabi=aapcs-linux
 @ -mno-thumb-interwork -mfpu=vfp -marm -march=armv5te -mtune=arm9tdmi
 @ -mfloat-abi=soft -mtls-dialect=gnu
@@ -49,7 +49,7 @@
 @ -fno-var-tracking-assignments -fno-strict-overflow
 @ -fno-merge-all-constants -fmerge-constants -fstack-check=no
 @ -fconserve-stack -fverbose-asm --param allow-store-data-races=0
-@ 启用的选项：  -faggressive-loop-optimizations -fauto-inc-dec
+@ options enabled:  -faggressive-loop-optimizations -fauto-inc-dec
 @ -fbranch-count-reg -fcaller-saves -fcombine-stack-adjustments
 @ -fcompare-elim -fcprop-registers -fcrossjumping -fcse-follow-jumps
 @ -fdefer-pop -fdevirtualize -fdevirtualize-speculatively -fearly-inlining
@@ -127,255 +127,255 @@ main:
 	stmfd	sp!, {fp, ip, lr, pc}	@,
 	sub	fp, ip, #4	@,,
 #APP
-@ 61 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 61 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->TSK_ACTIVE_MM #312 offsetof(struct task_struct, active_mm)"	@
 @ 0 "" 2
-@ 65 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 65 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->"
 @ 0 "" 2
-@ 66 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 66 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->TI_FLAGS #0 offsetof(struct thread_info, flags)"	@
 @ 0 "" 2
-@ 67 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 67 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->TI_PREEMPT #4 offsetof(struct thread_info, preempt_count)"	@
 @ 0 "" 2
-@ 68 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 68 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->TI_ADDR_LIMIT #8 offsetof(struct thread_info, addr_limit)"	@
 @ 0 "" 2
-@ 69 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 69 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->TI_TASK #12 offsetof(struct thread_info, task)"	@
 @ 0 "" 2
-@ 70 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 70 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->TI_CPU #16 offsetof(struct thread_info, cpu)"	@
 @ 0 "" 2
-@ 71 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 71 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->TI_CPU_DOMAIN #20 offsetof(struct thread_info, cpu_domain)"	@
 @ 0 "" 2
-@ 72 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 72 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->TI_CPU_SAVE #24 offsetof(struct thread_info, cpu_context)"	@
 @ 0 "" 2
-@ 73 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 73 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->TI_USED_CP #76 offsetof(struct thread_info, used_cp)"	@
 @ 0 "" 2
-@ 74 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 74 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->TI_TP_VALUE #92 offsetof(struct thread_info, tp_value)"	@
 @ 0 "" 2
-@ 75 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 75 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->TI_FPSTATE #104 offsetof(struct thread_info, fpstate)"	@
 @ 0 "" 2
-@ 91 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 91 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->"
 @ 0 "" 2
-@ 92 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 92 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_R0 #0 offsetof(struct pt_regs, ARM_r0)"	@
 @ 0 "" 2
-@ 93 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 93 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_R1 #4 offsetof(struct pt_regs, ARM_r1)"	@
 @ 0 "" 2
-@ 94 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 94 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_R2 #8 offsetof(struct pt_regs, ARM_r2)"	@
 @ 0 "" 2
-@ 95 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 95 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_R3 #12 offsetof(struct pt_regs, ARM_r3)"	@
 @ 0 "" 2
-@ 96 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 96 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_R4 #16 offsetof(struct pt_regs, ARM_r4)"	@
 @ 0 "" 2
-@ 97 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 97 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_R5 #20 offsetof(struct pt_regs, ARM_r5)"	@
 @ 0 "" 2
-@ 98 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 98 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_R6 #24 offsetof(struct pt_regs, ARM_r6)"	@
 @ 0 "" 2
-@ 99 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 99 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_R7 #28 offsetof(struct pt_regs, ARM_r7)"	@
 @ 0 "" 2
-@ 100 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 100 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_R8 #32 offsetof(struct pt_regs, ARM_r8)"	@
 @ 0 "" 2
-@ 101 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 101 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_R9 #36 offsetof(struct pt_regs, ARM_r9)"	@
 @ 0 "" 2
-@ 102 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 102 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_R10 #40 offsetof(struct pt_regs, ARM_r10)"	@
 @ 0 "" 2
-@ 103 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 103 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_FP #44 offsetof(struct pt_regs, ARM_fp)"	@
 @ 0 "" 2
-@ 104 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 104 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_IP #48 offsetof(struct pt_regs, ARM_ip)"	@
 @ 0 "" 2
-@ 105 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 105 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_SP #52 offsetof(struct pt_regs, ARM_sp)"	@
 @ 0 "" 2
-@ 106 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 106 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_LR #56 offsetof(struct pt_regs, ARM_lr)"	@
 @ 0 "" 2
-@ 107 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 107 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_PC #60 offsetof(struct pt_regs, ARM_pc)"	@
 @ 0 "" 2
-@ 108 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 108 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_PSR #64 offsetof(struct pt_regs, ARM_cpsr)"	@
 @ 0 "" 2
-@ 109 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 109 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_OLD_R0 #68 offsetof(struct pt_regs, ARM_ORIG_r0)"	@
 @ 0 "" 2
-@ 110 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 110 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->S_FRAME_SIZE #72 sizeof(struct pt_regs)"	@
 @ 0 "" 2
-@ 111 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 111 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->"
 @ 0 "" 2
-@ 127 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 127 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->VMA_VM_MM #32 offsetof(struct vm_area_struct, vm_mm)"	@
 @ 0 "" 2
-@ 128 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 128 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->VMA_VM_FLAGS #40 offsetof(struct vm_area_struct, vm_flags)"	@
 @ 0 "" 2
-@ 129 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 129 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->"
 @ 0 "" 2
-@ 130 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 130 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->VM_EXEC #4 VM_EXEC"	@
 @ 0 "" 2
-@ 131 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 131 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->"
 @ 0 "" 2
-@ 132 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 132 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->PAGE_SZ #4096 PAGE_SIZE"	@
 @ 0 "" 2
-@ 133 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 133 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->"
 @ 0 "" 2
-@ 134 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 134 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->SYS_ERROR0 #10420224 0x9f0000"	@
 @ 0 "" 2
-@ 135 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 135 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->"
 @ 0 "" 2
-@ 136 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 136 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->SIZEOF_MACHINE_DESC #100 sizeof(struct machine_desc)"	@
 @ 0 "" 2
-@ 137 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 137 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->MACHINFO_TYPE #0 offsetof(struct machine_desc, nr)"	@
 @ 0 "" 2
-@ 138 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 138 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->MACHINFO_NAME #4 offsetof(struct machine_desc, name)"	@
 @ 0 "" 2
-@ 139 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 139 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->"
 @ 0 "" 2
-@ 140 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 140 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->PROC_INFO_SZ #52 sizeof(struct proc_info_list)"	@
 @ 0 "" 2
-@ 141 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 141 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->PROCINFO_INITFUNC #16 offsetof(struct proc_info_list, __cpu_flush)"	@
 @ 0 "" 2
-@ 142 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 142 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->PROCINFO_MM_MMUFLAGS #8 offsetof(struct proc_info_list, __cpu_mm_mmu_flags)"	@
 @ 0 "" 2
-@ 143 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 143 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->PROCINFO_IO_MMUFLAGS #12 offsetof(struct proc_info_list, __cpu_io_mmu_flags)"	@
 @ 0 "" 2
-@ 144 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 144 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->"
 @ 0 "" 2
-@ 160 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 160 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->SLEEP_SAVE_SP_SZ #8 sizeof(struct sleep_save_sp)"	@
 @ 0 "" 2
-@ 161 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 161 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->SLEEP_SAVE_SP_PHYS #4 offsetof(struct sleep_save_sp, save_ptr_stash_phys)"	@
 @ 0 "" 2
-@ 162 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 162 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->SLEEP_SAVE_SP_VIRT #0 offsetof(struct sleep_save_sp, save_ptr_stash)"	@
 @ 0 "" 2
-@ 164 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 164 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->"
 @ 0 "" 2
-@ 165 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 165 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->DMA_BIDIRECTIONAL #0 DMA_BIDIRECTIONAL"	@
 @ 0 "" 2
-@ 166 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 166 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->DMA_TO_DEVICE #1 DMA_TO_DEVICE"	@
 @ 0 "" 2
-@ 167 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 167 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->DMA_FROM_DEVICE #2 DMA_FROM_DEVICE"	@
 @ 0 "" 2
-@ 168 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 168 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->"
 @ 0 "" 2
-@ 169 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 169 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->CACHE_WRITEBACK_ORDER #6 __CACHE_WRITEBACK_ORDER"	@
 @ 0 "" 2
-@ 170 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 170 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->CACHE_WRITEBACK_GRANULE #64 __CACHE_WRITEBACK_GRANULE"	@
 @ 0 "" 2
-@ 171 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 171 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->"
 @ 0 "" 2
-@ 209 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
+@ 209 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/asm-offsets.c" 1
 	
 .ascii "->"
 @ 0 "" 2

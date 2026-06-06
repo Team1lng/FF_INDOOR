@@ -1,1 +1,1 @@
-cmd_virt/built-in.o :=  /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL    -r -o virt/built-in.o virt/lib/built-in.o 
+cmd_virt/built-in.o :=  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL    -r -o virt/built-in.o virt/lib/built-in.o 

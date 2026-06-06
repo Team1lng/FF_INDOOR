@@ -1,1 +1,1 @@
-cmd_crypto/crypto_hash.o := /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL   -r -o crypto/crypto_hash.o crypto/ahash.o crypto/shash.o 
+cmd_crypto/crypto_hash.o := /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL    -r -o crypto/crypto_hash.o crypto/ahash.o crypto/shash.o 

@@ -754,7 +754,7 @@
 
 // 	playback_total_label_create();
 
-// 	lyaout_sd_state_callback_register(photo_list_sdcard_state_change_func);
+// 	layout_sd_state_callback_register(photo_list_sdcard_state_change_func);
 	
 //     setting_icon_create(parent);
 // }
@@ -775,7 +775,7 @@
 // 	// 	lv_task_del(sdcard_insert_detect);
 // 	// 	sdcard_insert_detect = NULL;
 // 	// }
-// 	lyaout_sd_state_callback_register(NULL);
+// 	layout_sd_state_callback_register(NULL);
 // 	if ((cur_layout != pLAYOUT(memory_photo)) && (cur_layout != pLAYOUT(photo_list)))
 // 		photo_index_set(0);
 // }

@@ -43,7 +43,7 @@ CONFIG_PLATFORM_ARM_ANYKA = y
 ifeq ($(CONFIG_PLATFORM_ARM_ANYKA), y)
 EXTRA_CFLAGS += -DCONFIG_LITTLE_ENDIAN
 ARCH := arm
-CROSS_COMPILE := arm-anykav500-linux-uclibcgnueabi-
+CROSS_COMPILE := /home/blueen/samba/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-
 KVER := $(shell uname -r)
 ifndef KSRC
     KSRC := $(shell pwd)/../../kbd

@@ -1,1 +1,1 @@
-cmd_drivers/media/firewire/built-in.o :=  rm -f drivers/media/firewire/built-in.o; /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ar rcsD drivers/media/firewire/built-in.o
+cmd_drivers/media/firewire/built-in.o :=  rm -f drivers/media/firewire/built-in.o; /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ar rcsD drivers/media/firewire/built-in.o

@@ -121,9 +121,7 @@ bool gpio_pull_enable(const int pin, bool enable)
 		return false;
 	}
 
-	char gpio_pull_buf[128] =
-	    {
-		0};
+	char gpio_pull_buf[128] ={0};
 	sprintf(gpio_pull_buf, "/sys/class/gpio/gpio%d/pull_enable", pin);
 	int gpio_pull_fd = open(gpio_pull_buf, O_WRONLY);
 
@@ -155,9 +153,7 @@ bool gpio_pull_enable(const int pin, bool enable)
 ***/
 bool gpio_level_set(const int pin, GPIO_LEVEL level)
 {
-	char gpio_buf[64] =
-	    {
-		0};
+	char gpio_buf[64] ={0};
 	sprintf(gpio_buf, "/sys/class/gpio/gpio%d/value", pin);
 	int gpio_fd = open(gpio_buf, O_WRONLY);
 
@@ -173,7 +169,6 @@ bool gpio_level_set(const int pin, GPIO_LEVEL level)
 		close(gpio_fd);
 		return false;
 	}
-
 	close(gpio_fd);
 	return true;
 }
@@ -186,9 +181,7 @@ bool gpio_level_set(const int pin, GPIO_LEVEL level)
 ***/
 bool gpio_level_read(const int pin, GPIO_LEVEL *level)
 {
-	char gpio_buf[64] =
-	    {
-		0};
+	char gpio_buf[64] ={0};
 	sprintf(gpio_buf, "/sys/class/gpio/gpio%d/value", pin);
 	int gpio_fd = open(gpio_buf, O_RDONLY);
 

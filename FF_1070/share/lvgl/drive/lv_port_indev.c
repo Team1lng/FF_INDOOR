@@ -341,7 +341,6 @@ static bool touchpad_read(lv_indev_drv_t *drv, lv_indev_data_t *data)
     data->point.x = evdev_root_x; // evdev_root_y;
     data->point.y = evdev_root_y; // evdev_root_x ? lv_disp_get_ver_res(drv->disp) - evdev_root_x : 0;
 #endif
-
     data->state = evdev_button;
 
     if (data->point.x < 0)

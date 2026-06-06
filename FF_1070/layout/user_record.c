@@ -29,7 +29,6 @@ static void jpeg_encode_callback(struct video_stream *stream)
 		{
 			printf("\n\n snap jpg:%s %dkb \n\n", file_path, stream->len / 1024);
 			write(fd, stream->data, stream->len);
-
 			close(fd);
 		}
 		else

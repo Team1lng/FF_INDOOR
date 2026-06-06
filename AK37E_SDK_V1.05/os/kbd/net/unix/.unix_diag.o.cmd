@@ -1,1 +1,1 @@
-cmd_net/unix/unix_diag.o := /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL   -r -o net/unix/unix_diag.o net/unix/diag.o 
+cmd_net/unix/unix_diag.o := /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL    -r -o net/unix/unix_diag.o net/unix/diag.o 

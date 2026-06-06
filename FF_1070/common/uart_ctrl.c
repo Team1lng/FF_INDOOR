@@ -147,7 +147,7 @@ static bool uart_parity_set(int fd, int data_bits, int stop_bits, int parity)
 如果VTIME=时间量，VMIN=0，不管能否读取到数据，read也要等待VTIME的时间量。
 如果VTIME=时间量，VMIN=要求等待读取的最小字节数，那么将从read读取第一个字节的数据时开始计时，并会在读取到VMIN个字节或者VTIME时间后返回。
 如果VTIME=0，VMIN=0，不管能否读取到数据，read都会立即返回 *****/
-	opt.c_cc[VTIME] = 1; // 设置超时为15sec
+	opt.c_cc[VTIME] = 0; // 设置超时为15sec
 	opt.c_cc[VMIN] = 0;	 // Update the opt and do it now
 	if (tcsetattr(fd, TCSANOW, &opt) != 0)
 	{
@@ -191,10 +191,15 @@ int uart_open(char *dev, int speed, int data_bits, int stop_bits, int parity)
 **   函数作用：发送串口数据
 **   参数说明:
 ***/
+#include <errno.h>
+
 int uart_write(int fd, char *data, int size)
 {
+	printf("[UART_WRITE] fd=%d size=%d data[0]=0x%02X\n", 
+		fd, size, (unsigned char)data[0]);
 	size = write(fd, data, size);
-	usleep(1 * 1000);
+	printf("[UART_WRITE] write ret=%d errno=%d\n", size, errno);
+	// usleep(1 * 1000);
 	return size;
 }
 

@@ -63,16 +63,16 @@ static void setting_time_year_left_btn_up(lv_obj_t *obj)
    
     sprintf(str_year, "%04d", temp_date.year);
     
-    lv_obj_t * aa= lv_obj_get_child_form_id(lv_scr_act(), 100);
-    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_YEAR_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_year);
-    lv_obj_invalidate(aa);
+    lv_obj_t * center_container= lv_obj_get_child_form_id(lv_scr_act(), 100);
+    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_YEAR_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_year);
+    lv_obj_invalidate(center_container);
     // 校验日期合法性（年变化可能影响当月天数）
     int mon_last_day =  user_western_calendar_month_last_day(temp_date.year, temp_date.month) ;
     if (temp_date.day > mon_last_day)
     {
         temp_date.day = mon_last_day;
         sprintf(str_day, "%02d", temp_date.day);
-        lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_DAY_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_day);
+        lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_DAY_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_day);
     }
 }
 // 右箭头：年份加1（同左箭头范围）
@@ -87,16 +87,16 @@ static void setting_time_year_btn_up(lv_obj_t *obj)
     time_change_flag = true;
     sprintf(str_year, "%04d", temp_date.year);
    
-    lv_obj_t * aa= lv_obj_get_child_form_id(lv_scr_act(), 100);
-    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_YEAR_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_year);
-    lv_obj_invalidate(aa);
+    lv_obj_t * center_container= lv_obj_get_child_form_id(lv_scr_act(), 100);
+    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_YEAR_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_year);
+    lv_obj_invalidate(center_container);
     // 校验日期合法性
     int mon_last_day = user_western_calendar_month_last_day(temp_date.year, temp_date.month);
     if (temp_date.day > mon_last_day)
     {
         temp_date.day = mon_last_day;
         sprintf(str_day, "%02d", temp_date.day);
-        lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_DAY_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_day);
+        lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_DAY_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_day);
     }
 }
 
@@ -127,16 +127,16 @@ static void setting_time_month_letf_btn_up(lv_obj_t *obj)
     // 更新显示
     sprintf(str_month, "%02d", temp_date.month);
    
-    lv_obj_t * aa= lv_obj_get_child_form_id(lv_scr_act(), 100);
-    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_MONTH_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_month);
-     lv_obj_invalidate(aa);
+    lv_obj_t * center_container= lv_obj_get_child_form_id(lv_scr_act(), 100);
+    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_MONTH_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_month);
+     lv_obj_invalidate(center_container);
     // 校验日期合法性（月变化影响当月天数）
     int mon_last_day = (user_data_get()->setting.calendar == 1) ? user_western_calendar_month_last_day(temp_date.year, temp_date.month) : user_persian_calendar_month_last_day(temp_date.year, temp_date.month);
     if (temp_date.day > mon_last_day)
     {
         temp_date.day = mon_last_day;
         sprintf(str_day, "%02d", temp_date.day);
-        lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_DAY_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_day);
+        lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_DAY_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_day);
     }
 }
 
@@ -148,16 +148,16 @@ static void setting_time_month_btn_up(lv_obj_t *obj)
     time_change_flag = true;
     sprintf(str_month, "%02d", temp_date.month);
 
-    lv_obj_t * aa= lv_obj_get_child_form_id(lv_scr_act(), 100);
-    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_MONTH_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_month);
-     lv_obj_invalidate(aa);
+    lv_obj_t * center_container= lv_obj_get_child_form_id(lv_scr_act(), 100);
+    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_MONTH_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_month);
+     lv_obj_invalidate(center_container);
     // 校验日期合法性
     int mon_last_day = (user_data_get()->setting.calendar == 1) ? user_western_calendar_month_last_day(temp_date.year, temp_date.month) : user_persian_calendar_month_last_day(temp_date.year, temp_date.month);
     if (temp_date.day > mon_last_day)
     {
         temp_date.day = mon_last_day;
         sprintf(str_day, "%02d", temp_date.day);
-        lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_DAY_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_day);
+        lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_DAY_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_day);
     }
 }
 
@@ -188,9 +188,9 @@ static void setting_time_day_left_btn_up(lv_obj_t *obj)
     time_change_flag = true;
     sprintf(str_day, "%02d", temp_date.day);
    
-    lv_obj_t * aa= lv_obj_get_child_form_id(lv_scr_act(), 100);
-    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_DAY_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_day);
-    lv_obj_invalidate(aa);
+    lv_obj_t * center_container= lv_obj_get_child_form_id(lv_scr_act(), 100);
+    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_DAY_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_day);
+    lv_obj_invalidate(center_container);
 }
 
 // 右箭头：日期加1（1-当月最后一天循环）
@@ -204,9 +204,9 @@ static void setting_time_day_btn_up(lv_obj_t *obj)
     time_change_flag = true;
     sprintf(str_day, "%02d", temp_date.day);
     
-    lv_obj_t * aa= lv_obj_get_child_form_id(lv_scr_act(), 100);
-    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_DAY_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_day);
-    lv_obj_invalidate(aa);
+    lv_obj_t * center_container= lv_obj_get_child_form_id(lv_scr_act(), 100);
+    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_DAY_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_day);
+    lv_obj_invalidate(center_container);
 }
 
 static bool day_btn_create(lv_obj_t *center_cont)
@@ -233,9 +233,9 @@ static void setting_time_hour_left_btn_up(lv_obj_t *obj)
     time_change_flag = true;
     sprintf(str_hour, "%02d", temp_tm.tm_hour);
   
-    lv_obj_t * aa= lv_obj_get_child_form_id(lv_scr_act(), 100);
-    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_HOUR_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_hour);
-    lv_obj_invalidate(aa);
+    lv_obj_t * center_container= lv_obj_get_child_form_id(lv_scr_act(), 100);
+    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_HOUR_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_hour);
+    lv_obj_invalidate(center_container);
 }
 
 // 右箭头：小时加1（0-23循环）
@@ -246,9 +246,9 @@ static void setting_time_hour_btn_up(lv_obj_t *obj)
     time_change_flag = true;
     sprintf(str_hour, "%02d", temp_tm.tm_hour);
     
-    lv_obj_t * aa= lv_obj_get_child_form_id(lv_scr_act(), 100);
-    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_HOUR_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_hour);
-    lv_obj_invalidate(aa);
+    lv_obj_t * center_container= lv_obj_get_child_form_id(lv_scr_act(), 100);
+    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_HOUR_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_hour);
+    lv_obj_invalidate(center_container);
 }
 
 
@@ -276,9 +276,9 @@ static void setting_time_minute_left_btn_up(lv_obj_t *obj)
     time_change_flag = true;
     sprintf(str_min, "%02d", temp_tm.tm_min);
 
-    lv_obj_t * aa= lv_obj_get_child_form_id(lv_scr_act(), 100);
-    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_MINUTE_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_min);
-    lv_obj_invalidate(aa);
+    lv_obj_t * center_container= lv_obj_get_child_form_id(lv_scr_act(), 100);
+    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_MINUTE_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_min);
+    lv_obj_invalidate(center_container);
 }
 
 // 右箭头：分钟加1（0-59循环）
@@ -289,9 +289,9 @@ static void setting_time_minute_btn_up(lv_obj_t *obj)
     time_change_flag = true;
     sprintf(str_min, "%02d", temp_tm.tm_min);
    
-    lv_obj_t * aa= lv_obj_get_child_form_id(lv_scr_act(), 100);
-    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(aa, SETTING_TIME_MINUTE_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_min);
-    lv_obj_invalidate(aa);
+    lv_obj_t * center_container= lv_obj_get_child_form_id(lv_scr_act(), 100);
+    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_TIME_MINUTE_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, str_min);
+    lv_obj_invalidate(center_container);
 }
 
 static bool min_btn_create(lv_obj_t *center_cont)
@@ -323,6 +323,8 @@ static void back_btn_create(lv_obj_t *parent)
 	lv_obj_set_style_local_pattern_image(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info1);
     static obj_click_data btn_data = obj_click_data_up_create(back_btn_up);
     obj_click_event_listen(back_icon_obj, &btn_data);
+    lv_obj_set_style_local_pattern_recolor(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, lv_color_hex(0x000000));
+	lv_obj_set_style_local_pattern_recolor_opa(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, LV_OPA_50); // 按下叠加50%黑色（深色）
 }
 
 /* setting 图标 */
@@ -338,7 +340,7 @@ static void setting_icon_create(lv_obj_t *parent)
     lv_obj_t *Time_label = lv_label_create(parent, NULL);
     lv_obj_set_pos(Time_label, 87, 28);
 	lv_obj_set_size(Time_label, 70, 31);
-    lv_label_set_text(Time_label, "Time");
+    lv_label_set_text(Time_label,str_get(COMMON_LANG_LEFT_HEAD_TIME_ID));
 	lv_obj_align(setting_icon_obj, Time_label, LV_ALIGN_OUT_LEFT_MID, -5, 0);
 }
 

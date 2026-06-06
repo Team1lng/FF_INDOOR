@@ -16,11 +16,10 @@
 #include "lv_msg_event.h"
 #include "ringplay.h"
 #include "user_common.h"
+#include "intercom.h"
 extern void lv_init(void);
 extern void lv_display_init(void);
 extern void lv_port_indev_init(void);
-
-extern void upgrade_check_firmware(void);
 
 // 快速进入系统的标志位
 bool LEO_FAST_ENTER_SYSTEM_FLAG = false;
@@ -47,6 +46,7 @@ static void project_printf(void)
 
 static void start_daemon_process(void)
 {
+	return;
 	FILE *fp = popen("ps aux | grep daemon_process.sh | grep -v grep | wc -l", "r");
 	char buffer[3] = {0};
 	fgets(buffer, sizeof(buffer), fp);
@@ -105,6 +105,8 @@ static void lv_task_scheduling_start(void)
 
 	while (1)
 	{
+		/* 内线协议栈与定时器：须在任意界面周期轮询，否则被叫在主页等页面无法收握手帧 */
+		// modbusIntercomListener();
 		lv_task_handler();
 		usleep(1000);
 	}
@@ -135,13 +137,6 @@ int main(int argc, char *argv[])
 
 	/***** 获取用户数据 *****/
 	user_data_init();
-
-	/***** 固件升级 *****/
-	// upgrade_check_firmware();
-
-	/***** 升级完成，复位标志位 *****/
-	// user_data_get()->upgrade_success_flag = false;
-	// user_data_save();
 
 	/***** 初始化安凯sdk *****/
 	platform_sdk_init();

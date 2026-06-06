@@ -1,28 +1,28 @@
-cmd_scripts/mod/devicetable-offsets.s := /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-gcc -Wp,-MD,scripts/mod/.devicetable-offsets.s.d -nostdinc -isystem /opt/arm-anykav500-linux-uclibcgnueabi/bin/../lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/include -I/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include -Iarch/arm/include/generated/uapi -Iarch/arm/include/generated  -I/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include -Iinclude -I/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi -Iinclude/generated/uapi -include /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/kconfig.h  -I/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/scripts/mod -Iscripts/mod -D__KERNEL__ -mlittle-endian   -I/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/mach-anycloud/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -std=gnu89 -fno-PIE -fno-dwarf2-cfi-asm -fno-omit-frame-pointer -mapcs -mno-sched-prolog -fno-ipa-sra -mabi=aapcs-linux -mno-thumb-interwork -mfpu=vfp -marm -D__LINUX_ARM_ARCH__=5 -march=armv5te -mtune=arm9tdmi -msoft-float -Uarm -fno-delete-null-pointer-checks -Wno-maybe-uninitialized -O2 --param=allow-store-data-races=0 -DCC_HAVE_ASM_GOTO -Wframe-larger-than=4096 -fno-stack-protector -Wno-unused-but-set-variable -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-var-tracking-assignments -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fno-merge-all-constants -fmerge-constants -fno-stack-check -fconserve-stack -Werror=implicit-int -Werror=strict-prototypes -Werror=date-time    -D"KBUILD_STR(s)=$(pound)s" -D"KBUILD_BASENAME=KBUILD_STR(devicetable_offsets)"  -D"KBUILD_MODNAME=KBUILD_STR(devicetable_offsets)"  -fverbose-asm -S -o scripts/mod/devicetable-offsets.s /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/scripts/mod/devicetable-offsets.c
+cmd_scripts/mod/devicetable-offsets.s := /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-gcc -Wp,-MD,scripts/mod/.devicetable-offsets.s.d  -nostdinc -isystem /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/../lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/include -I/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include -Iarch/arm/include/generated/uapi -Iarch/arm/include/generated  -I/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include -Iinclude -I/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi -Iinclude/generated/uapi -include /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/kconfig.h  -I/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/scripts/mod -Iscripts/mod -D__KERNEL__ -mlittle-endian   -I/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/mach-anycloud/include -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Werror-implicit-function-declaration -Wno-format-security -std=gnu89 -fno-PIE -fno-dwarf2-cfi-asm -fno-omit-frame-pointer -mapcs -mno-sched-prolog -fno-ipa-sra -mabi=aapcs-linux -mno-thumb-interwork -mfpu=vfp -marm -D__LINUX_ARM_ARCH__=5 -march=armv5te -mtune=arm9tdmi -msoft-float -Uarm -fno-delete-null-pointer-checks -Wno-maybe-uninitialized -O2 --param=allow-store-data-races=0 -DCC_HAVE_ASM_GOTO -Wframe-larger-than=4096 -fno-stack-protector -Wno-unused-but-set-variable -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-var-tracking-assignments -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fno-merge-all-constants -fmerge-constants -fno-stack-check -fconserve-stack -Werror=implicit-int -Werror=strict-prototypes -Werror=date-time    -D"KBUILD_STR(s)=$(pound)s" -D"KBUILD_BASENAME=KBUILD_STR(devicetable_offsets)"  -D"KBUILD_MODNAME=KBUILD_STR(devicetable_offsets)"  -fverbose-asm -S -o scripts/mod/devicetable-offsets.s /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/scripts/mod/devicetable-offsets.c
 
-source_scripts/mod/devicetable-offsets.s := /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/scripts/mod/devicetable-offsets.c
+source_scripts/mod/devicetable-offsets.s := /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/scripts/mod/devicetable-offsets.c
 
 deps_scripts/mod/devicetable-offsets.s := \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/kbuild.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/mod_devicetable.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/types.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/kbuild.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/mod_devicetable.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/types.h \
     $(wildcard include/config/have/uid16.h) \
     $(wildcard include/config/uid16.h) \
     $(wildcard include/config/lbdaf.h) \
     $(wildcard include/config/arch/dma/addr/t/64bit.h) \
     $(wildcard include/config/phys/addr/t/64bit.h) \
     $(wildcard include/config/64bit.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/types.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/types.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/int-ll64.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/asm-generic/int-ll64.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/types.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/types.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/int-ll64.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/asm-generic/int-ll64.h \
   arch/arm/include/generated/asm/bitsperlong.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/bitsperlong.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/asm-generic/bitsperlong.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/posix_types.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/stddef.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/stddef.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/compiler.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/bitsperlong.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/asm-generic/bitsperlong.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/posix_types.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/stddef.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/stddef.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/compiler.h \
     $(wildcard include/config/sparse/rcu/pointer.h) \
     $(wildcard include/config/trace/branch/profiling.h) \
     $(wildcard include/config/profile/all/branches.h) \
@@ -30,20 +30,20 @@ deps_scripts/mod/devicetable-offsets.s := \
     $(wildcard include/config/enable/must/check.h) \
     $(wildcard include/config/enable/warn/deprecated.h) \
     $(wildcard include/config/kprobes.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/compiler-gcc.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/compiler-gcc.h \
     $(wildcard include/config/arch/supports/optimized/inlining.h) \
     $(wildcard include/config/optimize/inlining.h) \
     $(wildcard include/config/gcov/kernel.h) \
     $(wildcard include/config/arch/use/builtin/bswap.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/uapi/asm/posix_types.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/asm-generic/posix_types.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/uuid.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/uuid.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/string.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/uapi/asm/posix_types.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/asm-generic/posix_types.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/uuid.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/uuid.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/string.h \
     $(wildcard include/config/binary/printf.h) \
-  /opt/arm-anykav500-linux-uclibcgnueabi/lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/include/stdarg.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/string.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/string.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/include/stdarg.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/string.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/string.h \
 
 scripts/mod/devicetable-offsets.s: $(deps_scripts/mod/devicetable-offsets.s)
 

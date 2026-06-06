@@ -1,20 +1,27 @@
 cmake_minimum_required(VERSION 3.16.3)
 
-set(CMAKE_C_COMPILER "/opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-gcc")
-set(CMAKE_CXX_COMPILER "/opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-g++")
-# set(CMAKE_C_COMPILER "/home/wxj/LiuJun/meiou_AK37D/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-gcc")
-# set(CMAKE_CXX_COMPILER "/home/wxj/LiuJun/meiou_AK37D/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-g++")
+# set(CMAKE_C_COMPILER "/opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-gcc")
+# set(CMAKE_CXX_COMPILER "/opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-g++")
+set(CMAKE_C_COMPILER "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-gcc")
+set(CMAKE_CXX_COMPILER "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-g++")
 
 # 设置编译器，此处为ARM平台，如果你安装了编译链就用名称，没安装请用绝对路径
 set(PROJECT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
-SET(leo_proj TABA.BIN)
+SET(leo_proj FF.BIN)
 project(${leo_proj})
 
 # 工程名
 SET(CMAKE_BUILD_TYPE "Release")
-SET(CMAKE_C_FLAGS_RELEASE "$ENV{CXXFLAGS} -Os -s -Wall -std=gnu11  -Werror")
-SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -Os  -s -Wall -std=c++1y -Werror")
+# SET(CMAKE_C_FLAGS_RELEASE "$ENV{CXXFLAGS} -Os -s -Wall -std=gnu11  -Werror")
+# SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -Os  -s -Wall -std=c++1y -Werror")
+
+SET(CMAKE_C_FLAGS_RELEASE "$ENV{CXXFLAGS} -Os -s -Wall -std=gnu11 -w ")
+SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -Os  -s -Wall -std=c++1y -w")
+
+# SET(CMAKE_BUILD_TYPE "Release")
+# SET(CMAKE_C_FLAGS_RELEASE "$ENV{CXXFLAGS} 	-O3 -Wall -std=gnu11 -w") # -Werror
+# SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall -std=c++1y -w") # -Werror
 
 include_directories(
 	${PROJECT_PATH}include/
@@ -31,6 +38,8 @@ include_directories(
 
 # 添加src目录
 aux_source_directory(${PROJECT_PATH}layout/ DIR_SRCS)
+
+
 
 add_subdirectory(${PROJECT_PATH}common ${CMAKE_CURRENT_SOURCE_DIR}/common/)
 add_subdirectory(${PROJECT_PATH}share ${CMAKE_CURRENT_SOURCE_DIR}/share/)

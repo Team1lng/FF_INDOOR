@@ -7,7 +7,6 @@ typedef enum
     MOTION_TASK_NO_SDCARD_DISP,  // SD卡状态任务
     MOTION_TASK_RECORD_IMAGE,    // 拍照结束任务
     MOTION_TASK_RECORD_VIDEO,    // 录像倒计时任务
-    MOTION_TASK_MONITOR_COUNT,   // 监控倒计时任务
     MOTION_TASK_PHOTO_COUNTDOWN, // 新增：拍照倒计时任务
     MOTION_TASK_TOTAL
 } motion_ticker_type;
@@ -109,12 +108,6 @@ static void camera_head_time_display_task(void)
     camera_head_time_display_flush();
 }
 
-// 监控倒计时任务
-static void camera_monitor_count_dowm_task(void)
-{
-    camera_head_monitor_count_flush();
-}
-
 // 无SD卡显示任务
 static void camera_sdcard_display_task(void)
 {
@@ -208,7 +201,6 @@ ticker_task_t motion_detection_ticker_task[MOTION_TASK_TOTAL] = {
     {false, 4, 4, camera_sdcard_display_task},          // 2秒刷新一次SD卡状态
     {false, 2, 2, camera_record_image_end_task},        // 1秒后结束拍照提示
     {false, 1, 1, camera_record_video_count_down_task}, // 500ms刷新一次录像倒计时
-    {false, 2, 2, camera_monitor_count_dowm_task},      // 1秒刷新一次监控倒计时
     {false, 1, 1, camera_photo_countdown_task}          // 500ms刷新一次拍照倒计时
 };
 
@@ -246,15 +238,15 @@ static void layout_monitor_detection_refresh_1(void)
 }
 
 // 创建顶部背景条
-static void camera_func_btn_topbg_block_create(lv_obj_t *parent)
-{
-    lv_obj_t *obj = lv_obj_create(parent, NULL);
-    lv_obj_set_click(obj, false);
-    lv_obj_set_pos(obj, 0, 0);
-    lv_obj_set_size(obj, 1024, 70);
-    lv_obj_set_style_local_bg_color(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x000000));
-    lv_obj_set_style_local_bg_opa(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_50);
-}
+// static void camera_func_btn_topbg_block_create(lv_obj_t *parent)
+// {
+//     lv_obj_t *obj = lv_obj_create(parent, NULL);
+//     lv_obj_set_click(obj, false);
+//     lv_obj_set_pos(obj, 0, 0);
+//     lv_obj_set_size(obj, 1024, 70);
+//     lv_obj_set_style_local_bg_color(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x000000));
+//     lv_obj_set_style_local_bg_opa(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_50);
+// }
 
 // 创建通道标签
 static void camera_head_channel_label_create(lv_obj_t *parent)
@@ -299,7 +291,7 @@ static void motion_detection_record_state_display_flush(void)
     static rom_bin_info info_photo = rom_bin_info_get(ROM_UI_CAMERA_MOTION_DETECTION_PHOTO_PNG);
     static rom_bin_info info_record = rom_bin_info_get(ROM_UI_CAMERA_MOTION_DETECTIONG_RECORD_PNG);
 
-    if (user_data_get()->motion.saving_fmt == 0)
+    if (user_data_get()->motion.saving_fmt == 0 || (!media_sdcard_insert_check()))
     { // 拍照模式
         lv_obj_set_style_local_pattern_image(record_icon_obj, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &info_photo);
     }
@@ -312,10 +304,10 @@ static void motion_detection_record_state_display_flush(void)
 // 创建拍照/录制图标
 static void motion_detection_record_icon_create(lv_obj_t *parent)
 {
-    lv_obj_t *sdcard_icon_obj = lv_obj_create(parent, NULL);
-    lv_obj_set_id(sdcard_icon_obj, CAMERA_RECORD_ICON_LABEL_ID);
-    lv_obj_set_pos(sdcard_icon_obj, 722, 18);
-    lv_obj_set_size(sdcard_icon_obj, 38, 38);
+    lv_obj_t *record_icon_obj = lv_obj_create(parent, NULL);
+    lv_obj_set_id(record_icon_obj, CAMERA_RECORD_ICON_LABEL_ID);
+    lv_obj_set_pos(record_icon_obj, 722, 18);
+    lv_obj_set_size(record_icon_obj, 38, 38);
     motion_detection_record_state_display_flush();
 }
 
@@ -397,7 +389,7 @@ static void camera_goto_monitor_mode(lv_obj_t *parent)
     camera_record_video_count_down = get_record_duration_seconds();
 
     // 创建顶部UI元素
-    camera_func_btn_topbg_block_create(parent);
+    // camera_func_btn_topbg_block_create(parent);
     camera_head_channel_label_create(parent);
     camera_head_time_label_create(parent);
     motion_detection_motion_icon_create(parent); // 新增：移动侦测图标
@@ -406,7 +398,7 @@ static void camera_goto_monitor_mode(lv_obj_t *parent)
     camera_head_monitor_count_label_create(parent);
 
     layout_monitor_detection_refresh_1();
-    lyaout_sd_state_callback_register(camera_sdcard_state_change_func);
+    layout_sd_state_callback_register(camera_sdcard_state_change_func);
 }
 
 // 自动拍照/录像处理
@@ -419,11 +411,6 @@ static void camera_auto_record(void)
         printf("移动侦测：正在录制中，跳过\n");
         return;
     }
-    if (!media_sdcard_insert_check())
-    {
-        printf("移动侦测：SD卡未插入，跳过\n");
-        return;
-    }
     if (!video_input_state_get())
     {
         printf("移动侦测：视频输入状态无效，跳过\n");
@@ -433,7 +420,7 @@ static void camera_auto_record(void)
     printf("移动侦测：准备自动录制，保存格式=%d\n", user_data_get()->motion.saving_fmt);
 
     // 直接使用user_data中的motion配置
-    if (user_data_get()->motion.saving_fmt == 0)
+    if (user_data_get()->motion.saving_fmt == 0 || (!media_sdcard_insert_check()))
     { // 拍照模式
         printf("移动侦测：尝试自动拍照...\n");
         if (record_jpeg_start(REC_MODE_MOTION))
@@ -518,41 +505,22 @@ static void camera_ticker_task_create(void)
 {
     lv_layout_task_create(camera_ticker_task, 500, LV_TASK_PRIO_HIGH, NULL);
 }
-static bool lcd_just_opened = false;
+extern void delay_backlight_open_task(lv_task_t *task);
+static bool screen_clicked = false;
 static void standby_bg_click_event_cb(lv_obj_t *obj)
-{
-    // 如果LCD未开启，先开启LCD并停留在当前界面
-    if (!user_data_get()->motion.lcd_en && lcd_just_opened == false)
-    {
-        printf("移动侦测：LCD未开启，先开启LCD\n");
-        backlight_enable(true);
-        lcd_just_opened = true; // 标记LCD刚刚打开
-        goto_layout(pLAYOUT(home));
-        return;                 // 停留在当前界面
-    }
-
-    // 如果LCD刚刚被打开，清除标记并停留在当前界面
-    if (lcd_just_opened)
-    {
-        printf("移动侦测：LCD刚刚打开，清除标记\n");
-        lcd_just_opened = false;
-        goto_layout(pLAYOUT(home));
-        return; // 停留在当前界面
-    }
-
-    // LCD已开启且不是刚刚打开的状态，跳转到home
-    printf("移动侦测：LCD已开启，跳转到home界面\n");
-    backlight_enable(true);
+{   
+    printf("待机背景被点击，返回主界面\n");
+    screen_clicked = true;
+    monitor_close();
+    lv_task_create(delay_backlight_open_task, 500, LV_TASK_PRIO_LOWEST, NULL);
     goto_layout(pLAYOUT(home));
 }
-
 // 进入移动侦测界面
 static void LAYOUT_ENTER_FUNC(motion_detection)
 {
     printf("移动侦测：进入移动侦测界面\n");
     layout_monitor_detection_refresh_1();
-
-    lcd_just_opened = false; // 重置状态
+    
     backlight_enable(false);
     // 创建背景点击事件
     static obj_click_data bg_btn_data = obj_click_data_up_create(standby_bg_click_event_cb);
@@ -574,29 +542,31 @@ static void LAYOUT_ENTER_FUNC(motion_detection)
     // 启动自动录制
     printf("移动侦测：等待设备初始化...\n");
     lv_layout_task_create(camera_auto_record_delayed, 500, LV_TASK_PRIO_MID, NULL);
-
     // 启动任务
     camera_ticker_task_create();
 }
 
 // 退出移动侦测界面
-extern void delay_backlight_open_task(lv_task_t *task);
 static void LAYOUT_QUIT_FUNC(motion_detection)
 {
     printf("移动侦测：退出移动侦测界面\n");
+    if (screen_clicked == false)
+    {
+        monitor_close();
+    }
+    screen_clicked = false;
+
     // 停止所有任务和录制
     ringplay_play_stop();
     motion_ticker_task_stop(MOTION_TASK_TOTAL);
     audio_input_capture_enable(false);
-    lyaout_sd_state_callback_register(layout_sdcard_state_change_default);
+    layout_sd_state_callback_register(layout_sdcard_state_change_default);
     motion_detection_destory();
     obj_click_event_listen(lv_scr_act(), NULL);
-    monitor_close();
     record_video_close();
     record_jpeg_close();
     user_data_save();
     standby_timer_restart(true);
-    lv_task_create(delay_backlight_open_task, 200, LV_TASK_PRIO_LOWEST, NULL);
 }
 
 CREATE_LAYOUT(motion_detection);

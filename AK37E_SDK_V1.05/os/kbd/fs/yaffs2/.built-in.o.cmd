@@ -1,1 +1,1 @@
-cmd_fs/yaffs2/built-in.o :=  /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL   -r -o fs/yaffs2/built-in.o fs/yaffs2/yaffs2multi.o 
+cmd_fs/yaffs2/built-in.o :=  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL    -r -o fs/yaffs2/built-in.o fs/yaffs2/yaffs2multi.o 

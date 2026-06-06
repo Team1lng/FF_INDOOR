@@ -1,1 +1,1 @@
-cmd_fs/exofs/built-in.o :=  rm -f fs/exofs/built-in.o; /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ar rcsD fs/exofs/built-in.o
+cmd_fs/exofs/built-in.o :=  rm -f fs/exofs/built-in.o; /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ar rcsD fs/exofs/built-in.o

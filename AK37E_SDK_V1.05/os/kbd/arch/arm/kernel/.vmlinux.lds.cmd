@@ -1,6 +1,6 @@
-cmd_arch/arm/kernel/vmlinux.lds := /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-gcc -E -Wp,-MD,arch/arm/kernel/.vmlinux.lds.d -nostdinc -isystem /opt/arm-anykav500-linux-uclibcgnueabi/bin/../lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/include -I/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include -Iarch/arm/include/generated/uapi -Iarch/arm/include/generated  -I/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include -Iinclude -I/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi -Iinclude/generated/uapi -include /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/kconfig.h -D__KERNEL__ -mlittle-endian   -I/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/mach-anycloud/include -DTEXT_OFFSET=0x00008000 -P -C -Uarm -D__ASSEMBLY__ -DLINKER_SCRIPT -o arch/arm/kernel/vmlinux.lds /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/vmlinux.lds.S
+cmd_arch/arm/kernel/vmlinux.lds := /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-gcc -E -Wp,-MD,arch/arm/kernel/.vmlinux.lds.d  -nostdinc -isystem /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/../lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/include -I/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include -Iarch/arm/include/generated/uapi -Iarch/arm/include/generated  -I/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include -Iinclude -I/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/uapi -Iarch/arm/include/generated/uapi -I/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi -Iinclude/generated/uapi -include /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/kconfig.h -D__KERNEL__ -mlittle-endian   -I/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/mach-anycloud/include -DTEXT_OFFSET=0x00008000 -P -C -Uarm -D__ASSEMBLY__ -DLINKER_SCRIPT -o arch/arm/kernel/vmlinux.lds /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/vmlinux.lds.S
 
-source_arch/arm/kernel/vmlinux.lds := /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/vmlinux.lds.S
+source_arch/arm/kernel/vmlinux.lds := /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/kernel/vmlinux.lds.S
 
 deps_arch/arm/kernel/vmlinux.lds := \
     $(wildcard include/config/arm/kernmem/perms.h) \
@@ -15,7 +15,7 @@ deps_arch/arm/kernel/vmlinux.lds := \
     $(wildcard include/config/arm/unwind.h) \
     $(wildcard include/config/smp.h) \
     $(wildcard include/config/have/tcm.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/vmlinux.lds.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/vmlinux.lds.h \
     $(wildcard include/config/memory/hotplug.h) \
     $(wildcard include/config/ftrace/mcount/record.h) \
     $(wildcard include/config/trace/branch/profiling.h) \
@@ -36,27 +36,27 @@ deps_arch/arm/kernel/vmlinux.lds := \
     $(wildcard include/config/constructors.h) \
     $(wildcard include/config/pm/trace.h) \
     $(wildcard include/config/blk/dev/initrd.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/export.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/export.h \
     $(wildcard include/config/have/underscore/symbol/prefix.h) \
     $(wildcard include/config/modules.h) \
     $(wildcard include/config/modversions.h) \
     $(wildcard include/config/unused/symbols.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/cache.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/cache.h \
     $(wildcard include/config/arm/l1/cache/shift.h) \
     $(wildcard include/config/aeabi.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/thread_info.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/thread_info.h \
     $(wildcard include/config/crunch.h) \
     $(wildcard include/config/arm/thumbee.h) \
     $(wildcard include/config/thumb2/kernel.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/compiler.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/compiler.h \
     $(wildcard include/config/sparse/rcu/pointer.h) \
     $(wildcard include/config/kasan.h) \
     $(wildcard include/config/enable/must/check.h) \
     $(wildcard include/config/enable/warn/deprecated.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/fpstate.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/fpstate.h \
     $(wildcard include/config/vfpv3.h) \
     $(wildcard include/config/iwmmxt.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/page.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/page.h \
     $(wildcard include/config/cpu/copy/v4wt.h) \
     $(wildcard include/config/cpu/copy/v4wb.h) \
     $(wildcard include/config/cpu/copy/feroceon.h) \
@@ -68,8 +68,8 @@ deps_arch/arm/kernel/vmlinux.lds := \
     $(wildcard include/config/kuser/helpers.h) \
     $(wildcard include/config/arm/lpae.h) \
     $(wildcard include/config/have/arch/pfn/valid.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/getorder.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/memory.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/getorder.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/memory.h \
     $(wildcard include/config/need/mach/memory/h.h) \
     $(wildcard include/config/page/offset.h) \
     $(wildcard include/config/highmem.h) \
@@ -78,28 +78,28 @@ deps_arch/arm/kernel/vmlinux.lds := \
     $(wildcard include/config/arm/patch/phys/virt.h) \
     $(wildcard include/config/phys/offset.h) \
     $(wildcard include/config/virt/to/bus.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/const.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/types.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/const.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/types.h \
     $(wildcard include/config/have/uid16.h) \
     $(wildcard include/config/uid16.h) \
     $(wildcard include/config/lbdaf.h) \
     $(wildcard include/config/arch/dma/addr/t/64bit.h) \
     $(wildcard include/config/phys/addr/t/64bit.h) \
     $(wildcard include/config/64bit.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/types.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/types.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/int-ll64.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/asm-generic/int-ll64.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/linux/types.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/asm/types.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/int-ll64.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/asm-generic/int-ll64.h \
   arch/arm/include/generated/asm/bitsperlong.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/bitsperlong.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/asm-generic/bitsperlong.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/sizes.h \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/memory_model.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/bitsperlong.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi/asm-generic/bitsperlong.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/sizes.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/asm-generic/memory_model.h \
     $(wildcard include/config/flatmem.h) \
     $(wildcard include/config/discontigmem.h) \
     $(wildcard include/config/sparsemem/vmemmap.h) \
     $(wildcard include/config/sparsemem.h) \
-  /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/pfn.h \
+  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/pfn.h \
 
 arch/arm/kernel/vmlinux.lds: $(deps_arch/arm/kernel/vmlinux.lds)
 

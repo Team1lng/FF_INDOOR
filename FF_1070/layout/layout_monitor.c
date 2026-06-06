@@ -902,7 +902,7 @@
 // 	camera_mode = CAMERA_MODE_ZOOM;
 // 	lv_obj_clean(parent);
 // 	camera_bg_btn_click_enable(false);
-// 	lyaout_sd_state_callback_register(layout_sdcard_state_change_default);
+// 	layout_sd_state_callback_register(layout_sdcard_state_change_default);
 // 	camera_zoom_back_btn_create(parent);
 	
 // 	//缩放比例标签
@@ -1086,7 +1086,7 @@
 
 // 	camera_btn_and_win_hidden_task_restart();
 
-// 	lyaout_sd_state_callback_register(camera_sdcard_state_display_func);
+// 	layout_sd_state_callback_register(camera_sdcard_state_display_func);
 // }
 
 // //自动录像任务
@@ -1168,7 +1168,7 @@
 // 	audio_input_capture_enable(false);
 // 	camera_bg_btn_click_enable(false);
 
-// 	lyaout_sd_state_callback_register(layout_sdcard_state_change_default);
+// 	layout_sd_state_callback_register(layout_sdcard_state_change_default);
 	
 // 	record_jpeg_close();
 // 	record_video_close();

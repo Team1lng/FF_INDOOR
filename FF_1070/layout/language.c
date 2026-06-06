@@ -139,6 +139,7 @@ static const char *lang_str[LANG_STR_ID_TOTAL][LANG_TOTAL] =
 		{"End", "پایان ارتباط"},
 		{"No Answer", "عدم پاسخگویی"},
 		{"Room NO.", "شماره اتاق"},
+		{"Input Call Number.", "شماره تماس را وارد کنید."},
 		// layout setting
 		{"Room NO. Setting", "تنظیمات شماره اتاق"},
 		{"Room Id", "هویت اتاق"},
@@ -159,8 +160,8 @@ static const char *lang_str[LANG_STR_ID_TOTAL][LANG_TOTAL] =
 		{"Ring volume setting", "تنظیم صدای زنگ"},
 		{"Call Volume Setting", "تنظیم صدای تماس"},
 		{"Call Volume", "صدای تماس"},
-		{"OFF", "إيقاف"},
-		{"ON", "روشن"},
+		{"Off", "إيقاف"},
+		{"On", "روشن"},
 		{"Factory Setting ?", "تنظیمات کارخانه؟"},
 		{"Formatting SD ?", "فرمت کردن کارت حافظه؟"},
 		{"Back up local photos to SD card ?", "کپی تصاویر به کارت حافظه؟"},
@@ -219,7 +220,7 @@ static const char *lang_str[LANG_STR_ID_TOTAL][LANG_TOTAL] =
 		{"YES", "بله"},
 		{"NO", "خیر"},
 		{"Confirm", "ثابت کنید"},
-		{"NO SD", "فاقد کارت حافظه"},
+		{"No SD", "فاقد کارت حافظه"},
 		{"Return", "بازگشت"},
 		{"Memory", "حافظه"},
 		{"Copy&Delete", "کپی و حذف"},
@@ -237,19 +238,22 @@ static const char *lang_str[LANG_STR_ID_TOTAL][LANG_TOTAL] =
 		{"Are you sure Copy to SD?", "آیا مطمئن هستید که کپی به SD انجام دهید؟"},
 		{"Are you sure delete photo(Flash)?", "آیا مطمئنید که عکس (فلیش) را حذف می‌کنید؟"},
 		{"Reset system", "ریست سیستم"},
-		{"MEDIA", "رسانه"},
+		{"Media", "رسانه"},
 		{"SET NO", "شماره تنظیم"},
 		{"Are you sure delete the video?", "آیا مطمئن هستید ویدیو را حذف می‌کنید؟"},
 		{"Are you sure delete photo(Flash)?", "آیا مطمئن هستید عکس (فلش) را حذف می‌کنید؟"},
 		{"Are you sure delete photo(SD)?", "آیا مطمئن هستید عکس (SD) را حذف می‌کنید؟"},
 		{"Enter password", "لطفا رمز عبور را وارد کنید"},
 		{"Auto Record", "ثبت خودکار"},
-		// //left head
-		// {"Media", "رسانه"},
-		// {"Time", "زمان"},
-		// {"Menu", "منو"},
-		// {"Init", "راه‌اندازی"},
-		// {"Setting", "تنظیمات"},
+		//left head
+		{"Media", "رسانه"},
+		{"Time", "زمان"},
+		{"Menu", "منو"},
+		{"Init", "راه‌اندازی"},
+		{"Setting", "تنظیمات"},
+		{"Memory", "حافظه"},
+		//calling
+		{"calling...","در حال تماس..."},
 
 };
 

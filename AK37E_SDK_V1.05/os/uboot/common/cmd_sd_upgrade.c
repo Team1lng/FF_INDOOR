@@ -12,7 +12,7 @@
 #define ENVBK_PARTTION "env_ak3760e_nor.img"
 #define DTB_PARTTION "EVB_CBDM_AK3760E_V1.0.1_TABA.dtb"
 #define KERNEL_PARTTION "uImage"
-#define LOGO_PARTTION "ep_logo.rgb"
+#define LOGO_PARTTION "ff_logo.rgb"
 #define ROOTFS_PARTTION "root.sqsh4"
 #define USR_PARTTION "usr.sqsh4"
 #define CONFIG_PARTTION "config.jffs2"
@@ -543,7 +543,7 @@ int do_sd_upgrade(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
     char *upgrade_filename = getenv(ENV_SD_UPGRADEIMAGE);
     if (upgrade_filename == NULL)
     {
-        upgrade_filename = "SAT_EPOS";
+        upgrade_filename = "SAT_FFOS";
         setenv(ENV_SD_UPGRADEIMAGE, upgrade_filename);
         saveenv();
     }

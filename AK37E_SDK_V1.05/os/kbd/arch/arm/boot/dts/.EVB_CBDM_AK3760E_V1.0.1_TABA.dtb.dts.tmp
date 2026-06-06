@@ -1,18 +1,18 @@
-# 1 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts"
+# 1 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts"
 # 1 "<built-in>"
-# 1 "<命令行>"
-# 1 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts"
-# 17 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts"
+# 1 "<command-line>"
+# 1 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts"
+# 17 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts"
 /dts-v1/;
-# 1 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e.dtsi" 1
-# 18 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e.dtsi"
-# 1 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_common.dtsi" 1
-# 16 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_common.dtsi"
-# 1 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/include/dt-bindings/gpio/gpio.h" 1
-# 17 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_common.dtsi" 2
-# 1 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/include/dt-bindings/clock/ak37e-clock.h" 1
-# 18 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_common.dtsi" 2
-# 50 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_common.dtsi"
+# 1 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e.dtsi" 1
+# 18 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e.dtsi"
+# 1 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_common.dtsi" 1
+# 16 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_common.dtsi"
+# 1 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/include/dt-bindings/gpio/gpio.h" 1
+# 17 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_common.dtsi" 2
+# 1 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/include/dt-bindings/clock/ak37e-clock.h" 1
+# 18 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_common.dtsi" 2
+# 50 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_common.dtsi"
 / {
     #address-cells = <1>;
     #size-cells = <1>;
@@ -619,21 +619,21 @@
 
         uv_det_pd:uv_det_pd {
              compatible = "anyka,ak37e-uv_det_pd";
-# 670 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_common.dtsi"
+# 670 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_common.dtsi"
              enable = <1>;
              threshold = <2>;
              status = "okay";
          };
     };
 };
-# 19 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e.dtsi" 2
-# 1 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_pinctrl.dtsi" 1
-# 25 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_pinctrl.dtsi"
-# 1 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/include/dt-bindings/pinctrl/ak_37e_pinctrl.h" 1
-# 26 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_pinctrl.dtsi" 2
+# 19 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e.dtsi" 2
+# 1 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_pinctrl.dtsi" 1
+# 25 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_pinctrl.dtsi"
+# 1 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/include/dt-bindings/pinctrl/ak_37e_pinctrl.h" 1
+# 26 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_pinctrl.dtsi" 2
 
 &gpio {
-# 44 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_pinctrl.dtsi"
+# 44 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e_pinctrl.dtsi"
     uart0_pins: uart0_pins {
         anyka,pins = <22 23>;
         anyka,function = <1 1>;
@@ -905,7 +905,7 @@
         anyka,pull = <0x00000000>;
     };
 };
-# 20 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e.dtsi" 2
+# 20 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_ak37e.dtsi" 2
 
 
 
@@ -987,9 +987,9 @@
         };
     };
 };
-# 19 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts" 2
-# 1 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi" 1
-# 17 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 19 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts" 2
+# 1 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi" 1
+# 17 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
 &spif0 {
 
     at25fs010: spi-norflash@0 {
@@ -1002,7 +1002,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x8000>;
         norflash-n-sectors = <4>;
-# 43 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 43 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1033,7 +1033,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <8>;
-# 87 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 87 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1065,7 +1065,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <8>;
-# 132 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 132 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1089,7 +1089,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <128>;
-# 169 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 169 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>, <0x31>;
@@ -1113,7 +1113,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <8>;
-# 206 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 206 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1137,7 +1137,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <16>;
-# 243 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 243 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>, <0x31>;
@@ -1161,7 +1161,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <32>;
-# 281 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 281 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1185,7 +1185,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <64>;
-# 318 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 318 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1209,7 +1209,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <64>;
-# 355 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 355 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1020>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1238,7 +1238,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <128>;
-# 397 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 397 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1020>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1267,7 +1267,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <256>;
-# 438 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 438 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1450>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1295,7 +1295,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <256>;
-# 479 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 479 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1020>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1324,7 +1324,7 @@
         norflash-ext-id = <0x4d00>;
         norflash-sector-size = <0x40000>;
         norflash-n-sectors = <64>;
-# 521 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 521 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1351,7 +1351,7 @@
         norflash-ext-id = <0x4d01>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <256>;
-# 561 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 561 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1378,7 +1378,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <8>;
-# 601 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 601 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1406,7 +1406,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <16>;
-# 642 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 642 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1434,7 +1434,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <32>;
-# 684 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 684 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1462,7 +1462,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <64>;
-# 725 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 725 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1490,7 +1490,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <1>;
-# 766 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 766 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1517,7 +1517,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <2>;
-# 807 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 807 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1544,7 +1544,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <4>;
-# 848 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 848 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1570,7 +1570,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <8>;
-# 888 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 888 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1597,7 +1597,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x8000>;
         norflash-n-sectors = <2>;
-# 928 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 928 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1623,7 +1623,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x8000>;
         norflash-n-sectors = <4>;
-# 968 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 968 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1649,7 +1649,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <4>;
-# 1007 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1007 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1676,7 +1676,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <8>;
-# 1047 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1047 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1703,7 +1703,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <16>;
-# 1087 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1087 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1730,7 +1730,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <32>;
-# 1127 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1127 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1757,7 +1757,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <64>;
-# 1167 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1167 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1784,7 +1784,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <128>;
-# 1207 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1207 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1811,7 +1811,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x40000>;
         norflash-n-sectors = <64>;
-# 1247 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1247 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1838,7 +1838,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <2>;
-# 1287 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1287 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
 
@@ -1862,7 +1862,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <16>;
-# 1324 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1324 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
 
@@ -1886,7 +1886,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <32>;
-# 1363 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1363 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
 
@@ -1910,7 +1910,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <16>;
-# 1400 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1400 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1938,7 +1938,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <32>;
-# 1441 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1441 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1965,7 +1965,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <2>;
-# 1481 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1481 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -1993,7 +1993,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <4>;
-# 1522 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1522 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -2021,7 +2021,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <8>;
-# 1563 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1563 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -2049,7 +2049,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <16>;
-# 1604 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1604 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -2077,7 +2077,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <32>;
-# 1645 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1645 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -2105,7 +2105,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <64>;
-# 1686 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1686 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -2133,7 +2133,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <128>;
-# 1727 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1727 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x1000>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -2161,7 +2161,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x8000>;
         norflash-n-sectors = <128>;
-# 1768 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1768 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18A8>;
   rd_status_cmd = <0x05>, <0x35>;
   wr_status_cmd = <0x01>;
@@ -2191,7 +2191,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <128>;
-# 1811 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1811 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18A8>;
   rd_status_cmd = <0x05>, <0x35>;
   wr_status_cmd = <0x01>;
@@ -2222,7 +2222,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <256>;
-# 1855 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1855 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18A8>;
   rd_status_cmd = <0x05>, <0x35>, <0x15>;
   wr_status_cmd = <0x01>, <0x31>, <0x11>;
@@ -2255,7 +2255,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <128>;
-# 1902 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1902 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18F8>;
   rd_status_cmd = <0x05>, <0x35>, <0x15>;
   wr_status_cmd = <0x01>, <0x31>;
@@ -2289,7 +2289,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <256>;
-# 1950 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1950 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18F8>;
   rd_status_cmd = <0x05>, <0x35>, <0x15>;
   wr_status_cmd = <0x01>, <0x31>, <0x11>;
@@ -2323,7 +2323,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <128>;
-# 1998 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 1998 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x58F8>;
   rd_status_cmd = <0x05>, <0x09>, <0x95>;
   wr_status_cmd = <0x01>;
@@ -2353,7 +2353,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <256>;
-# 2042 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2042 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x58F8>;
   rd_status_cmd = <0x05>, <0x09>, <0x95>;
   wr_status_cmd = <0x01>;
@@ -2383,7 +2383,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <128>;
-# 2087 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2087 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x58F8>;
   rd_status_cmd = <0x05>, <0x09>, <0x95>;
   wr_status_cmd = <0x01>;
@@ -2412,7 +2412,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <128>;
-# 2130 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2130 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18F8>;
   rd_status_cmd = <0x05>, <0x35>, <0x15>;
   wr_status_cmd = <0x01>, <0x31>, <0x11>;
@@ -2447,7 +2447,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <256>;
-# 2179 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2179 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18F8>;
   rd_status_cmd = <0x05>, <0x35>, <0x15>;
   wr_status_cmd = <0x01>, <0x31>, <0x11>;
@@ -2482,7 +2482,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <128>;
-# 2228 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2228 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18F8>;
   rd_status_cmd = <0x05>, <0x35>, <0x15>;
   wr_status_cmd = <0x01>, <0x31>, <0x11>;
@@ -2515,7 +2515,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <256>;
-# 2275 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2275 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18F8>;
   rd_status_cmd = <0x05>, <0x35>, <0x15>;
   wr_status_cmd = <0x01>, <0x31>, <0x11>;
@@ -2545,7 +2545,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x8000>;
         norflash-n-sectors = <128>;
-# 2319 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2319 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18F8>;
   rd_status_cmd = <0x05>, <0x35>, <0x15>;
   wr_status_cmd = <0x01>, <0x31>, <0x11>;
@@ -2578,7 +2578,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <128>;
-# 2366 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2366 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18F8>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -2607,7 +2607,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <128>;
-# 2409 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2409 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18F8>;
   rd_status_cmd = <0x05>, <0x35>, <0x15>;
   wr_status_cmd = <0x01>, <0x31>, <0x11>;
@@ -2640,7 +2640,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <256>;
-# 2457 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2457 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18F8>;
   rd_status_cmd = <0x05>, <0x35>, <0x15>;
   wr_status_cmd = <0x01>, <0x31>, <0x11>;
@@ -2673,7 +2673,7 @@
   norflash-ext-id = <0>;
   norflash-sector-size = <0x10000>;
   norflash-n-sectors = <128>;
-# 2505 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2505 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
   norflash-flags = <0x18F0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -2702,7 +2702,7 @@
   norflash-ext-id = <0>;
   norflash-sector-size = <0x10000>;
   norflash-n-sectors = <256>;
-# 2549 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2549 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
   norflash-flags = <0x18F0>;
   rd_status_cmd = <0x05>;
   wr_status_cmd = <0x01>;
@@ -2731,7 +2731,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <128>;
-# 2592 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2592 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18F8>;
         rd_status_cmd = <0x05>, <0x35>;
         wr_status_cmd = <0x01>;
@@ -2763,7 +2763,7 @@
         norflash-ext-id = <0>;
         norflash-sector-size = <0x10000>;
         norflash-n-sectors = <256>;
-# 2639 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
+# 2639 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_norflash.dtsi"
         norflash-flags = <0x18F8>;
         rd_status_cmd = <0x05>, <0x35>;
         wr_status_cmd = <0x01>;
@@ -2847,9 +2847,9 @@
         status = "disable";
     };
 };
-# 20 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts" 2
-# 1 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi" 1
-# 17 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
+# 20 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts" 2
+# 1 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi" 1
+# 17 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
 &spif1 {
  GD5F1GQ5UEY1G: spi-nandflash@0 {
   compatible = "GD,GD5F1GQ5UEY1G";
@@ -2883,7 +2883,7 @@
 
   nandflash-badflag_offs = <0>;
   nandflash-badflag_len = <1>;
-# 58 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
+# 58 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
   nandflash-badflag_option = <0x01000000>;
 
   status = "disable";
@@ -2922,7 +2922,7 @@
 
   nandflash-badflag_offs = <0>;
   nandflash-badflag_len = <1>;
-# 104 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
+# 104 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
   nandflash-badflag_option = <0x01000000>;
 
   status = "disable";
@@ -2961,7 +2961,7 @@
 
   nandflash-badflag_offs = <0>;
   nandflash-badflag_len = <1>;
-# 150 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
+# 150 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
   nandflash-badflag_option = <0x01000000>;
 
   status = "disable";
@@ -3000,7 +3000,7 @@
 
   nandflash-badflag_offs = <0>;
   nandflash-badflag_len = <1>;
-# 196 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
+# 196 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
   nandflash-badflag_option = <0x01000000>;
 
   status = "disable";
@@ -3039,7 +3039,7 @@
 
   nandflash-badflag_offs = <0>;
   nandflash-badflag_len = <1>;
-# 242 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
+# 242 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
   nandflash-badflag_option = <0x01000000>;
 
   status = "disable";
@@ -3078,7 +3078,7 @@
 
   nandflash-badflag_offs = <0>;
   nandflash-badflag_len = <1>;
-# 288 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
+# 288 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
   nandflash-badflag_option = <0x01000000>;
 
   status = "disable";
@@ -3117,7 +3117,7 @@
 
   nandflash-badflag_offs = <0>;
   nandflash-badflag_len = <1>;
-# 334 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
+# 334 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
   nandflash-badflag_option = <0x00008000>;
 
   status = "disable";
@@ -3156,7 +3156,7 @@
 
   nandflash-badflag_offs = <0>;
   nandflash-badflag_len = <1>;
-# 380 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
+# 380 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
   nandflash-badflag_option = <0x00000000>;
 
   status = "disable";
@@ -3194,7 +3194,7 @@
 
   nandflash-badflag_offs = <0>;
   nandflash-badflag_len = <1>;
-# 425 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
+# 425 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
   nandflash-badflag_option = <0x00008000>;
 
   status = "disable";
@@ -3232,16 +3232,16 @@
 
   nandflash-badflag_offs = <0>;
   nandflash-badflag_len = <1>;
-# 470 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
+# 470 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_nandflash.dtsi"
   nandflash-badflag_option = <0x00000000>;
 
   status = "disable";
  };
 
 };
-# 21 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts" 2
-# 1 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_lcd.dtsi" 1
-# 19 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_lcd.dtsi"
+# 21 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts" 2
+# 1 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_lcd.dtsi" 1
+# 19 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_lcd.dtsi"
 &lcdc {
     lcd-alarm-empty = <128>;
     lcd-alarm-full = <510>;
@@ -3330,7 +3330,7 @@
 
         status = "disable";
     };
-# 380 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_lcd.dtsi"
+# 380 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_lcd.dtsi"
     sat101at40: lcd-panel@3 {
         compatible = "sat,sat101at40";
         panel-if = <1>;
@@ -3593,7 +3593,7 @@
 
         status = "disable";
     };
-# 761 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_lcd.dtsi"
+# 761 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_lcd.dtsi"
     ili9342c: lcd-panel@5 {
         compatible = "mpu,ili9342c";
         panel-if = <2>;
@@ -3670,7 +3670,7 @@
 
       status = "disable";
     };
-# 1268 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_lcd.dtsi"
+# 1268 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_lcd.dtsi"
  adt07029bm30: lcd-panel@9{
             compatible = "adt,adt07029bm30-08";
             panel-if = <1>;
@@ -3886,9 +3886,9 @@
                 0x0 0x05 0x29 0x00 0xFFF>;
             status = "disable";
     };
-# 2338 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_lcd.dtsi"
+# 2338 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/anycloud_lcd.dtsi"
 };
-# 22 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts" 2
+# 22 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts" 2
 
 / {
     compatible = "anyka,ak3760e";
@@ -3897,13 +3897,12 @@
 };
 
 &gpio {
-# 48 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts"
+# 47 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts"
     gslX680_pins: gslX680_pins {
-        anyka,pins = <71 75>;
+        anyka,pins = <77 75>;
         anyka,function = <0 0>;
-        anyka,pull = <0x00010010 0x00000010>;
+        anyka,pull = <0x00010110 0x00000010>;
     };
-
 
     i2c2_pins: i2c2_pins {
         anyka,pins = <78 79>;
@@ -3911,12 +3910,10 @@
         anyka,pull = <0x1010010>;
     };
 
-
-
     i2c2_sleep_pins: i2c2_sleep_pins {
-         anyka,pins = <78 79>;
+        anyka,pins = <78 79>;
         anyka,function = <0 0>;
-        anyka,pull = <0x00000000>;
+        anyka,pull = <0x00000000 0x00000000>;
     };
 
     i2c4_pins: i2c4_pins {
@@ -4255,8 +4252,8 @@
 
 
 
-    osc-select = <0>;
-    adjust-time = <0>;
+    osc-select = <1>;
+    adjust-time = <5000>;
     adjust-based-on-timer;
     status = "okay";
 };
@@ -4271,7 +4268,31 @@
     status = "okay";
     #address-cells = <1>;
     #size-cells = <0>;
-# 440 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts"
+
+
+    touch-screen@40 {
+        compatible = "anyka,ak37e-i2c-touchscreen-gslX680";
+        reg = <0x40>;
+
+
+        pinctrl-names = "default";
+        pinctrl-0 = <&gslX680_pins>;
+
+
+        irq-gpio = <&gpio 77 1>;
+        reset-gpio = <&gpio 75 1>;
+
+
+        TP_MAX_X = <1024>;
+        TP_MAX_Y = <600>;
+
+
+        interrupt-parent = <&gpio>;
+        interrupts = <77 1>;
+        interrupts-name = "irq-gpios";
+
+        status = "okay";
+    };
 };
 
 
@@ -4477,7 +4498,7 @@
 &pwm0 {
     pinctrl-names = "default";
     pinctrl-0 = <&pwm0_pins>;
-# 655 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts"
+# 657 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts"
     period-ns = <10869565>;
     duty-ns = <10869565>;
     pwm-enable = <1>;
@@ -4491,7 +4512,7 @@
 &mmc1 {
     bus-width = <0x4>;
     max-frequency = <50000000>;
-# 676 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts"
+# 678 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dts"
     detect-gpio = <&gpio 85 0>;
 
     cap-sd-highspeed;
@@ -4556,15 +4577,15 @@
 
         pinctrl-names = "default";
         pinctrl-0 = <&gslX680_pins>;
-        irq-gpio = <&gpio 71 1>;
+        irq-gpio = <&gpio 77 1>;
         reset-gpio = <&gpio 75 1>;
         TP_MAX_X = <1024>;
         TP_MAX_Y = <600>;
 
         interrupt-parent = <&gpio>;
-            interrupts = <71 1>;
+            interrupts = <77 1>;
             interrupts-name = "irq-gpios";
-        status = "okay";
+        status = "disable";
     };
 };
 

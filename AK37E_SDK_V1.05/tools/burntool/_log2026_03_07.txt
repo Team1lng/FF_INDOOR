@@ -1,0 +1,36 @@
+
+
+=============Transc Information =============
+Print Time: 2026-03-07 10:31:19
+
+[10:31:19]GetLastError
+[10:31:19]USBName:E, idex:4, attachUSB_state:1
+[10:31:20]NULL
+
+
+=============Transc Information =============
+Print Time: 2026-03-07 10:31:33
+
+[10:31:33]GetLastError
+[10:31:33]USBName:E, idex:4, attachUSB_state:1
+[10:31:34]NULL
+[10:32:42]CreateFile file -1
+[10:32:42]BT_DownLoad fail
+
+
+=============Transc Information =============
+Print Time: 2026-03-07 10:33:07
+
+[10:33:07]GetLastError
+[10:33:07]USBName:E, idex:4, attachUSB_state:1
+[10:33:08]NULL
+[10:34:17]CreateFile file -1
+[10:34:17]BT_DownLoad fail
+
+
+=============Transc Information =============
+Print Time: 2026-03-07 11:43:09
+
+[11:43:09]GetLastError
+[11:43:09]USBName:E, idex:4, attachUSB_state:1
+[11:43:10]NULL

@@ -269,7 +269,7 @@ static void setting_icon_create(lv_obj_t *parent)
     lv_obj_t *Time_label = lv_label_create(parent, NULL);
     lv_obj_set_pos(Time_label, 87, 28);
 	lv_obj_set_size(Time_label, 70, 31);
-    lv_label_set_text(Time_label, "Menu");
+    lv_label_set_text(Time_label,str_get(COMMON_LANG_LEFT_HEAD_MENU_ID));
 	lv_obj_align(setting_icon_obj, Time_label, LV_ALIGN_OUT_LEFT_MID, -5, 0);
 }
 
@@ -286,7 +286,7 @@ static void home_media_btn_up(lv_obj_t *obj)
 
 static void home_intercom_btn_up(lv_obj_t *obj)
 {
-	 goto_layout(pLAYOUT(intercom));
+	goto_layout(pLAYOUT(intercom));
 }
 
 static void home_monitor_btn_up(lv_obj_t *obj)
@@ -362,8 +362,9 @@ static void home_standby_btn_create(lv_obj_t *parent)
 
 static void LAYOUT_ENTER_FUNC(home)
 {
-
-	power_amplifier_enable(true);
+	printf("Entering home layout.\n");
+	
+	// power_amplifier_enable(true);   lynn 26.3.10
 	lv_obj_t *parent = common_bg_display(lv_scr_act());
 	home_time_btn_create(parent);
 	home_media_btn_create(parent);	
@@ -379,7 +380,7 @@ static void LAYOUT_ENTER_FUNC(home)
 static void LAYOUT_QUIT_FUNC(home)
 {
 	
-	lyaout_sd_state_callback_register(layout_sdcard_state_change_default);
+	layout_sd_state_callback_register(layout_sdcard_state_change_default);
 	user_data_save();
 }
 

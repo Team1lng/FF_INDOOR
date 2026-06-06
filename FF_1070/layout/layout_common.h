@@ -38,6 +38,14 @@ void layout_door1_call_default(void);
 ** 返回参数说明：
 ***/
 void layout_door2_call_default(void);
+
+/***
+** 日期: 2022-05-12 10:27
+** 作者: leo.liu
+** 函数作用：call camera 默认处理函数
+** 返回参数说明：
+***/
+void layout_call_camera_default(void);
 /***
 ** 日期: 2022-05-12 10:27
 ** 作者: leo.liu
@@ -51,7 +59,7 @@ void layout_gate_open_default(void);
 ** 函数作用：门禁机呼梯默认处理函数
 ** 返回参数说明：
 ***/
-void layout_elevator_call_default(void);
+// void layout_elevator_call_default(void);
 /***
 ** 日期: 2022-05-12 10:27
 ** 作者: leo.liu
@@ -59,6 +67,9 @@ void layout_elevator_call_default(void);
 ** 返回参数说明：
 ***/
 bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg);
+
+
+void layout_intercom_out_default(unsigned int send_id, unsigned int cmd);
 /***
 ** 日期: 2022-05-13 11:05
 ** 作者: leo.liu

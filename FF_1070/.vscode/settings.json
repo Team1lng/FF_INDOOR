@@ -48,6 +48,6 @@
         "initializer_list": "c",
         "lvgl.h": "c"
     },
-    "cmake.sourceDirectory": "Y:/TABA/wei_liu_new/taba_1070/build",
+    "cmake.sourceDirectory": "/home/blueen/samba/FF_Indoor/FF_1070/build",
     "C_Cpp.dimInactiveRegions": false
 }

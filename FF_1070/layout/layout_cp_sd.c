@@ -96,6 +96,8 @@ static void back_btn_create(lv_obj_t *parent)
     lv_obj_t *back_icon_obj = lv_img_create(parent, NULL);
     lv_obj_set_pos(back_icon_obj, 920, 25);
 	lv_obj_set_size(back_icon_obj, 50, 37);
+    lv_obj_set_style_local_pattern_recolor(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, lv_color_hex(0x000000));
+	lv_obj_set_style_local_pattern_recolor_opa(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, LV_OPA_50); // 按下叠加50%黑色（深色）
 	lv_obj_set_id(back_icon_obj, HOME_BACK_OBJ_ID);
 	static rom_bin_info info1 = rom_bin_info_get(ROM_UI_TIME_BACK_PNG);
 	lv_obj_set_style_local_pattern_image(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info1);
@@ -115,7 +117,7 @@ static void setting_icon_create(lv_obj_t *parent)
     lv_obj_t *Setting_label = lv_label_create(parent, NULL);
     lv_obj_set_pos(Setting_label, 87, 28);
 	lv_obj_set_size(Setting_label, 90, 31);
-    lv_label_set_text(Setting_label, "Setting");
+    lv_label_set_text(Setting_label,str_get(COMMON_LANG_LEFT_HEAD_SETTING_ID));
 	lv_obj_align(setting_icon_obj, Setting_label, LV_ALIGN_OUT_LEFT_MID, -5, 0);
 }
 
@@ -134,7 +136,7 @@ void  create_cp_sd(lv_obj_t *center_cont)
    	static obj_click_data btn_data = obj_click_data_up_create(sdcard_copy_yes_btn_up);
 	static obj_click_data btn_data2 = obj_click_data_up_create(sdcard_no_btn_up);
 	message_box_create(center_cont, str_get(COMMON_LANG_CP_SD_ID), &btn_data, &btn_data2);
-	 lv_obj_t *dialog = lv_obj_get_child(center_cont, NULL); // 获取第一个子控件
+	lv_obj_t *dialog = lv_obj_get_child(center_cont, NULL); // 获取第一个子控件
     if (dialog != NULL) {
         lv_obj_set_id(dialog, LAYOUT_SETTING_ADJUST_OBJ_MSG_ID); // 绑定弹窗ID
         printf("dialog addr: %p, bind ID: %d\n", dialog, LAYOUT_SETTING_ADJUST_OBJ_MSG_ID);
@@ -144,25 +146,14 @@ void  create_cp_sd(lv_obj_t *center_cont)
 }
 
 
-
-
 static void LAYOUT_ENTER_FUNC(cp_sd)
 {
 	lv_obj_t *parent = common_bg_display(lv_scr_act());
-    lv_obj_t *center_cont = lv_cont_create(parent, NULL);
-    lv_obj_set_size(center_cont, 466, 158);  
-    lv_obj_set_id(center_cont, CENTER_CONT_ID);
-    lv_obj_align(center_cont, parent,LV_ALIGN_CENTER, 0, 0);  
-    lv_obj_set_style_local_bg_color(center_cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x333355));
-    lv_obj_set_style_local_radius(center_cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, 10);
-    lv_obj_set_style_local_bg_opa(center_cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_80);
-	printf("center_cont addr: %p, bind ID: %d\n", center_cont, CENTER_CONT_ID);
 	back_btn_create(parent);
 	setting_icon_create(parent);
 	top_time_date_text_create(parent);
-	create_cp_sd(center_cont);
+	create_cp_sd(parent);
 }
-
 
 
 static void LAYOUT_QUIT_FUNC(cp_sd)

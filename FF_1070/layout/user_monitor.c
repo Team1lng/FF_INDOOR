@@ -58,19 +58,40 @@ static void outdoor_power_enable(MON_CH ch, bool en)
 	case MON_CH_DOOR1:
 		door1_power_enable(en);
 		door2_power_enable(false);
+		cctv1_power_pin_ctrl(false);
+		cctv2_power_pin_ctrl(false);
 		// door_audio_video_select_pin_ctrl(false);
 		// door_audio_video_enable_pin_ctrl(true);
 		break;
 	case MON_CH_DOOR2:
 		door2_power_enable(en);
 		door1_power_enable(false);
+		cctv1_power_pin_ctrl(false);
+		cctv2_power_pin_ctrl(false);
 		// door_audio_video_select_pin_ctrl(true);
 		// door_audio_video_enable_pin_ctrl(true);
 		break;
-
+	case MON_CH_CCTV1:
+		door2_power_enable(false);
+		door1_power_enable(false);
+		cctv1_power_pin_ctrl(en);
+		cctv2_power_pin_ctrl(false);
+		// door_audio_video_select_pin_ctrl(true);
+		// door_audio_video_enable_pin_ctrl(true);
+		break;
+	case MON_CH_CCTV2:
+		door2_power_enable(false);
+		door1_power_enable(false);
+		cctv1_power_pin_ctrl(false);
+		cctv2_power_pin_ctrl(en);
+		// door_audio_video_select_pin_ctrl(true);
+		// door_audio_video_enable_pin_ctrl(true);
+		break;
 	default:
 		door2_power_enable(false);
 		door1_power_enable(false);
+		cctv1_power_pin_ctrl(false);
+		cctv2_power_pin_ctrl(false);
 		// door_audio_video_select_pin_ctrl(false);
 		// door_audio_video_enable_pin_ctrl(false);
 		break;
@@ -145,7 +166,7 @@ bool monitor_open(bool preview, unsigned char mask)
 	// if (OwnID == 1)
 	// {
 
-	if (montor_channel == MON_CH_DOOR1 || montor_channel == MON_CH_DOOR2)
+	if (montor_channel == MON_CH_DOOR1 || montor_channel == MON_CH_DOOR2 || montor_channel == MON_CH_CCTV1 || montor_channel == MON_CH_CCTV2)
 		outdoor_power_enable(montor_channel, true);
 	// }
 	if (mask & 0x01)

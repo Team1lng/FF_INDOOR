@@ -1,1 +1,1 @@
-cmd_drivers/usb/misc/built-in.o :=  rm -f drivers/usb/misc/built-in.o; /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ar rcsD drivers/usb/misc/built-in.o
+cmd_drivers/usb/misc/built-in.o :=  rm -f drivers/usb/misc/built-in.o; /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ar rcsD drivers/usb/misc/built-in.o

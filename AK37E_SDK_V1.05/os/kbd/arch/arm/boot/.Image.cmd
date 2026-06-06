@@ -1,1 +1,1 @@
-cmd_arch/arm/boot/Image := /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-objcopy -O binary -R .comment -S  vmlinux arch/arm/boot/Image
+cmd_arch/arm/boot/Image := /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-objcopy -O binary -R .comment -S  vmlinux arch/arm/boot/Image

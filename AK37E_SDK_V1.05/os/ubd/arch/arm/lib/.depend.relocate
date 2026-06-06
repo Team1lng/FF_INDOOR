@@ -1,5 +1,5 @@
-/home/xiaoxiao/workspace/EP-Linux/AK37E_SDK_V1.05/os/ubd/arch/arm/lib/relocate.o: \
+/home/blueen/samba/FF_Indoor/AK37E_SDK_V1.05/os/ubd/arch/arm/lib/relocate.o: \
  relocate.S \
- /home/xiaoxiao/workspace/EP-Linux/AK37E_SDK_V1.05/os/uboot/include/linux/linkage.h \
- /home/xiaoxiao/workspace/EP-Linux/AK37E_SDK_V1.05/os/ubd/include2/asm/linkage.h \
- /home/xiaoxiao/workspace/EP-Linux/AK37E_SDK_V1.05/os/uboot/include/linux/config.h
+ /home/blueen/samba/FF_Indoor/AK37E_SDK_V1.05/os/uboot/include/linux/linkage.h \
+ /home/blueen/samba/FF_Indoor/AK37E_SDK_V1.05/os/ubd/include2/asm/linkage.h \
+ /home/blueen/samba/FF_Indoor/AK37E_SDK_V1.05/os/uboot/include/linux/config.h

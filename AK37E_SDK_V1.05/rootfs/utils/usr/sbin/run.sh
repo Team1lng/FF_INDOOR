@@ -4,7 +4,7 @@
 run_flash_app()
 {
     echo "run flash app"
-    /app/app/TABA.BIN &
+    /app/app/FF.BIN &
     # echo 0 > /app/data/update_flag
     echo "finish"
     exit

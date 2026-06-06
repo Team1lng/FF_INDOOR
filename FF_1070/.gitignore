@@ -1,0 +1,29 @@
+# 编译产物（绝对不上传）
+*.o
+*.a
+*.so
+*.bin
+*.elf
+*.hex
+*.out
+build/
+obj/
+lib/
+
+# 临时文件/日志
+*.log
+*.swp
+*.swo
+*~
+修改日志.txt
+
+# IDE/编辑器配置
+.vscode/
+.idea/
+*.sublime-*
+
+# 其他无用文件
+.DS_Store
+*.tar.gz
+tmp/
+upgrade/

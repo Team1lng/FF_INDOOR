@@ -2,14 +2,14 @@
 TARGET_DIR="$PWD"
 BOOT_TOOLS=$TARGET_DIR/../tools/burntool/boot_tool.bin
 UPGRADE_IMAGE_DIR=$TARGET_DIR/platform/
-upgrade_bin_name=$TARGET_DIR/SAT_EPOS
+upgrade_bin_name=$TARGET_DIR/SAT_FFOS
 #upgrade_bin_version=$(date +"%Y%m%d%H%M%S")
 UBOOT_PARTTION="u-boot.bin"
 ENV_PARTTION="env_ak3760e_nor.img"
 ENVBK_PARTTION="env_ak3760e_nor.img"
 DTB_PARTTION="EVB_CBDM_AK3760E_V1.0.1_TABA.dtb"
 KERNEL_PARTTION="uImage"
-LOGO_PARTTION="ep_logo.rgb"
+LOGO_PARTTION="ff_logo.rgb"
 ROOTFS_PARTTION="root.sqsh4"
 USR_PARTTION="usr.sqsh4"
 CONFIG_PARTTION="config.jffs2"
@@ -81,6 +81,21 @@ else
     # echo -n "upgrade $ASTERISK_PARTTION? [y/n]"
     # read -n 2 asterisk_upgrade
 fi
+
+# else
+#     # 直接设置各分区升级标志：仅 app 升级为 y，其余均为 n
+#     uboot_upgrade=y
+#     env_img_uprade=y
+#     dtb_upgrade=y
+#     kernel_upgrade=y
+#     logo_upgrade=y
+#     rootfs_upgrade=y
+#     usr_upgrade=y
+#     config_upgrade=y
+#     app_upgrade=y
+#     data_upgrade=y
+#     tuya_upgrade=y
+# fi
 
 if [ -e $upgrade_bin_name ]; then
     rm -f $upgrade_bin_name

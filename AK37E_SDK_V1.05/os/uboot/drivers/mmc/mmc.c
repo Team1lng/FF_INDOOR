@@ -1488,7 +1488,7 @@ int mmc_start_init(struct mmc *mmc)
 		err = mmc_send_if_cond(mmc);
 		if (err)
 		{
-			printf("MMC: ak mmc mmc_send_if_cond Err!\n");
+			// printf("MMC: ak mmc mmc_send_if_cond Err!\n");
 			// return err;
 		}
 		else
@@ -1501,7 +1501,7 @@ int mmc_start_init(struct mmc *mmc)
 
 	if (i == 100)
 	{
-		printf("MMC: ak mmc mmc_send_if_cond Err!\n");
+		// printf("MMC: ak mmc mmc_send_if_cond Err!\n");
 		return err;
 	}
 

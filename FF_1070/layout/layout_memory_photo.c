@@ -33,11 +33,11 @@ typedef enum
 
 static custom_area photo_btn_area[MEMORY_TOTAL_BTN] =
 	{
-		{582, 450, 120, 120}, 
+		{712, 450, 120, 120},
 		{192, 450, 120, 120},
 		{322, 450, 120, 120},
 		{452, 450, 120, 120},
-		{712, 450, 120, 120},
+		{582, 450, 120, 120}, 
 };
 #define MEMORY_FUNC_BTN_BG_BLOCK_ID 8
 #define MEMORY_HEAD_CH_LABEL_ID 9
@@ -53,6 +53,7 @@ static bool func_btn_diaplay_flag = true;
 extern int photo_index_get(void);
 extern void photo_index_set(int index);
 extern void photo_total_set(int index);
+extern void photo_list_page_set(int index);
 extern file_type photo_state_get(void);
 
 static int photo_total = 0;
@@ -202,6 +203,8 @@ static void photo_head_label_display(const file_info *pinfo)
 
 static void photo_home_btn_up(lv_obj_t *obj)
 {
+	int list_global_index = photo_total - 1 - photo_index_new;
+	photo_list_page_set(list_global_index);
 	goto_layout(pLAYOUT(photo_list));
 }
 // 创建home按钮
@@ -235,27 +238,18 @@ static void photo_prev_btn_up(lv_obj_t *obj)
 {
     if (photo_total <= 1)
         return;
-    if (photo_file_type == FILE_TYPE_PHOTO) // SD卡照片
+
+    // 统一逻辑：索引递增，到头回0 
+    photo_index_new++;
+    if (photo_index_new > (photo_total - 1))
     {
-        photo_index_new--;
-        if (photo_index_new < 0)
-        {
-            photo_index_new = photo_total - 1;
-        }
+        photo_index_new = 0;
     }
-    else if (photo_file_type == FILE_TYPE_FLASH_PHOTO) // Flash照片
+
+    photo_index_set(photo_index_get() - 1);
+    if (photo_index_get() < 0)
     {
-        photo_index_new++;
-        if (photo_index_new > (photo_total - 1))
-        {
-            photo_index_new = 0;
-        }
-    }
-	
-    photo_index_set(photo_index_get() + 1);
-    if (photo_index_get() >= photo_total)
-    {
-        photo_index_set(0);
+        photo_index_set(photo_total - 1);
     }
     printf("==============>>>>>>>photo_index_get()[%d], file_type:[%d]\n", photo_index_get(), photo_file_type);
     layout_memory_photo_load();
@@ -343,26 +337,19 @@ static void photo_next_btn_up(lv_obj_t *obj)
 {
     if (photo_total <= 1)
         return;
-    if (photo_file_type == FILE_TYPE_PHOTO) // SD卡照片：原逻辑不变
+
+    // 索引递减，到底回顶部
+    photo_index_new--;
+    if (photo_index_new < 0)
     {
-        photo_index_new++;
-        if (photo_index_new > (photo_total - 1))
-        {
-            photo_index_new = 0;
-        }
+        photo_index_new = photo_total - 1;
     }
-    else if (photo_file_type == FILE_TYPE_FLASH_PHOTO) // Flash照片：反向逻辑
+
+    // 保持原有全局索引逻辑
+    photo_index_set(photo_index_get() + 1);
+    if (photo_index_get() >= photo_total)
     {
-        photo_index_new--;
-        if (photo_index_new < 0)
-        {
-            photo_index_new = photo_total - 1;
-        }
-    }
-    photo_index_set(photo_index_get() - 1);
-    if (photo_index_get() < 0)
-    {
-        photo_index_set(photo_total - 1);
+        photo_index_set(0);
     }
 
     printf("==============>>>>>>>photo_index_get_next()[%d], file_type:[%d]\n", photo_index_get(), photo_file_type);
@@ -461,12 +448,12 @@ static void create_dim_mask()
 	dim_mask = lv_obj_create(lv_scr_act(), NULL);
 	// 尺寸覆盖全屏
 	lv_obj_set_size(dim_mask, 1024, 600);
-	// 对齐方式：全屏覆盖
+	// 全屏覆盖
 	lv_obj_align(dim_mask, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
 	// 背景色：黑色，不透明度 50%（半透明，实现变暗效果）
 	lv_obj_set_style_local_bg_color(dim_mask, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x000000));
 	lv_obj_set_style_local_bg_opa(dim_mask, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_50); // 50%不透明
-	// 禁用遮罩层点击（避免干扰弹窗操作）
+	// 禁用遮罩层点击
 	lv_obj_set_click(dim_mask, false);
 }
 static void photo_delete_btn_up(lv_obj_t *obj)
@@ -600,7 +587,7 @@ static void LAYOUT_ENTER_FUNC(memory_photo)
 	// photo_func_btn_bg_block_create(parent);
 	photo_home_btn_create(parent);
 
-	// photo_mode_btn_create(parent);                       /*选择图片或者视频切换模式*/
+	// photo_mode_btn_create(parent); /*选择图片或者视频切换模式*/
 	photo_prev_btn_create(parent); /*点击搜索上一页面的图片*/
 
 	photo_play_btn_create(parent); /*播放按钮*/
@@ -609,10 +596,10 @@ static void LAYOUT_ENTER_FUNC(memory_photo)
 
 	photo_delete_btn_create(parent); /*删除图片按钮*/
 
-	// photo_back_btn_create(parent);                      	/*返回列表按钮*/
+	// photo_back_btn_create(parent); /*返回列表按钮*/
 	memory_bg_btn_click_enable(true);
 
-	lyaout_sd_state_callback_register(memory_photo_sdcard_state_change_event_cb);
+	layout_sd_state_callback_register(memory_photo_sdcard_state_change_event_cb);
 
 	memory_photo_param_init(); /*初始化*/
 }
@@ -625,7 +612,7 @@ static void LAYOUT_QUIT_FUNC(memory_photo)
 	}
 	memory_bg_btn_click_enable(false);
 	lv_obj_set_style_local_value_str(lv_scr_act(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, "");
-	lyaout_sd_state_callback_register(layout_sdcard_state_change_default);
+	layout_sd_state_callback_register(layout_sdcard_state_change_default);
 	standby_timer_restart(true);
 
 	if (cur_layout_get() != pLAYOUT(memory_photo) && cur_layout_get() != pLAYOUT(photo_list))

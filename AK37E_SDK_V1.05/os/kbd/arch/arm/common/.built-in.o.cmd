@@ -1,1 +1,1 @@
-cmd_arch/arm/common/built-in.o :=  /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL   -r -o arch/arm/common/built-in.o arch/arm/common/firmware.o 
+cmd_arch/arm/common/built-in.o :=  /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL    -r -o arch/arm/common/built-in.o arch/arm/common/firmware.o 

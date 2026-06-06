@@ -12,29 +12,29 @@
 	.file	"bounds.c"
 @ GNU C (Buildroot 2018.02.7_V1.0.05-gec2d034) version 4.9.4 (arm-anykav500-linux-uclibcgnueabi)
 @	compiled by GNU C version 5.4.0 20160609, GMP version 6.1.2, MPFR version 3.1.6, MPC version 1.0.3
-@ warning: GMP header version 6.1.2 differs from library version 6.2.1.
-@ warning: MPFR header version 3.1.6 differs from library version 4.1.0.
-@ warning: MPC header version 1.0.3 differs from library version 1.2.1.
+@ warning: MPFR header version 3.1.6 differs from library version 4.0.1.
+@ warning: MPC header version 1.0.3 differs from library version 1.1.0.
 @ GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
-@ 传递的选项：  -nostdinc
-@ -I /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include
+@ options passed:  -nostdinc
+@ -I /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include
 @ -I arch/arm/include/generated/uapi -I arch/arm/include/generated
-@ -I /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include -I include
-@ -I /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/uapi
+@ -I /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include
+@ -I include
+@ -I /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/include/uapi
 @ -I arch/arm/include/generated/uapi
-@ -I /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi
+@ -I /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/uapi
 @ -I include/generated/uapi
-@ -I /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/. -I .
-@ -I /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/mach-anycloud/include
-@ -iprefix /opt/arm-anykav500-linux-uclibcgnueabi/bin/../lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/
-@ -isysroot /opt/arm-anykav500-linux-uclibcgnueabi/arm-anykav500-linux-uclibcgnueabi/sysroot
+@ -I /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/. -I .
+@ -I /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/arch/arm/mach-anycloud/include
+@ -iprefix /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/../lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/
+@ -isysroot /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/arm-anykav500-linux-uclibcgnueabi/sysroot
 @ -D __KERNEL__ -D __LINUX_ARM_ARCH__=5 -U arm -D CC_HAVE_ASM_GOTO
 @ -D KBUILD_STR(s)=#s -D KBUILD_BASENAME=KBUILD_STR(bounds)
 @ -D KBUILD_MODNAME=KBUILD_STR(bounds)
-@ -isystem /opt/arm-anykav500-linux-uclibcgnueabi/bin/../lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/include
-@ -include /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/kconfig.h
+@ -isystem /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/../lib/gcc/arm-anykav500-linux-uclibcgnueabi/4.9.4/include
+@ -include /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/include/linux/kconfig.h
 @ -MD kernel/.bounds.s.d
-@ /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/kernel/bounds.c
+@ /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/kernel/bounds.c
 @ -mlittle-endian -mapcs -mno-sched-prolog -mabi=aapcs-linux
 @ -mno-thumb-interwork -mfpu=vfp -marm -march=armv5te -mtune=arm9tdmi
 @ -mfloat-abi=soft -mtls-dialect=gnu -auxbase-strip kernel/bounds.s -O2
@@ -49,7 +49,7 @@
 @ -fno-var-tracking-assignments -fno-strict-overflow
 @ -fno-merge-all-constants -fmerge-constants -fstack-check=no
 @ -fconserve-stack -fverbose-asm --param allow-store-data-races=0
-@ 启用的选项：  -faggressive-loop-optimizations -fauto-inc-dec
+@ options enabled:  -faggressive-loop-optimizations -fauto-inc-dec
 @ -fbranch-count-reg -fcaller-saves -fcombine-stack-adjustments
 @ -fcompare-elim -fcprop-registers -fcrossjumping -fcse-follow-jumps
 @ -fdefer-pop -fdevirtualize -fdevirtualize-speculatively -fearly-inlining
@@ -95,15 +95,15 @@ main:
 	stmfd	sp!, {fp, ip, lr, pc}	@,
 	sub	fp, ip, #4	@,,
 #APP
-@ 18 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/kernel/bounds.c" 1
+@ 18 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/kernel/bounds.c" 1
 	
 .ascii "->NR_PAGEFLAGS #21 __NR_PAGEFLAGS"	@
 @ 0 "" 2
-@ 19 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/kernel/bounds.c" 1
+@ 19 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/kernel/bounds.c" 1
 	
 .ascii "->MAX_NR_ZONES #2 __MAX_NR_ZONES"	@
 @ 0 "" 2
-@ 23 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/kernel/bounds.c" 1
+@ 23 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/kernel/bounds.c" 1
 	
 .ascii "->SPINLOCK_SIZE #0 sizeof(spinlock_t)"	@
 @ 0 "" 2

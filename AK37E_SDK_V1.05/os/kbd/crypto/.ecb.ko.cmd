@@ -1,1 +1,1 @@
-cmd_crypto/ecb.ko := /opt/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL -r  -T /home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/kernel/scripts/module-common.lds --build-id  -o crypto/ecb.ko crypto/ecb.o crypto/ecb.mod.o
+cmd_crypto/ecb.ko := /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/tools/arm-anykav500-linux-uclibcgnueabi/bin/arm-anykav500-linux-uclibcgnueabi-ld -EL -r  -T /home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/kernel/scripts/module-common.lds --build-id  -o crypto/ecb.ko crypto/ecb.o crypto/ecb.mod.o

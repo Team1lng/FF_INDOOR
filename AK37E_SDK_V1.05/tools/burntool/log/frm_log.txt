@@ -16437,3 +16437,534 @@ WindowProc-->wParam: 7
 
 
 
+*********************************************************************************
+Date: 2026-3-7 [10:29:14]Open burntool.exe
+--------------------------------------------------
+[10:29:16]Clear history logfiles:
+[10:29:16]End!
+--------------------------------------------------
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+BT_Start 
+get the usb num = 0 
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 1, attach_flag:0, auto_check:1
+BT_Start 
+BT_Start_g_workTotalnum :1 
+!!terminate
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+ScanUDisk i = 4 m_udisk_state 2
+!!udisk
+BT_DetachUSB i = 4 diskName = E index = 1
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 1, attach_flag:0, auto_check:1
+WindowProc-->wParam: 7
+BT_Start 
+BT_Start_g_workTotalnum :1 
+!!terminate
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+ScanUDisk i = 4 m_udisk_state 2
+!!udisk
+BT_DetachUSB i = 4 diskName = E index = 1
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 1, attach_flag:0, auto_check:1
+WindowProc-->wParam: 7
+BT_Start 
+BT_Start_g_workTotalnum :1 
+!!terminate
+[11:26:57]close file
+
+
+
+*********************************************************************************
+Date: 2026-3-7 [11:26:59]Open burntool.exe
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+--------------------------------------------------
+[11:27:04]Clear history logfiles:
+[11:27:04]End!
+--------------------------------------------------
+[11:27:07]close file
+
+
+
+*********************************************************************************
+Date: 2026-3-7 [11:27:09]Open burntool.exe
+--------------------------------------------------
+[11:29:42]Clear history logfiles:
+[11:29:42]End!
+--------------------------------------------------
+[11:42:37]close file
+
+
+
+*********************************************************************************
+Date: 2026-3-7 [11:42:51]Open burntool.exe
+--------------------------------------------------
+[11:42:51]Clear history logfiles:
+[11:42:51]End!
+--------------------------------------------------
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 1, attach_flag:0, auto_check:1
+BT_Start 
+BT_Start_g_workTotalnum :1 
+!!sucesss
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+ScanUDisk i = 4 m_udisk_state 2
+!!udisk
+BT_DetachUSB i = 4 diskName = E index = 1
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 0, attach_flag:0, auto_check:1
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+ScanUDisk i = 4 m_udisk_state 2
+BT_DetachUSB i = 4 diskName = E index = 0
+*********************************************************************************
+Date: 2026-3-9 [11:00:44]Open burntool.exe
+--------------------------------------------------
+[11:00:44]Clear history logfiles:
+[11:00:44]End!
+--------------------------------------------------
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 1, attach_flag:0, auto_check:1
+BT_Start 
+BT_Start_g_workTotalnum :1 
+!!sucesss
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+ScanUDisk i = 4 m_udisk_state 2
+!!udisk
+BT_DetachUSB i = 4 diskName = E index = 1
+[11:07:05]close file
+
+
+
+*********************************************************************************
+Date: 2026-3-18 [16:44:03]Open burntool.exe
+--------------------------------------------------
+[16:44:03]Clear history logfiles:
+[16:44:03]End!
+--------------------------------------------------
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+BT_Start 
+get the usb num = 0 
+BT_Start 
+get the usb num = 0 
+BT_Start 
+get the usb num = 0 
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 1, attach_flag:0, auto_check:1
+WindowProc-->wParam: 7
+BT_Start 
+BT_Start_g_workTotalnum :1 
+!!terminate
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+ScanUDisk i = 4 m_udisk_state 2
+!!udisk
+BT_DetachUSB i = 4 diskName = E index = 1
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 1, attach_flag:0, auto_check:1
+BT_Start 
+BT_Start_g_workTotalnum :1 
+!!terminate
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+ScanUDisk i = 4 m_udisk_state 2
+!!udisk
+BT_DetachUSB i = 4 diskName = E index = 1
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 0, attach_flag:1, auto_check:1
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+YYYYYYYYYYYYYYYY
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 3
+KKKKKKKKKKKKKKKK
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+YYYYYYYYYYYYYYYY
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 3
+KKKKKKKKKKKKKKKK
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 2, attach_flag:0, auto_check:1
+WindowProc-->wParam: 7
+BT_Start 
+BT_Start_g_workTotalnum :1 
+!!terminate
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+YYYYYYYYYYYYYYYY
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 3
+KKKKKKKKKKKKKKKK
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+ScanUDisk i = 4 m_udisk_state 2
+!!udisk
+BT_DetachUSB i = 4 diskName = E index = 2
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 2, attach_flag:0, auto_check:1
+BT_Start 
+BT_Start_g_workTotalnum :1 
+!!sucesss
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+ScanUDisk i = 4 m_udisk_state 2
+!!udisk
+BT_DetachUSB i = 4 diskName = E index = 2
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 0
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 0, attach_flag:0, auto_check:1
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+ScanUDisk i = 4 m_udisk_state 2
+BT_DetachUSB i = 4 diskName = E index = 0
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 0, attach_flag:0, auto_check:1
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+ScanUDisk i = 4 m_udisk_state 2
+BT_DetachUSB i = 4 diskName = E index = 0
+*********************************************************************************
+Date: 2026-5-13 [14:37:34]Open burntool.exe
+--------------------------------------------------
+[14:37:35]Clear history logfiles:
+[14:37:35]End!
+--------------------------------------------------
+WindowProc-->wParam: 7
+WindowProc-->wParam: 8000
+hDev_Broadcast_HDR->dbch_devicetype: 2
+DBT_DEVTYP_VOLUME
+udisk_cnt i = 1
+BT_AttachUSB diskName = E
+BT_AttachUSB vol = 4 diskName = E m_udisk_state 0
+BT_AttachUSB2 1, attach_flag:0, auto_check:1
+BT_Start 
+BT_Start_g_workTotalnum :1 
+WindowProc-->wParam: 7
+!!sucesss
+WindowProc-->wParam: 8004
+DBT_DEVTYP_VOLUME!2
+udisk_cnt i = 0
+ScanUDisk i = 4 m_udisk_state 2
+!!udisk
+BT_DetachUSB i = 4 diskName = E index = 1
+WindowProc-->wParam: 7
+WindowProc-->wParam: 7
+[14:53:54]close file
+
+
+

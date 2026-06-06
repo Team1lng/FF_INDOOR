@@ -65,12 +65,13 @@ bool tp9950_power_get(void)
 #define HOOK_STATE_PIN 0 // 听筒状态检测脚
 #define DOOR1_CALL_PIN 1 // door1 call机检测脚
 #define DOOR2_CALL_PIN 2 // door2 call机检测脚
+#define CALL_CAMERA_PIN 7
 // #define KEY_LOCK_PIN 74		 // 室內机开锁检测脚
 #define DOOR_CALL_DELAY 3000 // （ms）连续call机延时等待
 void *gpio_det_task(void *arg)
 {
-	int gpio_group_pin[] = {/*HOOK_STATE_PIN,*/ DOOR1_CALL_PIN, DOOR2_CALL_PIN};
-	GPIO_LEVEL gpio_group_level[] = {/*GPIO_LEVEL_LOW,*/ GPIO_LEVEL_LOW, GPIO_LEVEL_LOW};
+	int gpio_group_pin[] = {HOOK_STATE_PIN, DOOR1_CALL_PIN, DOOR2_CALL_PIN, CALL_CAMERA_PIN};
+	GPIO_LEVEL gpio_group_level[] = {GPIO_LEVEL_LOW, GPIO_LEVEL_LOW, GPIO_LEVEL_LOW, GPIO_LEVEL_LOW};
 	for (int i = 0; i < sizeof(gpio_group_pin) / sizeof(int); i++)
 	{
 		if (gpio_level_read(gpio_group_pin[i], &gpio_group_level[i]) == false)
@@ -79,7 +80,7 @@ void *gpio_det_task(void *arg)
 		}
 	}
 
-	//hook_state = gpio_group_level[0] == GPIO_LEVEL_HIGH ? 1 : 0;
+	hook_state = gpio_group_level[0] == GPIO_LEVEL_HIGH ? 1 : 0; // 高电平表示摘机，低电平表示挂机
 
 	unsigned long long door1_call_ts = 0;
 	unsigned long long door2_call_ts = 0;
@@ -88,26 +89,27 @@ void *gpio_det_task(void *arg)
 	GPIO_LEVEL level;
 
 	printf("***** gpio detection task create sccess ! *****\n");
+
 	while (1)
 	{
-		// /***** hook state 检测 *****/
-		// if ((gpio_level_read(gpio_group_pin[0], &level) == true) && (level != gpio_group_level[0]))
-		// {
-		// 	usleep(10 * 1000);
-		// 	if ((gpio_level_read(gpio_group_pin[0], &level) == true) && (level != gpio_group_level[0]))
-		// 	{
-		// 		power_amplifier_enable(false);
-		// 		gpio_group_level[0] = level;
-		// 		hook_state = level == GPIO_LEVEL_HIGH ? 1 : 0;
-		// 		lv_msg_send_cmd(MSG_EVENT_CMD_CUSTOM, hook_state, 0);
-		// 	}
-		// }
+		/***** hook state 检测 *****/
+		if ((gpio_level_read(gpio_group_pin[0], &level) == true) && (level != gpio_group_level[0]))
+		{
+			usleep(10 * 1000);
+			if ((gpio_level_read(gpio_group_pin[0], &level) == true) && (level != gpio_group_level[0]))
+			{
+				power_amplifier_enable(false);
+				gpio_group_level[0] = level;
+				hook_state = level == GPIO_LEVEL_HIGH ? 1 : 0;
+				lv_msg_send_cmd(MSG_EVENT_CMD_CUSTOM, hook_state, 0);
+			}
+		}
 
 		/***** door1 检测 *****/
 		door_call_ts = user_timestamp_get();
-		if ((gpio_level_read(gpio_group_pin[0], &level) == true) && (level != gpio_group_level[0]))
+		if ((gpio_level_read(gpio_group_pin[1], &level) == true) && (level != gpio_group_level[1]))
 		{
-			gpio_group_level[0] = level;
+			gpio_group_level[1] = level;
 			if ((level == GPIO_LEVEL_LOW) && (abs(door_call_ts - door1_call_ts) > DOOR_CALL_DELAY))
 			{
 				door1_call_ts = user_timestamp_get();
@@ -118,17 +120,16 @@ void *gpio_det_task(void *arg)
 
 		/***** door2 检测 *****/
 		door_call_ts = user_timestamp_get();
-		if ((gpio_level_read(gpio_group_pin[1], &level) == true) && (level != gpio_group_level[1]))
+		if ((gpio_level_read(gpio_group_pin[2], &level) == true) && (level != gpio_group_level[2]))
 		{
-			gpio_group_level[1] = level;
+			gpio_group_level[2] = level;
 			if ((level == GPIO_LEVEL_LOW) && (abs(door_call_ts - door2_call_ts) > DOOR_CALL_DELAY))
 			{
 				door2_call_ts = user_timestamp_get();
-				printf("=====================>>> door2 call \n");
+				printf("=====================>>>   door2 call \n");
 				lv_msg_send_cmd(MSG_EVENT_CMD_DOOR2_CALL, 0, 0);
 			}
 		}
-
 		// /***** gate open 检测 *****/
 		// if ((gpio_level_read(gpio_group_pin[3], &level) == true) && (level != gpio_group_level[3]))
 		// {
@@ -143,6 +144,15 @@ void *gpio_det_task(void *arg)
 		// 	}
 		// }
 
+		/***** 按铃检测 *****/
+		if ((gpio_level_read(gpio_group_pin[3], &level) == true) && (level != gpio_group_level[3]))
+		{
+			gpio_group_level[3] = level;
+			if ((level == GPIO_LEVEL_LOW))
+			{
+				lv_msg_send_cmd(MSG_EVENT_CMD_CALL_CAMERA, 0, 0);
+			}
+		}
 		usleep(10 * 1000);
 	}
 	return NULL;
@@ -171,21 +181,22 @@ void ring_volume_set(int vol)
 		break;
 	case 1:
 		power_amplifier_enable(true);
+		gpio_level_set(RING_VOL0_PIN, GPIO_LEVEL_LOW);
+		gpio_level_set(RING_VOL1_PIN, GPIO_LEVEL_LOW);
+		gpio_level_set(RING_VOL2_PIN, GPIO_LEVEL_HIGH);
+		break;
+	case 2:
+		power_amplifier_enable(true);
 		gpio_level_set(RING_VOL0_PIN, GPIO_LEVEL_HIGH);
 		gpio_level_set(RING_VOL1_PIN, GPIO_LEVEL_LOW);
 		gpio_level_set(RING_VOL2_PIN, GPIO_LEVEL_LOW);
 		break;
-	case 2:
+
+	case 3:
 		power_amplifier_enable(true);
 		gpio_level_set(RING_VOL0_PIN, GPIO_LEVEL_LOW);
 		gpio_level_set(RING_VOL1_PIN, GPIO_LEVEL_HIGH);
 		gpio_level_set(RING_VOL2_PIN, GPIO_LEVEL_LOW);
-		break;
-	case 3:
-		power_amplifier_enable(true);
-		gpio_level_set(RING_VOL0_PIN, GPIO_LEVEL_LOW);
-		gpio_level_set(RING_VOL1_PIN, GPIO_LEVEL_LOW);
-		gpio_level_set(RING_VOL2_PIN, GPIO_LEVEL_HIGH);
 		break;
 	case 4:
 		power_amplifier_enable(true);
@@ -230,19 +241,37 @@ void door2_unlock_pin_ctrl(bool en)
 	gpio_level_set(DOOR2_UNLOCK_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
 }
 
+/***
+** 日期: 2026-03-18 09:51
+** 作者: lynn
+** 函数作用：管理员通话控制
+** 返回参数说明：
+***/
+#define GUARD_TALKING_PIN 6
+void guard_talking_pin_ctrl(bool en)
+{
+	gpio_level_set(GUARD_TALKING_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
+}
+
+/***
+** 日期: 2022-05-20 14:29
+** 作者: leo.liu
+** 函数作用：功放使能
+** 返回参数说明：
+***/
 #define POWER_AMPLIFIER_PIN 9
-// 功放使能
 bool power_amplifier_enable(bool en)
 {
-	if (en == false)
-	{
-		return gpio_level_set(POWER_AMPLIFIER_PIN, GPIO_LEVEL_LOW);
-	}
-	else
-	{
-		//return gpio_level_set(POWER_AMPLIFIER_PIN, hook_state == false ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
-		return gpio_level_set(POWER_AMPLIFIER_PIN, GPIO_LEVEL_HIGH);
-	}
+	return gpio_level_set(POWER_AMPLIFIER_PIN, GPIO_LEVEL_HIGH);
+	// if (en == false)
+	// {
+	// 	return gpio_level_set(POWER_AMPLIFIER_PIN, GPIO_LEVEL_LOW);
+	// }
+	// else
+	// {
+	// 	return gpio_level_set(POWER_AMPLIFIER_PIN, hook_state == false ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
+	// 	// return gpio_level_set(POWER_AMPLIFIER_PIN, GPIO_LEVEL_HIGH);
+	// }
 }
 
 /***
@@ -275,7 +304,7 @@ void door2_power_enable(bool en)
 ** 函数作用：音频传输到door1
 ** 返回参数说明：
 ***/
-#define AUDIO_DOOR1_PIN 77
+#define AUDIO_DOOR1_PIN 56 // 77
 void audio_to_outdoor1_pin_ctrl(bool en)
 {
 	gpio_level_set(AUDIO_DOOR1_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
@@ -286,14 +315,14 @@ void audio_to_outdoor1_pin_ctrl(bool en)
 ** 函数作用：音频传输到door2
 ** 返回参数说明：
 ***/
-#define AUDIO_DOOR2_PIN 78
+#define AUDIO_DOOR2_PIN 36 // 78
 void audio_to_outdoor2_pin_ctrl(bool en)
 {
 	gpio_level_set(AUDIO_DOOR2_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
 }
 
 // 内线选择
-#define AUDIO_INTER_LINE_SELECT_PIN 79
+#define AUDIO_INTER_LINE_SELECT_PIN 35 // 79
 // （true：L2 false：L1）
 void audio_to_inter_line_select_pin_ctrl(bool en)
 {
@@ -342,7 +371,7 @@ void audio_to_inter_line_select_pin_ctrl(bool en)
 ** 函数作用：大门锁控制
 ** 返回参数说明：
 ***/
-#define PARKIN_UNLOCK_PIN 68
+#define PARKIN_UNLOCK_PIN 68 // gate锁
 void gate_unlock_pin_ctrl(bool en)
 {
 	gpio_level_set(PARKIN_UNLOCK_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
@@ -354,11 +383,11 @@ void gate_unlock_pin_ctrl(bool en)
 ** 函数作用：呼梯继电器控制
 ** 返回参数说明：
 ***/
-#define ELEVATOR_ON_PIN 32
-void elevator_on_pin_ctrl(bool en)
-{
-	gpio_level_set(ELEVATOR_ON_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
-}
+// #define ELEVATOR_ON_PIN 32
+// void elevator_on_pin_ctrl(bool en)
+// {
+// 	gpio_level_set(ELEVATOR_ON_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
+// }
 
 // /***
 // ** 日期: 2022-05-20 14:05
@@ -372,33 +401,46 @@ void elevator_on_pin_ctrl(bool en)
 // 	gpio_level_set(RING_TO_OUTDOOR_MUTE_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
 // }
 
-#define CTRL_485_PIN 8
+// #define CTRL_485_PIN 8
 // 458芯片发送 或 接收 选择
 // mask:0x00->接收 0x01->发送
-bool rs485_send_recv_ctrl(int mask)
+// bool rs485_send_recv_ctrl(int mask)
+// {
+// 	return gpio_level_set(CTRL_485_PIN, mask == 0x01 ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
+// }
+
+// // cctv音视频开关
+// #define CCTV_AUDIO_VIDEO_ENABLE_PIN 35
+// // （false：cctv1  true：cctv2）
+// void cctv_audio_video_enable_pin_ctrl(bool en)
+// {
+// 	gpio_level_set(CCTV_AUDIO_VIDEO_ENABLE_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
+// }      lynn 26.3.10
+
+// cctv1电源开关
+#define CCTV1_POWER_PIN 71
+void cctv1_power_pin_ctrl(bool en)
 {
-	return gpio_level_set(CTRL_485_PIN, mask == 0x01 ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
+	gpio_level_set(CCTV1_POWER_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
 }
 
-// cctv音视频开关
-#define CCTV_AUDIO_VIDEO_ENABLE_PIN 35
-// （false：cctv1  true：cctv2）
-void cctv_audio_video_enable_pin_ctrl(bool en)
+// cctv2电源开关
+#define CCTV2_POWER_PIN 32
+void cctv2_power_pin_ctrl(bool en)
 {
-	gpio_level_set(CCTV_AUDIO_VIDEO_ENABLE_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
+	gpio_level_set(CCTV2_POWER_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
 }
-
 /***
 ** 日期: 2022-05-20 14:05
 ** 作者: leo.liu
 ** 函数作用：客户音频通话芯片供电
 ** 返回参数说明：
 ***/
-#define TEA_POWER_PIN 86
-void tea_power_pin_ctrl(bool en)
-{
-	gpio_level_set(TEA_POWER_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
-}
+// #define TEA_POWER_PIN 86
+// void tea_power_pin_ctrl(bool en)
+// {
+// 	gpio_level_set(TEA_POWER_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
+// }
 
 /***
 ** 日期: 2022-04-28 10:11
@@ -423,13 +465,12 @@ void layout_gpio_init(void)
 	gpio_pull_enable(TP_RESET_GPIO, true);
 
 	/***** 听筒状态检测gpio初始化 *****/
-	//gpio_direction_set(HOOK_STATE_PIN, GPIO_DIR_IN);
+	gpio_direction_set(HOOK_STATE_PIN, GPIO_DIR_IN);
 
 	/***** 门口机call机检测gpio初始化 *****/
 	gpio_direction_set(DOOR1_CALL_PIN, GPIO_DIR_IN);
-	// gpio_pull_enable(DOOR1_CALL_PIN, true);
 	gpio_direction_set(DOOR2_CALL_PIN, GPIO_DIR_IN);
-	// gpio_pull_enable(DOOR2_CALL_PIN, true);
+	gpio_direction_set(CALL_CAMERA_PIN, GPIO_DIR_IN);
 
 	/***** 铃声音量设置 *****/
 	gpio_direction_set(RING_VOL0_PIN, GPIO_DIR_OUT);
@@ -474,24 +515,41 @@ void layout_gpio_init(void)
 	gpio_pull_enable(PARKIN_UNLOCK_PIN, true);
 	gate_unlock_pin_ctrl(false);
 
-	/***** RS485控制 *****/
-	gpio_direction_set(CTRL_485_PIN, GPIO_DIR_OUT);
-	gpio_pull_enable(CTRL_485_PIN, true);
-	rs485_send_recv_ctrl(0x00);
+	// /***** RS485控制 *****/
+	// gpio_direction_set(CTRL_485_PIN, GPIO_DIR_OUT);
+	// gpio_pull_enable(CTRL_485_PIN, true);
+	// rs485_send_recv_ctrl(0x00);      lynn 26.3.10
 
-	/***** 切换CCTV *****/
-	gpio_direction_set(CCTV_AUDIO_VIDEO_ENABLE_PIN, GPIO_DIR_OUT);
-	gpio_pull_enable(CCTV_AUDIO_VIDEO_ENABLE_PIN, true);
-	cctv_audio_video_enable_pin_ctrl(false);
+	// /***** 切换CCTV *****/
+	// gpio_direction_set(CCTV_AUDIO_VIDEO_ENABLE_PIN, GPIO_DIR_OUT);
+	// gpio_pull_enable(CCTV_AUDIO_VIDEO_ENABLE_PIN, true);
+	// cctv_audio_video_enable_pin_ctrl(false);      lynn 26.3.10
+
+	/***** CCTV1电源控制 *****/
+	gpio_direction_set(CCTV1_POWER_PIN, GPIO_DIR_OUT);
+	gpio_pull_enable(CCTV1_POWER_PIN, true);
+	cctv1_power_pin_ctrl(false);
+
+	/***** CCTV2电源控制 *****/
+	gpio_direction_set(CCTV2_POWER_PIN, GPIO_DIR_OUT);
+	gpio_pull_enable(CCTV2_POWER_PIN, true);
+	cctv2_power_pin_ctrl(false);
+
+	/***** 管理员通话控制 *****/
+	gpio_direction_set(GUARD_TALKING_PIN, GPIO_DIR_OUT);
+	gpio_pull_enable(GUARD_TALKING_PIN, true);
+	guard_talking_pin_ctrl(false);
+
+
 
 	/***** 呼梯继电器初始化 *****/
-	gpio_direction_set(ELEVATOR_ON_PIN, GPIO_DIR_OUT);
-	gpio_pull_enable(ELEVATOR_ON_PIN, false);
-	gpio_level_set(ELEVATOR_ON_PIN, GPIO_LEVEL_LOW); // 初始低电平（未呼梯）
+	// gpio_direction_set(ELEVATOR_ON_PIN, GPIO_DIR_OUT);
+	// gpio_pull_enable(ELEVATOR_ON_PIN, false);
+	// gpio_level_set(ELEVATOR_ON_PIN, GPIO_LEVEL_LOW); // 初始低电平（未呼梯）
 
-	gpio_direction_set(TEA_POWER_PIN, GPIO_DIR_OUT);
-	gpio_pull_enable(TEA_POWER_PIN, true);
-	gpio_level_set(TEA_POWER_PIN, GPIO_LEVEL_HIGH); // 优先使能我司电路
+	// gpio_direction_set(TEA_POWER_PIN, GPIO_DIR_OUT);
+	// gpio_pull_enable(TEA_POWER_PIN, true);
+	// gpio_level_set(TEA_POWER_PIN, GPIO_LEVEL_HIGH); // 优先使能我司电路
 
 	pthread_t thread_t;
 	pthread_create(&thread_t, user_pthread_atter_get(), gpio_det_task, NULL);
@@ -509,11 +567,11 @@ bool door_audio_talk(AUDIO_CH ch)
 	{
 	case AUDIO_CH_DOOR1:
 		audio_to_outdoor1_pin_ctrl(true);
-		ring_volume_set(user_data_get()->setting.door1_ring_volume);
+		ring_volume_set(user_data_get()->setting.door_ring_volume); // lynn 26.3.13
 		break;
 	case AUDIO_CH_DOOR2:
 		audio_to_outdoor2_pin_ctrl(true);
-		ring_volume_set(user_data_get()->setting.door2_ring_volume);
+		ring_volume_set(user_data_get()->setting.door_ring_volume); // lynn 26.3.13
 		break;
 	case AUDIO_CH_INTER:
 		audio_to_outdoor1_pin_ctrl(false);

@@ -54,6 +54,7 @@ static int lv_msg_queue_head = -1;
 /***** door1 call处理函数 *****/
 static void (*layout_door1_call_pfunc)(void) = NULL;
 static void (*layout_door2_call_pfunc)(void) = NULL;
+static void (*layout_call_camera_pfunc)(void) = NULL;
 static void (*layout_alarm1_trigger_pfunc)(void) = NULL;
 static void (*layout_alarm2_trigger_pfunc)(void) = NULL;
 static void (*lyaout_sd_state_pfunc)(void) = NULL;
@@ -62,6 +63,7 @@ static bool (*layout_tuya_event_func)(TUYA_CMD cmd, int) = NULL;
 static bool (*layout_custom_event_func)(unsigned int cmd,unsigned int arg) = NULL;
 static void (*layout_gate_open_pfunc)(void) = NULL;
 static void	(*layout_power_led_handler_pfunc)(void) = NULL;
+static void (*layout_intercom_out_pfunc)(unsigned int send_id, unsigned int cmd) = NULL;
 /***
 ** 日期: 2022-04-25 16:26
 ** 作者: leo.liu
@@ -86,6 +88,12 @@ static void lv_msg_event_task(lv_task_t *task)
 			if (layout_door2_call_pfunc != NULL)
 			{
 				layout_door2_call_pfunc();
+			}
+			break;
+		case MSG_EVENT_CMD_CALL_CAMERA:
+			if (layout_call_camera_pfunc != NULL)
+			{
+				layout_call_camera_pfunc();
 			}
 			break;
 		case MSG_EVENT_CMD_SENSOR1_TRIGGER:
@@ -130,6 +138,37 @@ static void lv_msg_event_task(lv_task_t *task)
 				layout_gate_open_pfunc();
 			}
 			break;
+		case MSG_EVENT_CMD_INTERCOM_OUT:
+			if(layout_intercom_out_pfunc != NULL)
+			{
+				layout_intercom_out_pfunc(event.msg.arg1, event.msg.arg2);
+			}
+			break;
+		// case MSG_EVENT_CMD_INTERCOM_TALK:
+		// 	if (layout_intercom_talk_event_pfunc != NULL) {
+		// 		layout_intercom_talk_event_pfunc(event.msg.arg1, event.msg.arg2);
+		// 	}
+		// 	break;
+		// case MSG_EVENT_CMD_INTERCOM_HANG_UP:
+		// 	if (layout_intercom_hang_up_event_pfunc != NULL) {
+		// 		layout_intercom_hang_up_event_pfunc(event.msg.arg1, event.msg.arg2);
+		// 	}
+		// 	break;
+		// case MSG_EVENT_CMD_INTERCOM_ACCEPT:
+		// 	if (layout_intercom_accept_event_pfunc != NULL) {
+		// 		layout_intercom_accept_event_pfunc(event.msg.arg1, event.msg.arg2);
+		// 	}
+		// 	break;
+		// case MSG_EVENT_CMD_INTERCOM_WAIT:
+		// 	if (layout_intercom_wait_event_pfunc != NULL) {
+		// 		layout_intercom_wait_event_pfunc(event.msg.arg1, event.msg.arg2);
+		// 	}
+		// 	break;
+		// case MSG_EVENT_CMD_INTERCOM_BUSY:
+		// 	if (layout_intercom_busy_event_pfunc != NULL) {
+		// 		layout_intercom_busy_event_pfunc(event.msg.arg1, event.msg.arg2);
+		// 	}
+		// 	break;
 		default:
 			break;
 		}
@@ -184,6 +223,7 @@ bool goto_layout(const layout *en_layout)
 	if ((old_layout != NULL) && (old_layout->quit != NULL))
 	{
 		old_layout->quit();
+		
 	}
 	lv_obj_clean(lv_scr_act());
 	refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
@@ -304,12 +344,26 @@ bool layout_door2_call_callback_register(void (*callback)(void))
 }
 
 /***
+** 日期: 2022-05-12 10:28
+** 作者: leo.liu
+** 函数作用：注册call camera执行函数
+** 返回参数说明：
+***/
+bool layout_call_camera_callback_register(void (*callback)(void))
+{
+	layout_call_camera_pfunc = callback;
+	return true;
+}//lynn 26.3.14
+
+
+
+/***
 ** 日期: 2022-05-17 14:47
 ** 作者: leo.liu
 ** 函数作用：sdcard状态注册
 ** 返回参数说明：
 ***/
-bool lyaout_sd_state_callback_register(void (*callback)(void))
+bool layout_sd_state_callback_register(void (*callback)(void))
 {
 	lyaout_sd_state_pfunc = callback;
 	return true;
@@ -396,8 +450,17 @@ bool layout_power_led_handler_register(void (*callback)(void))
 	return true;
 }
 
-
-
+/***
+** 日期: 2022-05-12 10:28
+** 作者: leo.liu
+** 函数作用：注册处理intercom事件
+** 返回参数说明：
+***/
+bool layout_intercom_out_callback_register(void (*callback)(unsigned int send_id, unsigned int cmd))
+{
+	layout_intercom_out_pfunc = callback;
+	return true;
+}
 
 
 

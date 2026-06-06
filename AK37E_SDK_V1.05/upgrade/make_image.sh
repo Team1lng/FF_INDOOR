@@ -67,7 +67,7 @@ copy_env_logo_images()
         ./fw_printenv
         cp env.img     ../../upgrade/platform/env_ak3760e_nor.img
         cd -
-        cp logo/ep_logo.rgb           platform/
+        cp logo/ff_logo.rgb           platform/
 }
 
 # 把 升级脚本 和 进度条显示程序 也放进去打包压缩

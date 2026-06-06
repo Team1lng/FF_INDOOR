@@ -26,7 +26,7 @@
 #define SD_CALL_NUM_MAX 512
 
 /***** sd媒体文件最大数目 *****/
-#define SD_MEDIA_NUM_MAX (SD_PHOTO_NUM_MAX + SD_VIDEO_NUM_MAX) // 1000
+#define SD_MEDIA_NUM_MAX (SD_PHOTO_NUM_MAX + SD_VIDEO_NUM_MAX) 
 
 /***** flash的照片最大数目 *****/
 #define FLASH_PHOTO_MAX 200
@@ -345,7 +345,7 @@ static void _media_sd_format(void)
 	system("rm -rf " SD_CALL_PATH); // 添加删除call文件夹
 	system("umount " SD_BASE_PATH);
 
-	system("mkdosfs -F 32 -I /dev/mmcblk0 -n EP");
+	system("mkdosfs -F 32 -I /dev/mmcblk0 -n FF");
 	system("sync");
 	printf("##### finish fomrat sdcard ##### \n");
 }
@@ -486,42 +486,148 @@ static bool _media_file_delete(file_type type, int index)
 	return true;
 }
 
+// /*******************************************************************
+//  * @brief  : 移动flash的照片到SD卡
+//  * @return  {*}
+//  *******************************************************************/
+// static void media_copy_flash_photo_to_sd_process(void)
+// {
+// 	if (access(SD_BACKUP_PATH, F_OK) != 0)
+// 	{
+
+// 		mkdir(SD_BACKUP_PATH, 0777);
+// 		system("sync");
+// 	}
+
+// 	char cmd[64] = {0};
+// 	DIR *dir = NULL;
+// 	struct dirent *ptr = NULL;
+// 	dir = opendir(FLASH_PHOTO_PATH);
+// 	if (dir != NULL)
+// 	{
+// 		while ((ptr = readdir(dir)) != NULL)
+// 		{
+// 			if (strstr(ptr->d_name, PHOTO_DOT) != NULL)
+// 			{
+// 				memset(cmd, 0, sizeof(cmd));
+// 				sprintf(cmd, "cp -rf " FLASH_PHOTO_PATH "%s " SD_BACKUP_PATH, ptr->d_name);
+// 				system(cmd);
+// 				copied_to_sd_munber++;
+// 			}
+// 		}
+// 		closedir(dir);
+// 	}
+
+// 	system("sync");
+// 	_scan_media_file(FILE_TYPE_FLASH_PHOTO);
+// }
+
+// 排序比较函数
+static int media_file_sort_cmp(const void *a, const void *b)
+{
+	const file_info *file_a = (const file_info *)a;
+	const file_info *file_b = (const file_info *)b;
+
+	// 提取文件名里的时间
+	char time_a[15] = {0}, time_b[15] = {0};
+	strncpy(time_a, file_a->file_name, 14);
+	strncpy(time_b, file_b->file_name, 14);
+
+	// 字符串比较
+	return strcmp(time_a, time_b);
+}
+
+// 对SD卡照片数组按时间重新排序
+static void media_file_sort_by_time(void)
+{
+	if (sd_photo_total <= 1)
+	{
+		return;
+	}
+
+	qsort(p_photo_sd, sd_photo_total, sizeof(file_info), media_file_sort_cmp);
+
+	// 排序后同步到.conf文件
+	_media_file_sync(FILE_TYPE_PHOTO);
+	printf("SD卡照片已按时间重新排序\n");
+}
 /*******************************************************************
  * @brief  : 移动flash的照片到SD卡
  * @return  {*}
  *******************************************************************/
 static void media_copy_flash_photo_to_sd_process(void)
 {
-	if (access(SD_BACKUP_PATH, F_OK) != 0)
+	// 如果SD卡没插，直接返回
+	if (!is_media_sd_insert)
 	{
-
-		mkdir(SD_BACKUP_PATH, 0777);
-		system("sync");
+		return;
 	}
-
-	char cmd[64] = {0};
-	DIR *dir = NULL;
-	struct dirent *ptr = NULL;
-	dir = opendir(FLASH_PHOTO_PATH);
-	if (dir != NULL)
+	printf("===========================>> 开始迁移 Flash 照片到 SD 卡\n");
+	int i;
+	for (i = 0; i < flash_media_total; i++)
 	{
-		while ((ptr = readdir(dir)) != NULL)
+		if (sd_photo_total >= SD_PHOTO_NUM_MAX)
 		{
-			if (strstr(ptr->d_name, PHOTO_DOT) != NULL)
-			{
-				memset(cmd, 0, sizeof(cmd));
-				sprintf(cmd, "cp -rf " FLASH_PHOTO_PATH "%s " SD_BACKUP_PATH, ptr->d_name);
-				system(cmd);
-				copied_to_sd_munber++;
-			}
+			printf("SD 卡照片列表已满，停止迁移\n");
+			break;
 		}
-		closedir(dir);
+
+		// 拿到 Flash 里源文件的信息
+		file_info *src_info = &p_media_flash[i];
+
+		// 构造源文件路径和目标文件路径
+		char src_path[MEDIA_PATH_MAX] = {0};
+		char dst_path[MEDIA_PATH_MAX] = {0};
+
+		snprintf(src_path, MEDIA_PATH_MAX, "%s%s", FLASH_PHOTO_PATH, src_info->file_name);
+		snprintf(dst_path, MEDIA_PATH_MAX, "%s%s", SD_PHOTO_PATH, src_info->file_name);
+
+		if (access(dst_path, F_OK) == 0)
+		{
+			printf("文件已存在，跳过: %s\n", src_info->file_name);
+			copied_to_sd_munber = i + 1; 
+			continue;
+		}
+
+		// 检查源文件是否存在
+		if (access(src_path, F_OK) != 0)
+		{
+			continue;
+		}
+
+		// 执行文件拷贝
+		char cmd[256] = {0};
+		snprintf(cmd, sizeof(cmd), "cp -f \"%s\" \"%s\"", src_path, dst_path);
+		system(cmd);
+
+		// 检查目标文件是否拷贝成功
+		if (access(dst_path, F_OK) == 0)
+		{
+			// 在SD卡索引数组占个位置
+			file_info *dst_entry = &p_photo_sd[sd_photo_total];
+
+			// 把Flash里的信息原封不动地复制到sd的索引里
+			memcpy(dst_entry, src_info, sizeof(file_info));
+
+			// 修正属性
+			dst_entry->type = FILE_TYPE_PHOTO;
+			dst_entry->is_new = true;
+
+			// SD卡照片总数 + 1
+			sd_photo_total++;
+			sd_photo_new_total++;
+
+			printf("迁移成功: %s -> SD卡 (总数: %d)\n", src_info->file_name, sd_photo_total);
+		}
+
+		// 更新进度条计数
+		copied_to_sd_munber = i + 1;
 	}
-
+	media_file_sort_by_time();
+	_media_file_sync(FILE_TYPE_PHOTO);
 	system("sync");
-	_scan_media_file(FILE_TYPE_FLASH_PHOTO);
+	printf("===========================>> 迁移完成\n");
 }
-
 /***
 **   日期:2022-06-15 11:14:00
 **   作者: feian.liu

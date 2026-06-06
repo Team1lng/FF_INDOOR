@@ -27,7 +27,7 @@ typedef enum
 **   door_station: 门口机编号 (1或2)
 ** 返回参数说明：成功返回true，失败返回false
 ***/
-bool call_record_start(bool is_door_station, call_door_station door_station, int call_num);
+// bool call_record_start(bool is_door_station, call_door_station door_station, int call_num);
 
 /***
 ** 日期: 2022-05-17 11:28

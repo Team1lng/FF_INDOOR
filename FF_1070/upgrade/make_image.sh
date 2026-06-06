@@ -28,10 +28,10 @@ images_compress()
         cp scripts/update.sh                    platform/
         cp upgrade_progress/upgrade_progress    platform/
 
-        rm -rf SAT_EPOS
+        rm -rf SAT_FFOS
         cd platform/
-        tar -zcvf SAT_EPOS *
-        mv SAT_EPOS ../
+        tar -zcvf SAT_FFOS *
+        mv SAT_FFOS ../
         cd ../
 }
 # 文件处理：删除目标文件并拷贝新文件
@@ -41,7 +41,7 @@ handle_files() {
     local dest_dir=../../AK37E_SDK_V1.05/rootfs/resource/app/app
     
     # 用空格分隔文件列表
-    local files="rom.bin sat_leo.ttf TABA.BIN persian.ttf"
+    local files="rom.bin sat_leo.ttf FF.BIN persian.ttf"
 
     echo "开始处理文件拷贝..."
 
@@ -67,7 +67,7 @@ handle_files() {
 
 # 执行外部make_image.sh脚本
 execute_external_script() {
-        local external_script="/home/sl/share/FF_Indoor/AK37E_SDK_V1.05"
+        local external_script="/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05"
     
         echo "开始执行外部脚本：$external_script"
 
@@ -75,7 +75,6 @@ execute_external_script() {
         cd $external_script
         # 执行外部脚本
         ./auto_build.sh -i
-        cd /home/zio/Share/FF_Indoor/EP_1070
         echo "外部脚本执行完成"
 }
 

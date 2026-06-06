@@ -8,6 +8,7 @@ typedef enum
 {
 	MSG_EVENT_CMD_DOOR1_CALL = 0X0000,
 	MSG_EVENT_CMD_DOOR2_CALL,
+	MSG_EVENT_CMD_CALL_CAMERA,
 	MSG_EVENT_CMD_SENSOR1_TRIGGER,
 	MSG_EVENT_CMD_SENSOR2_TRIGGER,
 	MSG_EVENT_CMD_SD_STATE,
@@ -15,6 +16,7 @@ typedef enum
 	MSG_EVENT_CMD_TUYA,
 	MSG_EVENT_CMD_CUSTOM,
 	MSG_EVENT_CMD_GATE_OPEN,
+	MSG_EVENT_CMD_INTERCOM_OUT,
 } MSG_CMD;
 
 typedef enum
@@ -162,7 +164,14 @@ bool layout_door2_call_callback_register(void (*callback)(void));
 ** 函数作用：sdcard状态注册
 ** 返回参数说明：
 ***/
-bool lyaout_sd_state_callback_register(void (*callback)(void));
+bool layout_call_camera_callback_register(void (*callback)(void));
+/***
+** 日期: 2022-05-17 14:47
+** 作者: leo.liu
+** 函数作用：sdcard状态注册
+** 返回参数说明：
+***/
+bool layout_sd_state_callback_register(void (*callback)(void));
 /***
 ** 日期: 2022-05-12 10:34
 ** 作者: leo.liu

@@ -24,31 +24,31 @@ static void back_btn_create(lv_obj_t *parent)
 {
     lv_obj_t *back_icon_obj = lv_img_create(parent, NULL);
     lv_obj_set_pos(back_icon_obj, 920, 25);
-	lv_obj_set_size(back_icon_obj, 50, 37);
-	lv_obj_set_id(back_icon_obj, HOME_BACK_OBJ_ID);
-	static rom_bin_info info1 = rom_bin_info_get(ROM_UI_TIME_BACK_PNG);
-	lv_obj_set_style_local_pattern_image(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info1);
+    lv_obj_set_size(back_icon_obj, 50, 37);
+    lv_obj_set_id(back_icon_obj, HOME_BACK_OBJ_ID);
+    static rom_bin_info info1 = rom_bin_info_get(ROM_UI_TIME_BACK_PNG);
+    lv_obj_set_style_local_pattern_image(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info1);
     static obj_click_data btn_data = obj_click_data_up_create(back_btn_up);
     obj_click_event_listen(back_icon_obj, &btn_data);
+    lv_obj_set_style_local_pattern_recolor(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, lv_color_hex(0x000000));
+    lv_obj_set_style_local_pattern_recolor_opa(back_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, LV_OPA_50); // 按下叠加50%黑色（深色）
 }
 
 static void setting_icon_create(lv_obj_t *parent)
 {
     lv_obj_t *setting_icon_obj = lv_img_create(parent, NULL);
     lv_obj_set_pos(setting_icon_obj, 54, 34);
-	lv_obj_set_size(setting_icon_obj, 22, 20);
-	static rom_bin_info info1 = rom_bin_info_get(ROM_UI_HOME_GEAR_PNG);
-	lv_obj_set_id(setting_icon_obj, HOME_GEAR_OBJ_ID);
-	lv_obj_set_style_local_pattern_image(setting_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info1);
+    lv_obj_set_size(setting_icon_obj, 22, 20);
+    static rom_bin_info info1 = rom_bin_info_get(ROM_UI_HOME_GEAR_PNG);
+    lv_obj_set_id(setting_icon_obj, HOME_GEAR_OBJ_ID);
+    lv_obj_set_style_local_pattern_image(setting_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info1);
 
     lv_obj_t *Setting_label = lv_label_create(parent, NULL);
     lv_obj_set_pos(Setting_label, 87, 28);
-	lv_obj_set_size(Setting_label, 90, 31);
-    lv_label_set_text(Setting_label, "Memory");
-	lv_obj_align(setting_icon_obj, Setting_label, LV_ALIGN_OUT_LEFT_MID, -5, 0);
+    lv_obj_set_size(Setting_label, 90, 31);
+    lv_label_set_text(Setting_label, str_get(COMMON_LANG_LEFT_HEAD_MEMORY_ID));
+    lv_obj_align(setting_icon_obj, Setting_label, LV_ALIGN_OUT_LEFT_MID, -5, 0);
 }
-
-
 
 // 切换运动检测总开关
 static void setting_detectiong_open_detection_btn_up(lv_obj_t *obj)
@@ -71,20 +71,12 @@ static void setting_detectiong_open_detection_btn_up(lv_obj_t *obj)
 ** 函数作用：创建Open detection设置按钮
 ** 返回参数说明：成功创建返回true
 ***/
-static bool setting_detectiong_open_detection_btn_create(void)
+static bool setting_detectiong_open_detection_btn_create(lv_obj_t *parent)
 {
     static obj_click_data click_data = obj_click_data_up_create(setting_detectiong_open_detection_btn_up);
-    lv_obj_t *obj = lv_obj_create(lv_scr_act(), NULL);
-    lv_obj_set_pos(obj, 172, 122);
-    lv_obj_set_size(obj, 680, 52);
-    lv_obj_set_style_local_bg_opa(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
-    lv_obj_set_style_local_bg_color(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x000000));
-    lv_obj_set_style_local_bg_color(obj, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, lv_color_hex(0x000000)); 
-    lv_obj_set_click(obj, false);
-
-    setting_sub_btn_base_create(lv_scr_act(), 172, 122 + (50 * 0), 680, 46, 
-                               str_get(LAYOUT_SET_DETECTIONG_OPEN_DETECTION_ID), 
-                               &click_data, user_data_get()->motion.enable, 3);
+    setting_sub_btn_base_create(parent, 172, 122 + (50 * 0), 680, 46,
+                                str_get(LAYOUT_SET_DETECTIONG_OPEN_DETECTION_ID),
+                                &click_data, user_data_get()->motion.enable, 3);
     return true;
 }
 /***
@@ -102,7 +94,7 @@ static lv_obj_t *setting_motion_cont_create(void)
         return NULL;
     }
     lv_obj_set_id(cont, LAYOUT_SETTING_MOTION_OBJ_CONT);
-    lv_obj_set_pos(cont, 175 , 190);
+    lv_obj_set_pos(cont, 175, 190);
     lv_obj_set_size(cont, 680, 60 * 5);
 
     lv_obj_set_style_local_bg_color(cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x000000));
@@ -184,7 +176,8 @@ static bool setting_detectiong_camera_select_btn_create(lv_obj_t *parent)
                                                     &click_data,
                                                     &left_click_data,
                                                     SETTING_MOTION_CAMERA_SELECT_ID);
-    if (btn != NULL){
+    if (btn != NULL)
+    {
         lv_obj_set_style_local_border_opa(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
         lv_obj_set_style_local_border_width(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 1);
         lv_obj_set_style_local_border_side(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_BORDER_SIDE_BOTTOM);
@@ -261,7 +254,8 @@ static bool setting_detectiong_storage_mode_btn_create(lv_obj_t *parent)
                                                     &click_data,
                                                     &left_click_data,
                                                     SETTING_MOTION_STORAGE_MODE_ID);
-    if (btn != NULL){
+    if (btn != NULL)
+    {
         lv_obj_set_style_local_border_opa(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
         lv_obj_set_style_local_border_width(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 1);
         lv_obj_set_style_local_border_side(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_BORDER_SIDE_BOTTOM);
@@ -341,7 +335,8 @@ static bool setting_detectiong_sensitivity_setting_btn_create(lv_obj_t *parent)
                                                     &click_data,
                                                     &left_click_data,
                                                     SETTING_MOTION_SENSITIVITY_ID);
-    if (btn != NULL){
+    if (btn != NULL)
+    {
         lv_obj_set_style_local_border_opa(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
         lv_obj_set_style_local_border_width(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 1);
         lv_obj_set_style_local_border_side(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_BORDER_SIDE_BOTTOM);
@@ -420,7 +415,8 @@ static bool setting_detectiong_recording_duration_btn_create(lv_obj_t *parent)
                                                     &click_data,
                                                     &left_click_data,
                                                     SETTING_MOTION_RECORD_DURATION_ID);
-    if (btn != NULL){
+    if (btn != NULL)
+    {
         lv_obj_set_style_local_border_opa(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
         lv_obj_set_style_local_border_width(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 1);
         lv_obj_set_style_local_border_side(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_BORDER_SIDE_BOTTOM);
@@ -493,7 +489,8 @@ static bool setting_detectiong_bright_screen_btn_create(lv_obj_t *parent)
                                                     &left_click_data,
                                                     SETTING_MOTION_BRIGHT_SCREEN_ID);
     // 初始化显示文本
-        if (btn != NULL){
+    if (btn != NULL)
+    {
         lv_obj_set_style_local_border_opa(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
         lv_obj_set_style_local_border_width(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 1);
         lv_obj_set_style_local_border_side(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_BORDER_SIDE_BOTTOM);
@@ -533,7 +530,7 @@ static void LAYOUT_ENTER_FUNC(setting_motion_detection)
     setting_icon_create(parent);
     top_time_date_text_create(parent);
 
-    setting_detectiong_open_detection_btn_create();
+    setting_detectiong_open_detection_btn_create(parent);
     lv_obj_t *cont = setting_motion_cont_create();
 
     setting_detectiong_camera_select_btn_create(cont);
@@ -541,7 +538,7 @@ static void LAYOUT_ENTER_FUNC(setting_motion_detection)
     setting_detectiong_sensitivity_setting_btn_create(cont);
     setting_detectiong_recording_duration_btn_create(cont);
     setting_detectiong_bright_screen_btn_create(cont);
-    //setting_detectiong_time_period_control_btn_create(cont);
+    // setting_detectiong_time_period_control_btn_create(cont);
 }
 
 static void LAYOUT_QUIT_FUNC(setting_motion_detection)

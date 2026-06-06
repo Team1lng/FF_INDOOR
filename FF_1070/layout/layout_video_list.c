@@ -599,7 +599,7 @@
 // 		video_list_no_sd_create(parent);
 // 	}
 
-// 	lyaout_sd_state_callback_register(video_list_sdcard_state_change_func);
+// 	layout_sd_state_callback_register(video_list_sdcard_state_change_func);
 // }
 
 // static void LAYOUT_QUIT_FUNC(video_list)
@@ -609,7 +609,7 @@
 // 	{
 // 		thumb_media_close();
 // 	}
-// 	lyaout_sd_state_callback_register(NULL);
+// 	layout_sd_state_callback_register(NULL);
 // 	if ((cur_layout != pLAYOUT(memory_video)) && (cur_layout != pLAYOUT(video_list)))
 // 		video_index_set(0);
 // }

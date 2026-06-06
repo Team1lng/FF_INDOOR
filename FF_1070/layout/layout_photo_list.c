@@ -11,6 +11,7 @@
 #define PHOTO_LIST_DELETE_BTN_ID 7
 #define VIDEO_LIST_PHOTO_PAGE_BTN_ID 8
 #define VIDEO_LIST_PHOTO_TOTAL_BTN_ID 9
+#define HOME_GEAR_OBJ_ID 10
 
 // 按钮枚举
 typedef enum
@@ -100,6 +101,11 @@ void photo_total_set(int index)
     photo_total = index;
 }
 
+void photo_list_page_set(int index)
+{
+    int page=(index)/6+1;
+    photo_list_curr_page_num = page;
+}
 /************************** 视频相关接口函数 **************************/
 int video_index_get(void)
 {
@@ -142,8 +148,8 @@ static void set_selected_media_btn(lv_obj_t *selected_btn)
 {
     media_btn_style_reset();
     if(selected_btn) {
-        lv_obj_set_style_local_bg_color(selected_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x007AFF));
-        lv_obj_set_style_local_bg_opa(selected_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+        lv_obj_set_style_local_bg_color(selected_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x656C9A));
+        lv_obj_set_style_local_bg_opa(selected_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_80);
     }
 }
 
@@ -223,14 +229,16 @@ void video_play_parameter_init(void)
     {
         video_total = 0;
     }
-    video_list_curr_page_num = 1;
+    // video_list_curr_page_num = 1;
 }
 
 /************************** 照片按钮回调 **************************/
 static void photo_list_flash_photo_btn_up(lv_obj_t *obj)
 {
     file_type_photo=FILE_TYPE_FLASH_PHOTO;
-    photo_list_curr_page_num = 1;
+    if(obj != NULL) {
+        photo_list_curr_page_num = 1;
+    }
     photo_play_parameter_init();
     // 先更新选中按钮ID
     last_selected_btn_id=PHOTO_LIST_FLASH_PHOTO_BTN_ID;
@@ -247,7 +255,7 @@ static void photo_list_flash_photo_btn_up(lv_obj_t *obj)
         {
             int file_global_index = (photo_list_curr_page_num-1)*6+i;
             if(file_global_index>=photo_total) break;
-            photo_list_page_btn_create(photo_page,0,i*62,800,62,file_global_index);
+            photo_list_page_btn_create(photo_page,0,i*62,520,62,file_global_index);
         }
     }
     set_selected_media_btn(flash_photo_btn);
@@ -270,7 +278,9 @@ static void photo_list_sd_photo_btn_up(lv_obj_t *obj)
     }
     
     file_type_photo = FILE_TYPE_PHOTO;
-    photo_list_curr_page_num = 1;
+    if(obj != NULL) {
+        photo_list_curr_page_num = 1;
+    }
     photo_play_parameter_init();
     
     // 先更新选中按钮ID
@@ -286,7 +296,7 @@ static void photo_list_sd_photo_btn_up(lv_obj_t *obj)
         for(int i=0;i<6;i++){
             int file_global_index = (photo_list_curr_page_num - 1) * 6 + i;
             if (file_global_index >= photo_total) break;
-            photo_list_page_btn_create(photo_page, 0, i * 62, 800, 62, file_global_index);
+            photo_list_page_btn_create(photo_page, 0, i * 62, 520, 62, file_global_index);
         }
     }
     set_selected_media_btn(sd_photo_btn);
@@ -315,7 +325,10 @@ static void photo_list_video_btn_up(lv_obj_t *obj)
     }
 
     video_play_parameter_init();
-    
+
+    if(obj != NULL) {
+        video_list_curr_page_num = 1;
+    }
     // 先更新选中按钮ID
     last_selected_btn_id=PHOTO_LIST_VIDEO_BTN_ID;
     
@@ -329,7 +342,7 @@ static void photo_list_video_btn_up(lv_obj_t *obj)
         for(int i=0;i<6;i++){
             int file_global_index = (video_list_curr_page_num - 1) * 6 + i;
             if (file_global_index >= video_total) break;
-            video_list_page_btn_create(video_page, 0, i * 62, 800, 62, file_global_index);
+            video_list_page_btn_create(video_page, 0, i * 62, 520, 62, file_global_index);
         }
     }
     set_selected_media_btn(video_btn);
@@ -381,11 +394,12 @@ static lv_obj_t *media_list_page_btn_create(lv_obj_t *parent, int x, int y, int 
     lv_obj_set_pos(btn, x, y);
     lv_obj_set_size(btn, w, h);
     lv_obj_set_style_local_bg_opa(btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
-    lv_obj_set_style_local_bg_opa(btn, LV_BTN_PART_MAIN, LV_STATE_PRESSED, LV_OPA_50);
-    lv_obj_set_style_local_bg_color(btn, LV_BTN_PART_MAIN, LV_STATE_PRESSED, lv_color_hex(0x4f4f4f));
-    lv_obj_set_style_local_radius(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 10);
-    lv_obj_set_style_local_border_width(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
-    lv_obj_set_style_local_outline_width(btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, 0);
+    lv_obj_set_style_local_bg_opa(btn, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, LV_OPA_50);
+    lv_obj_set_style_local_bg_color(btn, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, lv_color_hex(0x6E6E6E));
+    lv_obj_set_style_local_border_width(btn, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, 2);
+    lv_obj_set_style_local_border_color(btn, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, lv_color_hex(0xffffff));
+    lv_obj_set_style_local_radius(btn, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, 10);
+    lv_obj_set_style_local_outline_width(btn, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, 0);
     obj_click_event_listen(btn, click_data);
 
     int real_file_index = total - 1 - file_global_index;
@@ -440,7 +454,7 @@ static lv_obj_t *media_list_page_btn_create(lv_obj_t *parent, int x, int y, int 
     static rom_bin_info red_info=rom_bin_info_get(ROM_UI_MEDIA_RED_PNG);
     lv_obj_t *red_dot_img=lv_img_create(btn,NULL);
     lv_img_set_src(red_dot_img,&red_info);
-    lv_obj_align(red_dot_img,btn,LV_ALIGN_IN_LEFT_MID,15,0);
+    lv_obj_align(red_dot_img,btn,LV_ALIGN_IN_LEFT_MID,10,3);
     lv_obj_set_hidden(red_dot_img,!media_info->is_new);
 
     lv_obj_t *obj = lv_obj_create(btn, NULL);
@@ -462,7 +476,7 @@ static lv_obj_t *media_list_page_btn_create(lv_obj_t *parent, int x, int y, int 
     } else {
         lv_obj_set_style_local_value_align(obj, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_ALIGN_IN_RIGHT_MID);
     }
-    lv_obj_align(obj, btn, LV_ALIGN_IN_LEFT_MID, 390, 5);
+    lv_obj_align(obj, btn, LV_ALIGN_IN_LEFT_MID, 420, 0);
     lv_obj_set_click(obj, false);
 
     // 时间标签
@@ -539,7 +553,7 @@ static void photo_list_prev_btn_up(lv_obj_t *obj)
                 if (file_global_index >= video_total) break;
                 int real_file_index = video_total - 1 - file_global_index;
                 if(real_file_index >=0 && real_file_index < video_total){
-                    video_list_page_btn_create(video_page, 0, i * 62, 800, 62, file_global_index);
+                    video_list_page_btn_create(video_page, 0, i * 62, 520, 62, file_global_index);
                 }
             }
         }
@@ -561,7 +575,7 @@ static void photo_list_prev_btn_up(lv_obj_t *obj)
                 if (file_global_index >= photo_total) break;
                 int real_file_index = photo_total - 1 - file_global_index;
                 if(real_file_index >=0 && real_file_index < photo_total){
-                    photo_list_page_btn_create(photo_page, 0, i * 62, 800, 62, file_global_index);
+                    photo_list_page_btn_create(photo_page, 0, i * 62, 520, 62, file_global_index);
                 }
             }
         }
@@ -591,7 +605,7 @@ static void photo_list_next_btn_up(lv_obj_t *obj)
                 if (file_global_index >= video_total) break;
                 int real_file_index = video_total - 1 - file_global_index;
                 if(real_file_index >=0 && real_file_index < video_total){
-                    video_list_page_btn_create(video_page, 0, i * 62, 800, 62, file_global_index);
+                    video_list_page_btn_create(video_page, 0, i * 62, 520, 62, file_global_index);
                 }
             }
         }
@@ -614,7 +628,7 @@ static void photo_list_next_btn_up(lv_obj_t *obj)
                 if (file_global_index >= photo_total) break;
                 int real_file_index = photo_total - 1 - file_global_index;
                 if(real_file_index >=0 && real_file_index < photo_total){
-                    photo_list_page_btn_create(photo_page, 0, i * 62, 800, 62, file_global_index);
+                    photo_list_page_btn_create(photo_page, 0, i * 62, 520, 62, file_global_index);
                 }
             }
         }
@@ -642,7 +656,7 @@ static void media_list_page_display(lv_obj_t *parent)
     {
         photo_index_set(0);
     }
-    photo_list_curr_page_num = 1;
+    // photo_list_curr_page_num = 1;
     printf("当前页：%d | 照片总数：%d\n", photo_list_curr_page_num, photo_total);
     for (int i = 0; i < 6; i++)
     {
@@ -650,30 +664,36 @@ static void media_list_page_display(lv_obj_t *parent)
         if (file_global_index >= photo_total) {
             break;
         }
-        photo_list_page_btn_create(photo_page, 0, i * 62, 800, 62, file_global_index);
+        photo_list_page_btn_create(photo_page, 0, i * 62, 520, 62, file_global_index);
     }
 
     // 创建通用分页按钮
     // if(photo_total>0 || video_total>0){
         // 上一页按钮
         lv_obj_t *prev_btn = lv_obj_create(main_func_cont, NULL);
-        static rom_bin_info info = rom_bin_info_get(ROM_UI_MEDIA_LIST_PREV_PNG);
+        static rom_bin_info left_arrow_img = rom_bin_info_get(ROM_UI_MEDIA_LIST_PREV_PNG);
+        static rom_bin_info left_arrow_PRE_img = rom_bin_info_get(ROM_UI_TIME_PRE_LEFT_PNG);
+        lv_obj_set_ext_click_area(prev_btn, 10, 10, 5, 5);
         lv_obj_set_pos(prev_btn, 420, 460);
         lv_obj_set_size(prev_btn, 40, 40);
         lv_obj_set_click(prev_btn,true);
-        lv_obj_set_style_local_pattern_align(prev_btn,LV_CONT_PART_MAIN,LV_STATE_DEFAULT,LV_ALIGN_CENTER);
-        lv_obj_set_style_local_pattern_image(prev_btn, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, &info);
+        lv_obj_set_style_local_pattern_image(prev_btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &left_arrow_img);
+        lv_obj_set_style_local_pattern_image(prev_btn, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, &left_arrow_PRE_img);
+        lv_obj_set_style_local_pattern_align(prev_btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_ALIGN_CENTER);
         static obj_click_data btn_data1 = obj_click_data_up_create(photo_list_prev_btn_up);
         obj_click_event_listen(prev_btn, &btn_data1);
 
         // 下一页按钮
         lv_obj_t *next_btn = lv_obj_create(main_func_cont, NULL);
-        static rom_bin_info info1 = rom_bin_info_get(ROM_UI_MEDIA_LIST_NEXT_PNG);
+        static rom_bin_info right_arrow_img = rom_bin_info_get(ROM_UI_MEDIA_LIST_NEXT_PNG);
+        static rom_bin_info right_arrow_PRE_img = rom_bin_info_get(ROM_UI_TIME_PRE_RIGHT_PNG);
+        lv_obj_set_ext_click_area(next_btn, 10, 10, 5, 5);
         lv_obj_set_pos(next_btn, 656, 460);
         lv_obj_set_size(next_btn, 40, 40);
         lv_obj_set_click(next_btn,true);
-        lv_obj_set_style_local_pattern_align(next_btn,LV_CONT_PART_MAIN,LV_STATE_DEFAULT,LV_ALIGN_CENTER);
-        lv_obj_set_style_local_pattern_image(next_btn, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, &info1);
+        lv_obj_set_style_local_pattern_align(next_btn,LV_OBJ_PART_MAIN,LV_STATE_DEFAULT,LV_ALIGN_CENTER);
+        lv_obj_set_style_local_pattern_image(next_btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &right_arrow_img);
+        lv_obj_set_style_local_pattern_image(next_btn, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, &right_arrow_PRE_img);
         static obj_click_data btn_data2 = obj_click_data_up_create(photo_list_next_btn_up);
         obj_click_event_listen(next_btn, &btn_data2);
     // }
@@ -879,7 +899,7 @@ static void playback_total_label_create(void)
     lv_obj_t *label = lv_label_create(main_func_cont, NULL);
     lv_obj_set_id(label, PHOTO_LIST_PHOTO_TOTAL_BTN_ID);
     lv_label_set_long_mode(label, LV_LABEL_LONG_CROP);
-    lv_obj_set_pos(label, 483, 458);
+    lv_obj_set_pos(label, 492, 460);
     lv_obj_set_size(label, 133, 29);
     lv_label_set_align(label, LV_LABEL_ALIGN_CENTER);
     lv_obj_set_style_local_text_color(label, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFFFFFF));
@@ -895,7 +915,7 @@ static void list_no_sd_create(lv_obj_t *parent)
         no_sd_label=NULL;
     }
 	lv_obj_t *label = lv_label_create(parent, NULL);
-	lv_obj_align(label, NULL, LV_ALIGN_CENTER, -25, 0);
+	lv_obj_align(label, NULL, LV_ALIGN_CENTER, 50, 0);
 	lv_label_set_text(label, str_get(LAYOUT_MEMORY_LANG_NO_SD_ID));
 	lv_obj_set_style_local_text_color(label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFFCE08));
 	lv_obj_set_style_local_text_font(label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, FONT_SIZE(40));
@@ -914,7 +934,7 @@ static void media_list_sdcard_state_change_func(void)
         for(int i=0;i<6;i++){
             int file_global_index=(photo_list_curr_page_num-1)*6+i;
             if(file_global_index>=photo_total)break;
-            photo_list_page_btn_create(photo_page,0,i*62,800,62,file_global_index);
+            photo_list_page_btn_create(photo_page,0,i*62,520,62,file_global_index);
         }
     }
     
@@ -923,7 +943,7 @@ static void media_list_sdcard_state_change_func(void)
         for(int i=0;i<6;i++){
             int file_global_index=(video_list_curr_page_num-1)*6+i;
             if(file_global_index>=video_total)break;
-            video_list_page_btn_create(video_page,0,i*62,800,62,file_global_index);
+            video_list_page_btn_create(video_page,0,i*62,520,62,file_global_index);
         }
     }
     
@@ -941,6 +961,21 @@ static void media_list_sdcard_state_change_func(void)
     }
 }
 
+static void setting_icon_create(lv_obj_t *parent)
+{
+    lv_obj_t *setting_icon_obj = lv_img_create(parent, NULL);
+    lv_obj_set_pos(setting_icon_obj, 54, 34);
+	lv_obj_set_size(setting_icon_obj, 22, 20);
+	static rom_bin_info info1 = rom_bin_info_get(ROM_UI_HOME_GEAR_PNG);
+	lv_obj_set_id(setting_icon_obj, HOME_GEAR_OBJ_ID);
+	lv_obj_set_style_local_pattern_image(setting_icon_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info1);
+
+    lv_obj_t *Setting_label = lv_label_create(parent, NULL);
+    lv_obj_set_pos(Setting_label, 87, 28);
+	lv_obj_set_size(Setting_label, 90, 31);
+    lv_label_set_text(Setting_label,str_get(COMMON_LANG_LEFT_HEAD_MEDIA_ID));
+	lv_obj_align(setting_icon_obj, Setting_label, LV_ALIGN_OUT_LEFT_MID, -5, 0);
+}
 /************************** 布局入口/退出函数**************************/
 static void LAYOUT_ENTER_FUNC(photo_list)
 {
@@ -949,11 +984,11 @@ static void LAYOUT_ENTER_FUNC(photo_list)
     user_data_get()->new_photo_file_flag = false;
     photo_play_parameter_init();
     video_play_parameter_init(); // 同时初始化视频参数
-    photo_list_curr_page_num=1;
+    // photo_list_curr_page_num=1;
     
     parent_bg = common_bg_display(lv_scr_act());
     lv_obj_set_style_local_text_color(lv_scr_act(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFFFFFF));
-
+    
     // 创建第一份的UI容器
     main_func_cont = lv_cont_create(parent_bg, NULL);
     lv_obj_set_pos(main_func_cont, 51, 74);
@@ -974,6 +1009,7 @@ static void LAYOUT_ENTER_FUNC(photo_list)
     lv_obj_set_style_local_outline_width(media_switch_cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, 0);
 
     // 创建所有按钮
+    lv_obj_t *parent = common_bg_display(lv_scr_act());
     photo_list_home_btn_create(parent_bg);
     photo_list_flash_photo_btn_create(media_switch_cont);
     photo_list_sd_photo_btn_create(media_switch_cont);
@@ -982,6 +1018,7 @@ static void LAYOUT_ENTER_FUNC(photo_list)
     media_list_delete_btn_create(parent_bg); // 通用删除按钮
     playback_total_label_create();
     top_time_date_text_create(parent_bg);
+    setting_icon_create(parent);
 
     // 恢复上次选中的按钮状态
     switch(last_selected_btn_id){
@@ -1012,7 +1049,7 @@ static void LAYOUT_ENTER_FUNC(photo_list)
         }
     }
     
-    lyaout_sd_state_callback_register(media_list_sdcard_state_change_func);
+    layout_sd_state_callback_register(media_list_sdcard_state_change_func);
 }
 
 static void LAYOUT_QUIT_FUNC(photo_list)
@@ -1022,8 +1059,8 @@ static void LAYOUT_QUIT_FUNC(photo_list)
     {
         thumb_media_close();
     }
-
-    lyaout_sd_state_callback_register(NULL);
+    
+    layout_sd_state_callback_register(NULL);
     if ((cur_layout != pLAYOUT(memory_photo)) && (cur_layout != pLAYOUT(memory_video)) && (cur_layout != pLAYOUT(photo_list))) {
         photo_index_set(0);
         video_index_set(0);

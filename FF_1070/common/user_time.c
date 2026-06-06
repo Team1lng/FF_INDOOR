@@ -191,6 +191,12 @@ unsigned long long user_timestamp_get(void)
 	gettimeofday(&tv, NULL);
 	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
+
+unsigned long user_sec_get(void)
+{
+    return (unsigned long)(user_timestamp_get() / 1000);
+}
+
 /***
 **   日期:2022-06-09 11:45:51
 **   作者: leo.liu

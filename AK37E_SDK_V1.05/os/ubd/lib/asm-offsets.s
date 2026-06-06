@@ -19,7 +19,7 @@
 	.type	main, %function
 main:
 .LFB120:
-	.file 1 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c"
+	.file 1 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c"
 	.loc 1 20 0
 	.cfi_startproc
 	@ args = 0, pretend = 0, frame = 0
@@ -27,37 +27,37 @@ main:
 	@ link register save eliminated.
 	.loc 1 22 0
 #APP
-@ 22 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
+@ 22 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
 	
 ->GENERATED_GBL_DATA_SIZE #160 (sizeof(struct global_data) + 15) & ~15
 @ 0 "" 2
 	.loc 1 25 0
-@ 25 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
+@ 25 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
 	
 ->GENERATED_BD_INFO_SIZE #32 (sizeof(struct bd_info) + 15) & ~15
 @ 0 "" 2
 	.loc 1 28 0
-@ 28 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
+@ 28 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
 	
 ->GD_SIZE #160 sizeof(struct global_data)
 @ 0 "" 2
 	.loc 1 30 0
-@ 30 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
+@ 30 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
 	
 ->GD_BD #0 offsetof(struct global_data, bd)
 @ 0 "" 2
 	.loc 1 34 0
-@ 34 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
+@ 34 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
 	
 ->GD_RELOCADDR #48 offsetof(struct global_data, relocaddr)
 @ 0 "" 2
 	.loc 1 36 0
-@ 36 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
+@ 36 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
 	
 ->GD_RELOC_OFF #68 offsetof(struct global_data, reloc_off)
 @ 0 "" 2
 	.loc 1 38 0
-@ 38 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
+@ 38 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/uboot/lib/asm-offsets.c" 1
 	
 ->GD_START_ADDR_SP #64 offsetof(struct global_data, start_addr_sp)
 @ 0 "" 2
@@ -69,9 +69,9 @@ main:
 	.size	main, .-main
 	.text
 .Letext0:
-	.file 2 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/ubd/include2/asm/u-boot.h"
-	.file 3 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/uboot/include/linux/types.h"
-	.file 4 "/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/uboot/include/net.h"
+	.file 2 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/ubd/include2/asm/u-boot.h"
+	.file 3 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/uboot/include/linux/types.h"
+	.file 4 "/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/uboot/include/net.h"
 	.section	.debug_info,"",%progbits
 .Ldebug_info0:
 	.4byte	0x29a
@@ -700,6 +700,9 @@ main:
 	.ascii	"short unsigned int\000"
 .LASF17:
 	.ascii	"bi_dsp_freq\000"
+.LASF43:
+	.ascii	"/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/ub"
+	.ascii	"oot/lib/asm-offsets.c\000"
 .LASF0:
 	.ascii	"unsigned char\000"
 .LASF42:
@@ -710,9 +713,6 @@ main:
 	.ascii	" -ffreestanding -fno-stack-protector -fstack-usage\000"
 .LASF46:
 	.ascii	"main\000"
-.LASF43:
-	.ascii	"/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/uboot/"
-	.ascii	"lib/asm-offsets.c\000"
 .LASF13:
 	.ascii	"bi_baudrate\000"
 .LASF19:
@@ -727,6 +727,9 @@ main:
 	.ascii	"bd_info\000"
 .LASF7:
 	.ascii	"long long unsigned int\000"
+.LASF44:
+	.ascii	"/home/leo/workspace/FF_Indoor/AK37E_SDK_V1.05/os/ub"
+	.ascii	"oot\000"
 .LASF9:
 	.ascii	"sizetype\000"
 .LASF30:
@@ -757,8 +760,6 @@ main:
 	.ascii	"signed char\000"
 .LASF12:
 	.ascii	"size\000"
-.LASF44:
-	.ascii	"/home/zio/Share/FF_Indoor/AK37E_SDK_V1.05/os/uboot\000"
 .LASF21:
 	.ascii	"bd_t\000"
 .LASF24:

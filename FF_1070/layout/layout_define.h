@@ -35,8 +35,9 @@
 #include "ConvertCalendar.h"
 #include "user_alarm_list.h"
 #include "motion_detection.h"
+#include "intercom.h"
 
-#define SYSTEM_VERSION "Ver.2025_1031_080817"
+#define SYSTEM_VERSION "Ver.2026_0305_1145"
 
 DEFINE_LAYOUT(logo);
 DEFINE_LAYOUT(standby);
@@ -79,4 +80,5 @@ DEFINE_LAYOUT(delete_video);
 DEFINE_LAYOUT(delete_sd_photo);
 DEFINE_LAYOUT(delete_flash_photo);
 DEFINE_LAYOUT(init);
+DEFINE_LAYOUT(calling);
 #endif

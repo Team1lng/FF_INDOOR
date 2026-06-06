@@ -44,26 +44,22 @@
     */
 
 
-    /*10 inch Touch Screen  */
     gslX680_pins: gslX680_pins {
-        anyka,pins = <XGPIO_071 XGPIO_075>;
-        anyka,function = <XGPIO_071_FUNC_GPIO71 XGPIO_075_FUNC_GPIO75>;
-        anyka,pull = <0x00010010 0x00000010>;
+        anyka,pins = <XGPIO_077 XGPIO_075>;
+        anyka,function = <XGPIO_077_FUNC_GPIO77 XGPIO_075_FUNC_GPIO75>;
+        anyka,pull = <0x00010110 0x00000010>;
     };
 
-    
     i2c2_pins: i2c2_pins {
         anyka,pins = <XGPIO_078 XGPIO_079>;
         anyka,function = <XGPIO_078_FUNC_TWI2_SCL XGPIO_079_FUNC_TWI2_SDA>;
         anyka,pull = <0x1010010>;
     };
 
-
-    /* i2c2_sleep_pins means: pull up or pull down disable; ie disable */
     i2c2_sleep_pins: i2c2_sleep_pins {
-         anyka,pins = <XGPIO_078 XGPIO_079>;
-        anyka,function = <XGPIO_078_FUNC_GPIO78 XGPIO_078_FUNC_GPIO78>;
-        anyka,pull = <0x00000000>;
+        anyka,pins = <XGPIO_078 XGPIO_079>;
+        anyka,function = <XGPIO_078_FUNC_GPIO78 XGPIO_079_FUNC_GPIO79>;
+        anyka,pull = <0x00000000 0x00000000>;
     };
 
     i2c4_pins: i2c4_pins {
@@ -419,24 +415,30 @@
     #address-cells = <1>;
     #size-cells = <0>;
 
-    // touch-screen@40 {
-    //     compatible = "anyka,ak37e-i2c-touchscreen-gslX680";
-    //     reg = <0x40>;
-    //     //reg = <0x14>;
+/* 核心修改：启用TP设备，取消注释+修正错误 */
+    touch-screen@40 {
+        compatible = "anyka,ak37e-i2c-touchscreen-gslX680";
+        reg = <0x40>; // gslX680默认I2C地址，若硬件地址不同需修改
 
-    //     /* 10 inch MIPI touch-pane irq and reset gpio setting */
-    //     pinctrl-names = "default";
-    //     pinctrl-0 = <&gslX680_pins>;
-    //     irq-gpio = <&gpio 77 1>;
-    //     reset-gpio = <&gpio 75 1>;
-    //     TP_MAX_X = <1024>;
-    //     TP_MAX_Y = <600>;
+        /* 绑定TP的中断+复位引脚pinctrl */
+        pinctrl-names = "default";
+        pinctrl-0 = <&gslX680_pins>;
 
-    //     interrupt-parent = <&gpio>;
-    //         interrupts = <77 1>;
-    //         interrupts-name = "irq-gpios";
-    //     status = "diable";
-    // };
+        /* 对应原理图：INT=GPIO77，RST=GPIO75，1为高电平有效 */
+        irq-gpio = <&gpio 77 1>;
+        reset-gpio = <&gpio 75 1>;
+
+        /* 需和你的触摸屏实际分辨率一致，与LCD匹配 */
+        TP_MAX_X = <1024>;
+        TP_MAX_Y = <600>;
+
+        /* 中断配置：GPIO77，高电平触发，与驱动匹配 */
+        interrupt-parent = <&gpio>;
+        interrupts = <77 1>;
+        interrupts-name = "irq-gpios";
+        
+        status = "okay"; // 修正原有diable拼写错误，启用设备
+    };
 };
 
 /* RGB panel*/
@@ -737,15 +739,15 @@
         /* 10 inch MIPI touch-pane irq and reset gpio setting */
         pinctrl-names = "default";
         pinctrl-0 = <&gslX680_pins>;
-        irq-gpio = <&gpio 71 1>;
+        irq-gpio = <&gpio 77 1>;
         reset-gpio = <&gpio 75 1>;
         TP_MAX_X = <1024>;
         TP_MAX_Y = <600>;
 
         interrupt-parent = <&gpio>;
-            interrupts = <71 1>;
+            interrupts = <77 1>;
             interrupts-name = "irq-gpios";
-        status = "okay";
+        status = "disable";
     };
 };
 
