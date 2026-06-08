@@ -175,6 +175,7 @@ static void camera_record_photo_video_task(lv_task_t *task);
 static void camera_setting_window_display_enable(bool en);
 static void camera_display_delay_start(void);
 static void camera_switch_btn_create_display(void);
+void camera_timeout_value_reset(void);
 
 static void camera_ticker_task_stop(ticker_type type);
 static void camera_ticker_task_restart(ticker_type type);
@@ -449,6 +450,7 @@ static bool camera_call_ring_should_replay(void)
 {
 	return camera_call_ring_active == true &&
 		   monitor_enter_mask_get() == MON_ENTER_CALL &&
+		   hook_state_get() == false &&
 		   user_timestamp_get() < camera_call_ring_deadline;
 }
 
@@ -464,6 +466,27 @@ static void camera_call_ring_finish_cleanup(void)
 	{
 		lv_layout_task_create(camera_record_photo_video_task, 2000, LV_TASK_PRIO_MID, NULL);
 	}
+}
+
+static void camera_hook_answer_call(void)
+{
+	MON_CH ch = monitor_channel_get();
+	if (ch != MON_CH_DOOR1 && ch != MON_CH_DOOR2)
+	{
+		return;
+	}
+
+	camera_call_ring_active = false;
+	camera_call_ring_deadline = 0;
+	if (ringplay_ing_check() == true)
+	{
+		ringplay_play_stop();
+	}
+
+	door_audio_talk(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2);
+	camera_timeout_value_reset();
+	monitor_enter_mask_set(MON_ENTER_TALK);
+	camera_in_talk_state = true;
 }
 
 // 复位监控倒计时
@@ -780,6 +803,10 @@ static void camera_ticker_task(lv_task_t *task_t)
     {
         last_hook_state = current_hook_state;
         camera_in_talk_state = current_hook_state;
+		if (current_hook_state == true)
+		{
+			camera_hook_answer_call();
+		}
     }
 }
 
