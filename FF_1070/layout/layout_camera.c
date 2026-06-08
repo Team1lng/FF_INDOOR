@@ -196,6 +196,7 @@ static int camera_record_video_count_down = 15;
 static lv_task_t *camera_display_delay_task_t = NULL;
 static bool camera_in_talk_state = false;
 static bool camera_call_ring_active = false;
+static bool camera_call_ring_answered = false;
 static unsigned long long camera_call_ring_deadline = 0;
 
 // static bool camera_enter_zoom = false;
@@ -442,6 +443,7 @@ static int camera_call_ring_time_get(void)
 static void camera_call_ring_play(int index)
 {
 	camera_call_ring_active = true;
+	camera_call_ring_answered = false;
 	camera_call_ring_deadline = user_timestamp_get() + (unsigned long long)camera_call_ring_time_get() * 1000;
 	ringplay_play_form_index(index, 100, ringplay_doorcall_start_default_func, layout_camera_callring_finish_default_func, false);
 }
@@ -457,6 +459,7 @@ static bool camera_call_ring_should_replay(void)
 static void camera_call_ring_finish_cleanup(void)
 {
 	camera_call_ring_active = false;
+	camera_call_ring_answered = false;
 	power_amplifier_enable(false);
 	MON_CH ch = monitor_channel_get();
 	call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
@@ -477,6 +480,7 @@ static void camera_hook_answer_call(void)
 	}
 
 	camera_call_ring_active = false;
+	camera_call_ring_answered = true;
 	camera_call_ring_deadline = 0;
 	if (ringplay_ing_check() == true)
 	{
@@ -499,7 +503,7 @@ void camera_timeout_value_reset(void)
 #endif
 }
 #if 1
-static void camera_unlock_ringa_start_func(int index)
+static void camera_unlock_ring_start_func(int index)
 {
 	MON_CH ch = monitor_channel_get();
 	ring_volume_set(3);
@@ -1577,7 +1581,7 @@ static void camera_open_btn_up(lv_obj_t *obj)
 	is_opening = true;
 	call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, true);
 	monitor_unlock_open(0, ch);
-	ringplay_play_form_index(7, 100, camera_unlock_ringa_start_func, camera_unlock_ring_finish_func, false);
+	ringplay_play_form_index(7, 100, camera_unlock_ring_start_func, camera_unlock_ring_finish_func, false);
 }
 // 创建open按钮
 static void camera_open_btn_create(lv_obj_t *parent)
@@ -1834,6 +1838,7 @@ static void LAYOUT_QUIT_FUNC(camera)
 	// }
 	ringplay_play_stop();
 	camera_call_ring_active = false;
+	camera_call_ring_answered = false;
 	camera_call_ring_deadline = 0;
 	video_input_display_zoom_set(100);
 	video_input_display_offset_set(0, 0);
@@ -1929,6 +1934,11 @@ static void layout_camera_door2_call_func(void)
 
 static void layout_camera_callring_finish_default_func(int index)
 {
+	if (camera_call_ring_answered == true)
+	{
+		return;
+	}
+
 	if (camera_call_ring_should_replay() == true)
 	{
 		ringplay_play_form_index(index, 100, ringplay_doorcall_start_default_func, layout_camera_callring_finish_default_func, false);
