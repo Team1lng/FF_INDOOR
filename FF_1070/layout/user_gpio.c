@@ -540,8 +540,6 @@ void layout_gpio_init(void)
 	gpio_pull_enable(GUARD_TALKING_PIN, true);
 	guard_talking_pin_ctrl(false);
 
-
-
 	/***** 呼梯继电器初始化 *****/
 	// gpio_direction_set(ELEVATOR_ON_PIN, GPIO_DIR_OUT);
 	// gpio_pull_enable(ELEVATOR_ON_PIN, false);
@@ -604,26 +602,23 @@ bool door_audio_talk(AUDIO_CH ch)
 ***/
 bool call_ring_to_outdoor_ctrl(AUDIO_CH ch, bool en)
 {
-	// ring_to_outdoor_mute_pin_ctrl(false);
-	// if (en == false)
-	// {
-	// 	// ring_to_outdoor_mute_pin_ctrl(true);
-	// 	audio_to_outdoor1_pin_ctrl(false);
-	// 	audio_to_outdoor2_pin_ctrl(false);
-	// 	audio_to_inter_1_pin_ctrl(false);
-	// 	audio_to_inter_2_pin_ctrl(false);
-	// 	return true;
-	// }
-
 	if (en == false)
 	{
-		// ring_to_outdoor_mute_pin_ctrl(true);
-		// audio_to_outdoor1_pin_ctrl(false);
-		// audio_to_outdoor2_pin_ctrl(false);
+		switch (ch)
+		{
+		case AUDIO_CH_DOOR1:
+			audio_to_outdoor1_pin_ctrl(false);
+			break;
+		case AUDIO_CH_DOOR2:
+			audio_to_outdoor2_pin_ctrl(false);
+			break;
+		default:
+			audio_to_outdoor1_pin_ctrl(false);
+			audio_to_outdoor2_pin_ctrl(false);
+			break;
+		}
 		return true;
 	}
-	// power_amplifier_enable(true);
-	// ring_to_outdoor_mute_pin_ctrl(false);
 
 	switch (ch)
 	{
