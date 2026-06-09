@@ -175,6 +175,7 @@ static void camera_record_photo_video_task(lv_task_t *task);
 static void camera_setting_window_display_enable(bool en);
 static void camera_display_delay_start(void);
 static void camera_switch_btn_create_display(void);
+static void camera_head_channel_label_flush(void);
 void camera_timeout_value_reset(void);
 
 static void camera_ticker_task_stop(ticker_type type);
@@ -195,8 +196,10 @@ static int camera_display_delay = CAMERA_DISPLAY_DELAY; // * 100ms
 static int camera_record_video_count_down = 15;
 static lv_task_t *camera_display_delay_task_t = NULL;
 static bool camera_in_talk_state = false;
+static bool camera_last_hook_state = false;
 static bool camera_call_ring_active = false;
 static bool camera_call_ring_answered = false;
+static int camera_call_ring_ignore_finish_count = 0;
 static unsigned long long camera_call_ring_deadline = 0;
 
 // static bool camera_enter_zoom = false;
@@ -460,6 +463,7 @@ static void camera_call_ring_finish_cleanup(void)
 {
 	camera_call_ring_active = false;
 	camera_call_ring_answered = false;
+	camera_call_ring_ignore_finish_count = 0;
 	power_amplifier_enable(false);
 	MON_CH ch = monitor_channel_get();
 	call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
@@ -481,6 +485,7 @@ static void camera_hook_answer_call(void)
 
 	camera_call_ring_active = false;
 	camera_call_ring_answered = true;
+	camera_call_ring_ignore_finish_count = 0;
 	camera_call_ring_deadline = 0;
 	if (ringplay_ing_check() == true)
 	{
@@ -491,6 +496,43 @@ static void camera_hook_answer_call(void)
 	camera_timeout_value_reset();
 	monitor_enter_mask_set(MON_ENTER_TALK);
 	camera_in_talk_state = true;
+}
+
+static void camera_door_call_switch(MON_CH target_ch, int tone_index)
+{
+	MON_CH current_ch = monitor_channel_get();
+
+	monitor_valid_channel_set(target_ch, true);
+	monitor_enter_mask_set(MON_ENTER_CALL);
+
+	if (current_ch == MON_CH_DOOR1 || current_ch == MON_CH_DOOR2)
+	{
+		call_ring_to_outdoor_ctrl(current_ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
+	}
+
+	if (ringplay_ing_check() == true)
+	{
+		camera_call_ring_ignore_finish_count++;
+		ringplay_play_stop();
+	}
+
+	if (current_ch != target_ch)
+	{
+		monitor_channel_set(target_ch);
+		monitor_open(true, 0x03);
+		camera_head_channel_label_flush();
+		layout_monitor_refresh_1();
+	}
+
+	camera_timeout_value_reset();
+	camera_call_ring_active = false;
+	camera_call_ring_answered = false;
+	camera_call_ring_deadline = 0;
+
+	if (user_data_get()->setting.door_ring_volume != 0)
+	{
+		camera_call_ring_play(tone_index);
+	}
 }
 
 // 复位监控倒计时
@@ -800,12 +842,11 @@ static void camera_ticker_task(lv_task_t *task_t)
     }
 
     // 持续检测听筒状态；按钮图片固定为 hangup，不再在 up/hangup 间切换。
-    static bool last_hook_state = false;
     bool current_hook_state = hook_state_get();
     
-    if (current_hook_state != last_hook_state)
+    if (current_hook_state != camera_last_hook_state)
     {
-        last_hook_state = current_hook_state;
+        camera_last_hook_state = current_hook_state;
         camera_in_talk_state = current_hook_state;
 		if (current_hook_state == true)
 		{
@@ -839,6 +880,26 @@ static void camera_func_btn_topbg_block_create(lv_obj_t *parent)
 	lv_obj_set_style_local_bg_color(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFFFFFF));
 	lv_obj_set_style_local_bg_opa(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
 }
+
+static void camera_head_channel_label_flush(void)
+{
+	lv_obj_t *ch_obj = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_HEAD_CH_LABEL_ID);
+	if (ch_obj == NULL)
+	{
+		return;
+	}
+
+	MON_CH ch = monitor_channel_get();
+	if ((ch == MON_CH_DOOR1) || (ch == MON_CH_DOOR2))
+	{
+		lv_obj_set_style_local_value_str(ch_obj, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, ch == MON_CH_DOOR1 ? str_get(LAYOUT_HOME_LANG_DOOR1_ID) : str_get(LAYOUT_HOME_LANG_DOOR2_ID));
+	}
+	else if ((ch == MON_CH_CCTV1) || (ch == MON_CH_CCTV2))
+	{
+		lv_obj_set_style_local_value_str(ch_obj, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, ch == MON_CH_CCTV1 ? str_get(LAYOUT_HOME_LANG_CCTV1_ID) : str_get(LAYOUT_HOME_LANG_CCTV2_ID));
+	}
+}
+
 static void camera_head_channel_label_create(lv_obj_t *parent)
 {
 	lv_obj_t *ch_obj = lv_obj_create(parent, NULL);
@@ -862,6 +923,7 @@ static void camera_head_channel_label_create(lv_obj_t *parent)
 
 	lv_obj_set_style_local_value_color(ch_obj, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFFFFFF));
 	lv_obj_set_style_local_value_font(ch_obj, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, FONT_SIZE(30));
+	camera_head_channel_label_flush();
 }
 
 static void camera_head_time_label_create(lv_obj_t *parent)
@@ -1827,6 +1889,7 @@ static void LAYOUT_ENTER_FUNC(camera)
 	}
 
 	camera_in_talk_state = hook_state_get();
+	camera_last_hook_state = camera_in_talk_state;
 	
 	// lv_layout_task_create(camera_bell_detaction_task, 10, LV_TASK_PRIO_HIGH, NULL);
 }
@@ -1839,7 +1902,9 @@ static void LAYOUT_QUIT_FUNC(camera)
 	ringplay_play_stop();
 	camera_call_ring_active = false;
 	camera_call_ring_answered = false;
+	camera_call_ring_ignore_finish_count = 0;
 	camera_call_ring_deadline = 0;
+	camera_last_hook_state = false;
 	video_input_display_zoom_set(100);
 	video_input_display_offset_set(0, 0);
 	layout_door1_call_callback_register(layout_door1_call_default);
@@ -1853,6 +1918,8 @@ static void LAYOUT_QUIT_FUNC(camera)
 	layout_sd_state_callback_register(layout_sdcard_state_change_default);
 
 	door_audio_talk(AUDIO_CH_CLOSE);
+	call_ring_to_outdoor_ctrl(AUDIO_CH_DOOR1, false);
+	call_ring_to_outdoor_ctrl(AUDIO_CH_DOOR2, false);
 	monitor_close();
 	record_video_close();
 	record_jpeg_close();
@@ -1883,57 +1950,23 @@ static void layout_camera_click_down_func(lv_obj_t *obj)
 // 监控界面door1 call机处理函数
 static void layout_camera_door1_call_func(void)
 {
-	// user_data_get()->change_channel_enable = false;
-
-	monitor_valid_channel_set(MON_CH_DOOR1, true);
-	monitor_enter_mask_set(MON_ENTER_CALL);
-	MON_CH ch = monitor_channel_get();
-	if (ch != MON_CH_DOOR1)
-	{
-		// camera_channel_switch(MON_CH_DOOR1);
-		monitor_channel_set(MON_CH_DOOR1);
-		goto_layout(pLAYOUT(camera));
-		return;
-	}
-	// if (camera_enter_zoom == true)
-	// {
-	// 	camera_enter_zoom = false;
-	// 	camera_goto_monitor_mode(lv_scr_act());
-	// }
-	if (user_data_get()->setting.door_ring_volume != 0){
-		camera_call_ring_play(user_data_get()->setting.door1_tone);
-	}
-		
+	camera_door_call_switch(MON_CH_DOOR1, user_data_get()->setting.door1_tone);
 }
 
 // 监控界面door2 call机处理函数
 static void layout_camera_door2_call_func(void)
 {
-	// user_data_get()->change_channel_enable = false;
-
-	monitor_valid_channel_set(MON_CH_DOOR2, true);
-	monitor_enter_mask_set(MON_ENTER_CALL);
-	MON_CH ch = monitor_channel_get();
-	if (ch != MON_CH_DOOR2)
-	{
-		// camera_channel_switch(MON_CH_DOOR2);
-		monitor_channel_set(MON_CH_DOOR2);
-		goto_layout(pLAYOUT(camera));
-		return;
-	}
-	// if (camera_enter_zoom == true)
-	// {
-	// 	camera_enter_zoom = false;
-	// 	camera_goto_monitor_mode(lv_scr_act());
-	// }
-	printf("user_data_get()->setting.door_ring_volume = %d\n", user_data_get()->setting.door_ring_volume);
-	if (user_data_get()->setting.door_ring_volume != 0){
-		camera_call_ring_play(user_data_get()->setting.door2_tone);
-	}	
+	camera_door_call_switch(MON_CH_DOOR2, user_data_get()->setting.door2_tone);
 }
 
 static void layout_camera_callring_finish_default_func(int index)
 {
+	if (camera_call_ring_ignore_finish_count > 0)
+	{
+		camera_call_ring_ignore_finish_count--;
+		return;
+	}
+
 	if (camera_call_ring_answered == true)
 	{
 		return;
