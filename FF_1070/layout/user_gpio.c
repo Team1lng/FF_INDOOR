@@ -500,10 +500,10 @@ void layout_gpio_init(void)
 	/***** 声音传输到门口机 *****/
 	gpio_direction_set(AUDIO_DOOR1_PIN, GPIO_DIR_OUT);
 	gpio_pull_enable(AUDIO_DOOR1_PIN, true);
-	audio_to_outdoor1_pin_ctrl(true);
+	audio_to_outdoor1_pin_ctrl(false);
 	gpio_direction_set(AUDIO_DOOR2_PIN, GPIO_DIR_OUT); // 新增door2初始化
 	gpio_pull_enable(AUDIO_DOOR2_PIN, true);
-	audio_to_outdoor2_pin_ctrl(true);
+	audio_to_outdoor2_pin_ctrl(false);
 
 	/***** 声音传输到inter*****/
 	gpio_direction_set(AUDIO_INTER_LINE_SELECT_PIN, GPIO_DIR_OUT);

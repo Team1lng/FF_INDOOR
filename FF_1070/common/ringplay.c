@@ -716,6 +716,13 @@ void ringplay_play_stop(void)
 	ringplay_timeout_wait();
 }
 
+void ringplay_play_stop_async(void)
+{
+	pthread_mutex_lock(&ringplay_mutex);
+	is_ringplay_play_stop = true;
+	pthread_mutex_unlock(&ringplay_mutex);
+}
+
 /***
 ** 日期: 2022-04-27 14:32
 ** 作者: leo.liu

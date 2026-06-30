@@ -29,6 +29,7 @@ bool video_play_start(const char *file);
 **   参数说明:
 ***/
 bool video_play_stop(void);
+bool video_play_eof_check(void);
 /***
 **   日期:2022-05-24 14:28:51
 **   作者: leo.liu

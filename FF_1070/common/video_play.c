@@ -43,9 +43,31 @@ static char video_first_play = 0x00;
 static bool video_play_has_audio = false;
 /*****  外部参考始终 *****/
 static unsigned long long video_play_clock_base = 0;
+/***** 暂停恢复时的视频帧位置 *****/
+static int video_play_resume_video_index = 0;
 /***** 开启功放 *****/
 extern void power_amplifier_enable(bool);
 extern void ring_volume_set(int vol);
+
+static int video_play_audio_frame_index_from_video(void)
+{
+	if (audio_one_frame_duration <= 0)
+	{
+		return 0;
+	}
+	return (video_frame_video_index * video_one_frame_duration) / audio_one_frame_duration;
+}
+
+static void video_play_audio_position_sync(void)
+{
+	if ((avi_handle_id == NULL) || (video_play_has_audio == false))
+	{
+		return;
+	}
+
+	video_frame_audio_index = video_play_audio_frame_index_from_video();
+	AVI_set_audio_position(avi_handle_id, video_frame_audio_index * AUDIO_FRAME_SIZE);
+}
 /***
 **   日期:2022-05-24 15:17:02
 **   作者: leo.liu
@@ -86,9 +108,21 @@ static void video_play_device_open(void)
 	{
 		video_play_has_audio = true;
 		audio_output_open(AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_8000);
+		audio_output_device_restart();
 		audido_output_volume_set(60);
 		/***** 执行用户回调函数 *****/
 		power_amplifier_enable(true);
+	}
+
+	if (video_play_resume_video_index > 0)
+	{
+		if (video_play_resume_video_index >= video_frame_total)
+		{
+			video_play_resume_video_index = video_frame_total - 1;
+		}
+		video_frame_video_index = video_play_resume_video_index;
+		AVI_set_video_position(avi_handle_id, video_frame_video_index);
+		video_play_audio_position_sync();
 	}
 }
 
@@ -121,7 +155,7 @@ static void *video_play_task(void *arg)
 		{
 			video_play_device_close();
 		}
-		else if ((video_play_status != VIDEO_PLAY_STATE_IDLE) && (avi_handle_id == NULL))
+		else if ((video_play_status == VIDEO_PLAY_STATE_PLAY) && (avi_handle_id == NULL))
 		{
 			video_first_play = 0x00;
 			video_play_device_open();
@@ -144,7 +178,7 @@ static void *video_play_task(void *arg)
 					// video_frame_audio_index = 0;
 					// AVI_set_video_position(avi_handle_id, video_frame_video_index);
 					// AVI_set_audio_position(avi_handle_id, video_frame_audio_index);
-					video_play_clock_base = user_timestamp_get();
+					video_play_clock_base = user_timestamp_get() - video_frame_video_index * video_one_frame_duration;
 				}
 				else
 				{
@@ -227,14 +261,17 @@ static void *video_play_task(void *arg)
 				video_play_status = VIDEO_PLAY_STATE_PAUSE;
 				video_frame_video_index = 0;
 				video_frame_audio_index = 0;
-				AVI_set_video_position(avi_handle_id, video_frame_video_index);
-				AVI_set_audio_position(avi_handle_id, video_frame_audio_index);
+				video_play_resume_video_index = 0;
+				if (video_play_has_audio == true)
+				{
+					audio_output_device_restart();
+				}
+				video_play_device_close();
 				jpg_decode_buffer_clear();
 			}
 		}
 		else if ((video_play_status == VIDEO_PLAY_STATE_PAUSE) && (avi_handle_id != NULL))
 		{
-			video_play_send_video_frame();
 			screen_force_refresh();
 			usleep(40 * 1000);
 		}
@@ -293,6 +330,8 @@ bool video_play_start(const char *file)
 	}
 	memset(video_play_file, 0, sizeof(video_play_file));
 	strcpy(video_play_file, file);
+	video_play_resume_video_index = 0;
+	video_play_eof_flg = false;
 	video_play_status = VIDEO_PLAY_STATE_PLAY;
 	if (old_decode_finish_func == NULL)
 	{
@@ -325,6 +364,8 @@ bool video_play_stop(void)
 		return false;
 	}
 	video_play_status = VIDEO_PLAY_STATE_IDLE;
+	video_play_resume_video_index = 0;
+	video_play_eof_flg = false;
 	if (old_decode_finish_func != NULL)
 	{
 		jpg_decode_read_frame_func_register(old_decode_finish_func);
@@ -340,6 +381,14 @@ bool video_play_stop(void)
 
 	pthread_mutex_unlock(&video_play_mutex);
 	return true;
+}
+
+bool video_play_eof_check(void)
+{
+	pthread_mutex_lock(&video_play_mutex);
+	bool eof = video_play_eof_flg;
+	pthread_mutex_unlock(&video_play_mutex);
+	return eof;
 }
 /***
 **   日期:2022-05-24 14:28:51
@@ -358,7 +407,16 @@ bool video_play_pause(void)
 	}
 	if (video_play_status == VIDEO_PLAY_STATE_PLAY)
 	{
+		video_play_resume_video_index = video_frame_video_index;
 		video_play_status = VIDEO_PLAY_STATE_PAUSE;
+		if (video_play_has_audio == true)
+		{
+			audio_output_device_restart();
+		}
+		if (avi_handle_id != NULL)
+		{
+			video_play_device_close();
+		}
 	}
 	else if (video_play_status == VIDEO_PLAY_STATE_PAUSE)
 	{
@@ -367,7 +425,6 @@ bool video_play_pause(void)
 		{
 			video_play_eof_flg = false;
 		}
-		video_play_clock_base = user_timestamp_get() - video_frame_video_index * video_one_frame_duration;
 	}
 	pthread_mutex_unlock(&video_play_mutex);
 	return true;

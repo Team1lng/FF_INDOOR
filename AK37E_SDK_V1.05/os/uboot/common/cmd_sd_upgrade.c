@@ -23,7 +23,7 @@
 // #define ASTERISK_PARTTION "asterisk.sqsh4"
 
 #define ENV_SD_UPGRADEIMAGE "sd_uprade_image"
-#define ENV_UPGRADEIMAGE_VERSION "uprade_image_version"
+#define ENV_UPGRADEIMAGE_VERSION "upgrade_image_version"
 #define UPGRADE_SCRIPT_END_STR "\n# <- this is end of image parttion\n"
 #define SD_UPGRDE_SCRIPT_BUF_SIZE (16 * 1024)
 #define UPGARDE_PARTITIONS_NUM_MAX (12)

@@ -743,7 +743,7 @@ static void photo_list_delete_yes_btn_up(lv_obj_t *obj)
         if (media_sdcard_insert_check() == false) {
             delete_file_type = FILE_TYPE_NONE;
             exit_time_count = 1;
-            printf("SD卡未插入，无法删除SD照片！\n");
+            // printf("SD卡未插入，无法删除SD照片！\n");
             return;
         }
         delete_file_type = FILE_TYPE_PHOTO;
@@ -979,7 +979,7 @@ static void setting_icon_create(lv_obj_t *parent)
 /************************** 布局入口/退出函数**************************/
 static void LAYOUT_ENTER_FUNC(photo_list)
 {
-    printf("============================enter_photo_list\n");
+    // printf("============================enter_photo_list\n");
     file_type_photo=FILE_TYPE_FLASH_PHOTO;
     user_data_get()->new_photo_file_flag = false;
     photo_play_parameter_init();

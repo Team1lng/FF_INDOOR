@@ -61,7 +61,7 @@ copy_env_logo_images()
         cd ../tools/envtool/
         rm env.img
         cp env_ak3760e_nor.cfg env_ak3760e_nor_tmp.cfg
-        echo "uprade_image_version $upgrade_bin_version" >>env_ak3760e_nor_tmp.cfg
+        echo "upgrade_image_version $upgrade_bin_version" >>env_ak3760e_nor_tmp.cfg
         tr '\000' '\377' </dev/zero | dd of=./env.img bs=1024 count=4
         ./fw_setenv -s env_ak3760e_nor_tmp.cfg
         ./fw_printenv
@@ -96,5 +96,4 @@ copy_uboot_kernel_images
 copy_env_logo_images
 
 images_compress
-
 

@@ -10,6 +10,7 @@
 #include "video_encode.h"
 #include "audio_output.h"
 #include "user_common.h"
+#include <stdio.h>
 static bool video_record_enable = false;
 static bool video_has_audio = false;
 
@@ -19,6 +20,7 @@ static avi_t *video_record_handle_id = NULL;
 unsigned long long avi_write_frame_duration = 0;
 
 #define VIDEO_TEMP_PATH SD_MEDIA_PATH "videotemp" VIDEO_DOT
+#define VIDEO_RECORD_MIN_SAVE_MS 3000
 
 /***
 ** 日期: 2022-05-19 14:46
@@ -61,15 +63,29 @@ static bool video_record_device_open(void)
 static bool video_record_device_close(unsigned long long duration, unsigned int frame_total)
 {
 	bool reslut = true;
-	duration = user_timestamp_get() - duration;
+	if (duration == 0 || frame_total == 0)
+	{
+		reslut = false;
+		duration = 0;
+	}
+	else
+	{
+		duration = user_timestamp_get() - duration;
+	}
 	video_record_handle_id->fps = 1000 * frame_total / (duration + 0.1);
-	printf("\n\n\nEncode to AVI Finish. video frame:%0.2lffps drution:%2llus \n\n\n\n", video_record_handle_id->fps, duration / 1000);
-	if ((video_record_handle_id->fps < 15) || (duration < 3))
+	double fps = video_record_handle_id->fps;
+	printf("\n\n\nEncode to AVI Finish. video frame:%0.2lffps drution:%2llus \n\n\n\n", fps, duration / 1000);
+	if ((fps < 15) || (duration < VIDEO_RECORD_MIN_SAVE_MS))
 	{
 		reslut = false;
 	}
 	AVI_close(video_record_handle_id);
 	video_record_handle_id = NULL;
+	if (reslut == false)
+	{
+		remove(VIDEO_TEMP_PATH);
+		printf("record video discarded: duration=%llums fps=%0.2lf\n", duration, fps);
+	}
 	return reslut;
 }
 

@@ -1,6 +1,5 @@
 all:
-# 	# rm -f build/CMakeFiles/FF.BIN.dir/home/wxj/workdir/taba/taba-1070/taba_new/layout/layout_setting_about.*
-# 	# rm -f build/CMakeFiles/FF.BIN.dir/home/wxj/workdir/taba/taba-1070/taba_new/layout/layout_logo.*
+	rm -f build/CMakeFiles/FF.BIN.dir$(CURDIR)/layout/layout_logo.c.o
 	cd build ; cmake .;make -j16
 	rm -rf upgrade/app
 	mkdir -p upgrade/app

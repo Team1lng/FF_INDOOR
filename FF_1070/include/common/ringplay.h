@@ -59,6 +59,7 @@ void ringplay_touchsound_volume_set(int volume);
 ** 返回参数说明：
 ***/
 void ringplay_play_stop(void);
+void ringplay_play_stop_async(void);
 /***
 ** 日期: 2022-04-27 14:32
 ** 作者: leo.liu

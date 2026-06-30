@@ -157,7 +157,7 @@
 // #endif
 // }
 
-// static void camera_unlock_ringa_start_func(int index)
+// static void camera_unlock_ring_start_func(int index)
 // {
 // 	MON_CH ch = monitor_channel_get();
 // 	ring_volume_set(ch == MON_CH_DOOR1 ? user_data_get()->setting.door1_ring_volume : user_data_get()->setting.door2_ring_volume);
@@ -783,7 +783,7 @@
 // 	call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, true);
 // 	monitor_unlock_open(0, ch);
 // 	is_opening = true;
-// 	ringplay_play_form_index(7, 100, camera_unlock_ringa_start_func, camera_unlock_ring_finish_func, false);
+// 	ringplay_play_form_index(7, 100, camera_unlock_ring_start_func, camera_unlock_ring_finish_func, false);
 // 	camera_btn_and_win_hidden_task_restart();
 // 	lv_layout_task_create(camera_unlock_task, 2000, LV_TASK_PRIO_MID, NULL);
 // }

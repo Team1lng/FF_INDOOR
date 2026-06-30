@@ -265,6 +265,46 @@ static void photo_prev_btn_create(lv_obj_t *parent)
 
 static lv_task_t *photo_play_task_t = NULL;
 
+static void memory_photo_btn_click_set(int obj_id, bool en)
+{
+	lv_obj_t *obj = lv_obj_get_child_form_id(lv_scr_act(), obj_id);
+	if (obj != NULL)
+	{
+		lv_obj_set_click(obj, en);
+	}
+}
+
+static void photo_play_btn_state_display(bool is_playing)
+{
+	lv_obj_t *obj = lv_obj_get_child_form_id(lv_scr_act(), MEMORY_PLAY_BTN_ID);
+	if (obj == NULL)
+	{
+		return;
+	}
+
+	static rom_bin_info play_info = rom_bin_info_get(ROM_UI_MEMORY_PLAY_PNG);
+	static rom_bin_info start_info = rom_bin_info_get(ROM_UI_MEMORY_START_PNG);
+	rom_bin_info *info = is_playing ? &start_info : &play_info;
+
+	lv_obj_set_style_local_pattern_image(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, info);
+	lv_obj_invalidate(obj);
+
+	if (is_playing)
+	{
+		memory_photo_btn_click_set(MEMORY_HOME_BTN_ID, false);
+		memory_photo_btn_click_set(MEMORY_PREV_BTN_ID, false);
+		memory_photo_btn_click_set(MEMORY_NEXT_BTN_ID, false);
+		memory_photo_btn_click_set(MEMORY_DELETE_BTN_ID, false);
+	}
+	else
+	{
+		memory_photo_btn_click_set(MEMORY_HOME_BTN_ID, true);
+		memory_photo_btn_click_set(MEMORY_PREV_BTN_ID, true);
+		memory_photo_btn_click_set(MEMORY_NEXT_BTN_ID, true);
+		memory_photo_btn_click_set(MEMORY_DELETE_BTN_ID, true);
+	}
+}
+
 static void memory_photo_ticker_task(lv_task_t *task_t)
 {
 	if (memory_photo_timeout_val-- <= 0)
@@ -291,34 +331,33 @@ static void memory_func_btn_diaplay_enable(bool en)
 	func_btn_diaplay_flag = en;
 	for (int i = 0; i <= 4; i++)
 	{
-		lv_obj_set_hidden(lv_obj_get_child_form_id(lv_scr_act(), i), !en);
+		lv_obj_t *obj = lv_obj_get_child_form_id(lv_scr_act(), i);
+		if (obj != NULL)
+		{
+			lv_obj_set_hidden(obj, !en);
+		}
 	}
 }
 static void photo_play_btn_up(lv_obj_t *obj)
 {
-	if (photo_total <= 1)
+	if (photo_total <= 0)
 		return;
-	memory_func_btn_diaplay_enable(!func_btn_diaplay_flag);
 	if (photo_play_task_t == NULL)
 	{
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_HOME_BTN_ID), false);
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_PREV_BTN_ID), false);
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_NEXT_BTN_ID), false);
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_DELETE_BTN_ID), false);
+		memory_func_btn_diaplay_enable(true);
 		standby_timer_close();
 		photo_play_task_t = lv_layout_task_create(photo_play_task, 3000, LV_TASK_PRIO_LOW, NULL);
+		photo_play_btn_state_display(true);
 
 		memory_photo_timeout_value_reset();
 	}
 	else
 	{
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_HOME_BTN_ID), true);
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_PREV_BTN_ID), true);
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_NEXT_BTN_ID), true);
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_DELETE_BTN_ID), true);
+		memory_func_btn_diaplay_enable(true);
 		// standby_timer_restart(true);
 		lv_task_del(photo_play_task_t);
 		photo_play_task_t = NULL;
+		photo_play_btn_state_display(false);
 
 		memory_photo_timeout_value_reset();
 		lv_layout_task_create(memory_photo_ticker_task, 500, LV_TASK_PRIO_HIGH, NULL);
@@ -331,6 +370,8 @@ static void photo_play_btn_create(lv_obj_t *parent)
 	static rom_bin_info info = rom_bin_info_get(ROM_UI_MEMORY_PLAY_PNG);
 	lv_obj_t *btn = camera_img_btn_create(parent, photo_btn_area[MEMORY_PLAY_BTN_ID], NULL, &btn_data, &info);
 	lv_obj_set_id(btn, MEMORY_PLAY_BTN_ID);
+	lv_obj_set_style_local_pattern_image(btn, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, &info);
+	lv_obj_set_style_local_pattern_recolor_opa(btn, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, LV_OPA_TRANSP);
 }
 
 static void photo_next_btn_up(lv_obj_t *obj)
@@ -366,29 +407,24 @@ static void photo_next_btn_create(lv_obj_t *parent)
 
 static void memory_bg_btn_up(lv_obj_t *obj)
 {
-	if (photo_total <= 1)
+	if (photo_total <= 0)
 		return;
-	memory_func_btn_diaplay_enable(!func_btn_diaplay_flag);
 	if (photo_play_task_t == NULL)
 	{
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_HOME_BTN_ID), false);
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_PREV_BTN_ID), false);
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_NEXT_BTN_ID), false);
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_DELETE_BTN_ID), false);
+		memory_func_btn_diaplay_enable(true);
 		standby_timer_close();
 		photo_play_task_t = lv_layout_task_create(photo_play_task, 3000, LV_TASK_PRIO_LOW, NULL);
+		photo_play_btn_state_display(true);
 
 		memory_photo_timeout_value_reset();
 	}
 	else
 	{
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_HOME_BTN_ID), true);
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_PREV_BTN_ID), true);
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_NEXT_BTN_ID), true);
-		lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_DELETE_BTN_ID), true);
+		memory_func_btn_diaplay_enable(true);
 		// standby_timer_restart(true);
 		lv_task_del(photo_play_task_t);
 		photo_play_task_t = NULL;
+		photo_play_btn_state_display(false);
 
 		memory_photo_timeout_value_reset();
 		lv_layout_task_create(memory_photo_ticker_task, 500, LV_TASK_PRIO_HIGH, NULL);
@@ -429,11 +465,11 @@ static void photo_delete_no_btn_up(lv_obj_t *obj)
 	lv_obj_t *btn_area = obj->parent;
 	lv_obj_t *msg_box_cont = btn_area->parent;
 	lv_obj_del(msg_box_cont);
-	lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_HOME_BTN_ID), true);
-	lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_PREV_BTN_ID), true);
-	lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_PLAY_BTN_ID), true);
-	lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_NEXT_BTN_ID), true);
-	lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_DELETE_BTN_ID), true);
+	memory_photo_btn_click_set(MEMORY_HOME_BTN_ID, true);
+	memory_photo_btn_click_set(MEMORY_PREV_BTN_ID, true);
+	memory_photo_btn_click_set(MEMORY_PLAY_BTN_ID, true);
+	memory_photo_btn_click_set(MEMORY_NEXT_BTN_ID, true);
+	memory_photo_btn_click_set(MEMORY_DELETE_BTN_ID, true);
 }
 static void create_dim_mask()
 {
@@ -461,11 +497,11 @@ static void photo_delete_btn_up(lv_obj_t *obj)
 	if (photo_total == 0)
 		return;
 	memory_bg_btn_click_enable(false);
-	lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_HOME_BTN_ID), false);
-	lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_PREV_BTN_ID), false);
-	lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_PLAY_BTN_ID), false);
-	lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_NEXT_BTN_ID), false);
-	lv_obj_set_click(lv_obj_get_child_form_id(lv_scr_act(), MEMORY_DELETE_BTN_ID), false);
+	memory_photo_btn_click_set(MEMORY_HOME_BTN_ID, false);
+	memory_photo_btn_click_set(MEMORY_PREV_BTN_ID, false);
+	memory_photo_btn_click_set(MEMORY_PLAY_BTN_ID, false);
+	memory_photo_btn_click_set(MEMORY_NEXT_BTN_ID, false);
+	memory_photo_btn_click_set(MEMORY_DELETE_BTN_ID, false);
 	// 创建全屏遮罩层（屏幕变暗）
 	create_dim_mask();
 	static obj_click_data btn_data = obj_click_data_up_create(photo_delete_yes_btn_up);
