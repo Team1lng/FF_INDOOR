@@ -366,6 +366,10 @@ bool video_play_stop(void)
 	video_play_status = VIDEO_PLAY_STATE_IDLE;
 	video_play_resume_video_index = 0;
 	video_play_eof_flg = false;
+	if (avi_handle_id != NULL)
+	{
+		video_play_device_close();
+	}
 	if (old_decode_finish_func != NULL)
 	{
 		jpg_decode_read_frame_func_register(old_decode_finish_func);

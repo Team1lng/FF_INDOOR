@@ -202,3 +202,30 @@ make clean
    问题：门口机 call 触发监控通道切换时，旧视频帧或 GUI 层偶发残留，表现为一瞬间花屏或旧通道 UI 残影。
    涉及文件：`FF_1070/layout/layout_camera.c`
    修改内容：在 `camera_door_call_switch()` 中当前通道切到目标通道前，先关闭视频预览 `video_display_preview_enable(false)`，清空 resident buffer，填充清理 GUI 层，刷新监控区域；切换 `monitor_channel_set()` 并重新 `monitor_open()` 后再次清空 resident buffer，再刷新通道名和通道 UI。
+
+### 20260701
+
+1. 门口机重复 call 后通话音频恢复
+   问题：已进入门口机通话状态后，如果门口机再次 call 机播放铃声，铃声播放结束回调仍可能按呼叫铃声流程关闭功放或门口机音频通道，导致原本正在通话的门口机和室内机没有声音。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：在 `layout_camera_callring_finish_default_func()` 中增加摘机通话判断；当 `hook_state_get() == true` 且当前通道为 `MON_CH_DOOR1/MON_CH_DOOR2` 时，清除 call 铃声状态，设置 `MON_ENTER_TALK`，并重新调用 `door_audio_talk(AUDIO_CH_DOOR1/2)` 恢复对应门口机通话链路；只有非通话状态才继续执行铃声重播或结束清理逻辑。
+
+2. 监控调节滑块点击值优化
+   问题：亮度、色度、对比度滑块范围为 0-10，拖动正常，但点击时会出现比例计算抖动，例如 `ratio=0.72` 直接到 7，`ratio=0.78` 先闪 7 再到 8；另外 9 到 10 仍不稳定。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：将滑块取值统一改为根据触摸点和滑块坐标计算 0-1 比例，再通过四舍五入映射到 0-10，并限制最终范围；亮度、色度、对比度拆分为 `*_update()` 和 `*_event()`，在 `LV_EVENT_VALUE_CHANGED`、`LV_EVENT_CLICKED`、`LV_EVENT_RELEASED` 中统一刷新数值、标签和实际显示参数，点击释放后再清理 pressed 状态和重启隐藏倒计时。
+
+3. 视频停止时同步关闭 AVI 句柄
+   问题：视频播放、暂停、删除、播放结束等流程中，如果 `video_play_stop()` 只切状态但没有立即关闭 AVI 句柄，后台播放线程和页面层可能同时处理旧播放资源，导致再次播放、删除弹窗或界面刷新时出现异常。
+   涉及文件：`FF_1070/common/video_play.c`
+   修改内容：在 `video_play_stop()` 中将状态切到 `VIDEO_PLAY_STATE_IDLE` 后，如果 `avi_handle_id` 仍存在，立即调用 `video_play_device_close()` 同步关闭 AVI 句柄；同时保留恢复旧 JPEG 解码回调、恢复屏幕背景、关闭视频模式和关闭视频预览的原有流程，避免暂停/删除后底层播放资源残留。
+
+4. 视频播放暂停后删除弹窗概率死机修复
+   问题：进入视频播放界面后，点击播放再暂停，然后点击删除按钮，删除弹窗可能出现异常残影；如果先打开删除弹窗再被门口机 call 机打断，返回后再次播放、暂停、删除，仍有概率死机。
+   涉及文件：`FF_1070/layout/layout_memory_video.c`
+   修改内容：新增 `memory_video_play_state_task` 记录播放状态刷新任务，并提供 start/stop helper；点击删除时先停止播放状态任务、超时任务和上一首/下一首等待任务，再停止视频播放、清空 resident buffer、重载当前视频缩略图、恢复按钮显示状态，最后创建遮罩和删除确认弹窗；删除弹窗对象新增 `memory_video_delete_box` 句柄，取消时直接按句柄删除，不再通过 `obj->parent->parent` 查找父容器；弹窗创建后调用 `lv_obj_move_foreground()` 保证遮罩和弹窗位于最上层；退出视频界面时清理删除状态、弹窗句柄和任务指针，避免 call 机打断后旧任务继续刷新已销毁对象。
+
+5. 移动侦测中 call 机切监控死机修复
+   问题：移动侦测界面正在使用 VI/VENC/AI、录像或抓拍资源时，门口机 call 机触发切到监控界面，旧界面退出流程先关闭监控再停采集和录制，可能造成硬件资源关闭顺序冲突并卡死。
+   涉及文件：`FF_1070/layout/layout_motion_detection.c`
+   修改内容：调整 `LAYOUT_QUIT_FUNC(motion_detection)` 的资源释放顺序；先记录是否需要 `monitor_close()`，随后停止铃声、移动侦测任务、JPEG 采集和音频采集，再关闭录像和 JPEG 录制，最后按需关闭 monitor；之后再恢复 SD 卡回调、销毁移动侦测对象、清理点击事件、保存用户数据和重启待机计时，避免 call 机切界面时采集/编码/监控关闭互相抢占。

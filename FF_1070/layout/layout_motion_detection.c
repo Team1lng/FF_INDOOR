@@ -550,21 +550,23 @@ static void LAYOUT_ENTER_FUNC(motion_detection)
 static void LAYOUT_QUIT_FUNC(motion_detection)
 {
     printf("移动侦测：退出移动侦测界面\n");
-    if (screen_clicked == false)
+    bool need_monitor_close = (screen_clicked == false);
+    screen_clicked = false;
+
+    // Stop tasks/capture/encoders before closing VI to avoid teardown races.
+    ringplay_play_stop();
+    motion_ticker_task_stop(MOTION_TASK_TOTAL);
+    jpg_encode_capture_enable(false);
+    audio_input_capture_enable(false);
+    record_video_close();
+    record_jpeg_close();
+    if (need_monitor_close)
     {
         monitor_close();
     }
-    screen_clicked = false;
-
-    // 停止所有任务和录制
-    ringplay_play_stop();
-    motion_ticker_task_stop(MOTION_TASK_TOTAL);
-    audio_input_capture_enable(false);
     layout_sd_state_callback_register(layout_sdcard_state_change_default);
     motion_detection_destory();
     obj_click_event_listen(lv_scr_act(), NULL);
-    record_video_close();
-    record_jpeg_close();
     user_data_save();
     standby_timer_restart(true);
 }

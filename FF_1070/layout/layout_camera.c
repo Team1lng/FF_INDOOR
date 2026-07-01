@@ -1210,35 +1210,62 @@ static void slider_common_cleanup(lv_obj_t *slider)
 	lv_obj_clear_state(slider, LV_STATE_PRESSED);
 }
 
+// static int camera_slider_value_get(lv_obj_t *slider)
+// {
+// 	int value = lv_slider_get_value(slider);
+// 	lv_indev_t *indev = lv_indev_get_act();
+// 	if (indev == NULL)
+// 	{
+// 		return value;
+// 	}
+
+// 	lv_point_t point;
+// 	lv_area_t coords;
+// 	lv_indev_get_point(indev, &point);
+// 	lv_obj_get_coords(slider, &coords);
+
+// 	if (point.x >= coords.x2 - 30)
+// 	{
+// 		value = 10;
+// 		lv_slider_set_value(slider, value, LV_ANIM_OFF);
+// 	}
+// 	else if (point.x <= coords.x1 + 8)
+// 	{
+// 		value = 0;
+// 		lv_slider_set_value(slider, value, LV_ANIM_OFF);
+// 	}
+// 	return value;
+// }
+
 static int camera_slider_value_get(lv_obj_t *slider)
 {
-	int value = lv_slider_get_value(slider);
-	lv_indev_t *indev = lv_indev_get_act();
-	if (indev == NULL)
-	{
-		return value;
-	}
+    lv_indev_t *indev = lv_indev_get_act();
+    if (indev == NULL) {
+        return lv_slider_get_value(slider);
+    }
 
-	lv_point_t point;
-	lv_area_t coords;
-	lv_indev_get_point(indev, &point);
-	lv_obj_get_coords(slider, &coords);
+    lv_point_t point;
+    lv_area_t coords;
+    lv_indev_get_point(indev, &point);
+    lv_obj_get_coords(slider, &coords);
 
-	if (point.x >= coords.x2 - 8)
-	{
-		value = 10;
-		lv_slider_set_value(slider, value, LV_ANIM_OFF);
-	}
-	else if (point.x <= coords.x1 + 8)
-	{
-		value = 0;
-		lv_slider_set_value(slider, value, LV_ANIM_OFF);
-	}
-	return value;
+    // 计算点击位置在滑块上的比例 (0~1)
+    float ratio = (float)(point.x - coords.x1) / (coords.x2 - coords.x1);
+    // 限制范围（防止浮点误差）
+    if (ratio < 0.0f) ratio = 0.0f;
+    if (ratio > 1.0f) ratio = 1.0f;
+
+    // 四舍五入到最近的整数（0~10）
+    int value = (int)(ratio * 10 + 0.5f);
+    if (value < 0) value = 0;
+    if (value > 10) value = 10;
+    // 强制设置滑块值（无动画）
+    lv_slider_set_value(slider, value, LV_ANIM_OFF);
+    return value;
 }
 
 // 亮度调节滑块回调
-static void camera_brightness_adj_btn_up(lv_obj_t *obj)
+static void camera_brightness_adj_update(lv_obj_t *obj)
 {
 	// 获取滑块当前亮度值
 	int brightness = camera_slider_value_get(obj);
@@ -1250,11 +1277,10 @@ static void camera_brightness_adj_btn_up(lv_obj_t *obj)
 	// 设置实际显示亮度+更新显示
 	monitor_display_brightness_vol_set(brightness);
 	display_bright_adj(brightness, INVALID_FORMAT);
-	slider_common_cleanup(obj);
 }
 
 // 色彩调节滑块回调
-static void camera_color_adj_btn_up(lv_obj_t *obj)
+static void camera_color_adj_update(lv_obj_t *obj)
 {
 	// 获取滑块当前亮度值
 	int color = camera_slider_value_get(obj);
@@ -1266,11 +1292,10 @@ static void camera_color_adj_btn_up(lv_obj_t *obj)
 	// 设置色彩值并更新显示
 	monitor_display_color_vol_set(color);
 	display_color_adj(color, INVALID_FORMAT);
-	slider_common_cleanup(obj);
 }
 
 // 对比度调节滑块回调
-static void camera_contrast_adj_btn_up(lv_obj_t *obj)
+static void camera_contrast_adj_update(lv_obj_t *obj)
 {
 	// 获取滑块当前值
 	int contrast = camera_slider_value_get(obj);
@@ -1282,7 +1307,45 @@ static void camera_contrast_adj_btn_up(lv_obj_t *obj)
 	// 设置对比度值并更新显示
 	monitor_display_cont_vol_set(contrast);
 	display_const_adj(contrast, INVALID_FORMAT);
-	slider_common_cleanup(obj);
+}
+
+static void camera_brightness_adj_event(lv_obj_t *obj, lv_event_t event)
+{
+	if (event == LV_EVENT_VALUE_CHANGED)
+	{
+		camera_brightness_adj_update(obj);
+	}
+	else if (event == LV_EVENT_CLICKED || event == LV_EVENT_RELEASED)
+	{
+		camera_brightness_adj_update(obj);
+		slider_common_cleanup(obj);
+	}
+}
+
+static void camera_color_adj_event(lv_obj_t *obj, lv_event_t event)
+{
+	if (event == LV_EVENT_VALUE_CHANGED)
+	{
+		camera_color_adj_update(obj);
+	}
+	else if (event == LV_EVENT_CLICKED || event == LV_EVENT_RELEASED)
+	{
+		camera_color_adj_update(obj);
+		slider_common_cleanup(obj);
+	}
+}
+
+static void camera_contrast_adj_event(lv_obj_t *obj, lv_event_t event)
+{
+	if (event == LV_EVENT_VALUE_CHANGED)
+	{
+		camera_contrast_adj_update(obj);
+	}
+	else if (event == LV_EVENT_CLICKED || event == LV_EVENT_RELEASED)
+	{
+		camera_contrast_adj_update(obj);
+		slider_common_cleanup(obj);
+	}
 }
 
 static rom_bin_info brightness_icon = rom_bin_info_get(ROM_UI_CAMERA_BRIGHTNESS_PNG);
@@ -1305,9 +1368,9 @@ static void camera_setting_window_create(lv_obj_t *parent)
 	lv_obj_set_style_local_pad_all(win_cont, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, 15); // 弹窗内边距
 
 	// 回调函数
-	static obj_click_data slider_data1 = obj_click_data_up_create(camera_brightness_adj_btn_up);
-	static obj_click_data slider_data2 = obj_click_data_up_create(camera_color_adj_btn_up);
-	static obj_click_data slider_data3 = obj_click_data_up_create(camera_contrast_adj_btn_up);
+	static obj_click_data slider_data1 = obj_click_data_anything_create(camera_brightness_adj_event);
+	static obj_click_data slider_data2 = obj_click_data_anything_create(camera_color_adj_event);
+	static obj_click_data slider_data3 = obj_click_data_anything_create(camera_contrast_adj_event);
 
 	// 创建三个参数的滑块控件
 	camera_video_param_setting_btn_create(win_cont, 28, 34, &brightness_icon, str_get(LAYOUT_CAMERA_LANG_BRIGHTNESS_ID), &slider_data1, monitor_display_brightness_vol_get(), CAMERA_BRIGHTNESS_CONT_ID, LAYOUT_SETTING_BRIGHTNESS_ID);
@@ -2123,6 +2186,18 @@ static void layout_camera_callring_finish_default_func(int index)
 
 	if (camera_call_ring_answered == true)
 	{
+		return;
+	}
+
+	MON_CH ch = monitor_channel_get();
+	if (hook_state_get() == true && (ch == MON_CH_DOOR1 || ch == MON_CH_DOOR2))
+	{
+		camera_call_ring_active = false;
+		camera_call_ring_answered = true;
+		camera_call_ring_ignore_finish_count = 0;
+		camera_call_ring_deadline = 0;
+		monitor_enter_mask_set(MON_ENTER_TALK);
+		door_audio_talk(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2);
 		return;
 	}
 
