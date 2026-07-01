@@ -47,6 +47,7 @@ static bool func_btn_diaplay_flag = true;
 static int per_time_count = 0;
 static int next_time_count = 0;
 static bool memory_video_finish_handled = false;
+static bool memory_video_delete_dialog_active = false;
 static lv_task_t *memory_video_timeout_task = NULL;
 static lv_task_t *memory_video_per_wait_task = NULL;
 static lv_task_t *memory_video_next_wait_task = NULL;
@@ -88,6 +89,15 @@ static void memory_video_ticker_task(lv_task_t *task_t)
     {
         memory_video_timeout_task = NULL;
         lv_task_del(task_t);
+    }
+}
+
+static void memory_video_timeout_task_stop(void)
+{
+    if (memory_video_timeout_task != NULL)
+    {
+        lv_task_del(memory_video_timeout_task);
+        memory_video_timeout_task = NULL;
     }
 }
 
@@ -480,6 +490,10 @@ static void create_dim_mask()
 
 static void video_delete_yes_btn_up(lv_obj_t *obj)
 {
+    video_play_stop();
+    memory_video_finish_handled = false;
+    memory_video_delete_dialog_active = false;
+
     if (dim_mask != NULL)
     {
         lv_obj_del(dim_mask);
@@ -570,6 +584,7 @@ static void memory_bg_btn_click_enable(bool en)
 
 static void video_delete_no_btn_up(lv_obj_t *obj)
 {
+    memory_video_delete_dialog_active = false;
     memory_bg_btn_click_enable(true);
     if (dim_mask != NULL)
     {
@@ -591,6 +606,13 @@ static void video_delete_btn_up(lv_obj_t *obj)
 {
     if (video_total == 0)
         return;
+
+    video_play_stop();
+    video_input_resident_bzero();
+    layout_memory_video_load();
+    memory_video_timeout_task_stop();
+    memory_video_finish_handled = false;
+    memory_video_delete_dialog_active = true;
 
     memory_bg_btn_click_enable(false);
     memory_video_per_wait_task = NULL;
@@ -619,6 +641,11 @@ static void video_delete_btn_create(lv_obj_t *parent)
 
 static void layout_play_state_task(lv_task_t *task_t)
 {
+    if (memory_video_delete_dialog_active == true)
+    {
+        return;
+    }
+
     int cur = -1, total = -1;
     static VIDEO_PLAY_STATUS prev_statu = VIDEO_PLAY_STATE_IDLE;
     VIDEO_PLAY_STATUS statu = video_play_status_get();

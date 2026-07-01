@@ -262,16 +262,7 @@ void guard_talking_pin_ctrl(bool en)
 #define POWER_AMPLIFIER_PIN 9
 bool power_amplifier_enable(bool en)
 {
-	return gpio_level_set(POWER_AMPLIFIER_PIN, GPIO_LEVEL_HIGH);
-	// if (en == false)
-	// {
-	// 	return gpio_level_set(POWER_AMPLIFIER_PIN, GPIO_LEVEL_LOW);
-	// }
-	// else
-	// {
-	// 	return gpio_level_set(POWER_AMPLIFIER_PIN, hook_state == false ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
-	// 	// return gpio_level_set(POWER_AMPLIFIER_PIN, GPIO_LEVEL_HIGH);
-	// }
+	return gpio_level_set(POWER_AMPLIFIER_PIN, en ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
 }
 
 /***

@@ -155,3 +155,50 @@ make clean
     问题：新增 `start.png` 或替换 UI 资源后，如果 `rom.bin/rom.h` 没同步或资源包没打进 app，板端会显示旧图、错图或按钮不变化。
     涉及文件：`FF_1070/res/ui/memory/start.png`、`FF_1070/res/rom.bin`、`FF_1070/res/rom.h`、`FF_1070/upgrade/app/rom.bin`、`AK37E_SDK_V1.05/rootfs/resource/app/app/rom.bin`
     修改内容：通过正常 `make` 打包流程同步资源，不手工只补 `rom.h` 宏；确保 `res/rom.bin`、`upgrade/app/rom.bin`、SDK rootfs 里的 app 资源包保持一致，避免编译通过但板端显示错资源。
+
+### 20260630
+
+1. 设置页音量改为室内机铃声音量
+   问题：`setting_sound_ring_volume_btn_create()` 原来使用 `door_ring_volume`，会把设置页音量同时影响到门口机相关音量；需求是设置页只控制室内机铃声/预览音量，不直接控制门口机通话音量。
+   涉及文件：`FF_1070/layout/layout_setting_sound.c`、`FF_1070/layout/layout_common.c`
+   修改内容：设置页音量读取和保存改为 `user_data_get()->setting.inter_ring_volume`；相关 helper 从 `door_ring_volume_get/set()` 调整为 `inter_ring_volume_get/set()`；门口机1/2铃声预览统一按 `inter_ring_volume > 0` 判断，音量为 0 时设置页不播放预览；门口机来电铃声启动时使用 `inter_ring_volume` 控制室内机功放音量。
+
+2. 音量 0 时室内机静音但门口机仍有声音
+   问题：室内机铃声音量设置为 0 时，室内机听筒/喇叭仍能听到铃声；同时门口机侧仍需要能听到呼叫铃声，不能因为室内机音量为 0 就跳过铃声播放链路。
+   涉及文件：`FF_1070/layout/user_gpio.c`、`FF_1070/layout/layout_camera.c`、`FF_1070/layout/layout_common.c`
+   修改内容：修复 `power_amplifier_enable(bool en)`，由原先无论 `true/false` 都拉高 GPIO9，改为按参数控制高低电平，使 `ring_volume_set(0)` 能真正关闭室内机功放；来电 call 铃声不再因为 `inter_ring_volume == 0` 而跳过播放，仍执行 `camera_call_ring_play()` 和 `call_ring_to_outdoor_ctrl()`，保证门口机侧呼叫声链路正常。
+
+3. 开锁提示音打断门口机呼叫铃声
+   问题：室内机待机进入门口机 call 界面后，门口机正在播放呼叫铃声时点击开锁，开锁声应该打断呼叫铃声，但原逻辑会让呼叫铃声继续播放或后续 finish 回调再次影响音频通道。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：在 `camera_open_btn_up()` 中点击开锁前检测当前是否有 call 铃声播放；若正在播放，则增加 `camera_call_ring_ignore_finish_count` 并调用 `camera_call_ring_cancel()` 取消旧铃声状态；随后重新打开当前门口机音频输出通道、执行 `monitor_unlock_open()` 并播放开锁提示音，使开锁声优先于呼叫铃声。
+
+4. 摘机通话期间提示音结束后恢复通话音频
+   问题：拿起话筒后本应正常通话，但如果期间触发 call 铃声或开锁提示音，提示音播放结束回调会执行 `power_amplifier_enable(false)` 和 `call_ring_to_outdoor_ctrl(..., false)`，把门口机与室内机通话音频通道关闭，导致双方无音频。
+   涉及文件：`FF_1070/layout/layout_common.c`、`FF_1070/layout/layout_camera.c`
+   修改内容：在 `ringplay_doorcall_finish_default_func()` 和 `camera_unlock_ring_finish_func()` 中增加摘机通话判断；当 `hook_state_get() == true` 且当前通道为 `MON_CH_DOOR1/MON_CH_DOOR2` 时，不关闭功放和门口机通道，而是调用 `door_audio_talk(AUDIO_CH_DOOR1/2)` 恢复对应门口机通话音频链路；非通话状态保持原有关闭逻辑。
+
+5. 视频播放暂停后删除卡住修复
+   问题：进入视频播放界面后，直接删除视频正常；但播放后点击暂停，再点击删除，界面可能卡住，按钮无法继续操作，只能等 `memory_video_timeout_val` 从 60 倒计时到 0 后返回待机界面恢复。
+   涉及文件：`FF_1070/layout/layout_memory_video.c`
+   修改内容：在 `video_delete_btn_up()` 入口先调用 `video_play_stop()` 退出暂停态播放器，避免 AVI 句柄和视频显示模式继续占用；新增 `memory_video_timeout_task_stop()`，点击删除时停止 60 秒待机倒计时；新增 `memory_video_delete_dialog_active` 标志，删除确认弹窗期间让 `layout_play_state_task()` 直接返回，不再重建倒计时或修改按钮状态；确认删除和取消删除时清除该标志。
+
+6. 视频暂停后删除弹窗画面残留修复
+   问题：播放视频后暂停，再点击删除，删除确认弹窗能正常出现，但弹窗下方会残留暂停视频层或异常画面。
+   涉及文件：`FF_1070/layout/layout_memory_video.c`
+   修改内容：点击删除按钮时，在 `video_play_stop()` 后调用 `video_input_resident_bzero()` 清空视频 resident buffer，并调用 `layout_memory_video_load()` 重新加载当前视频缩略图，然后再创建半透明遮罩和删除确认弹窗，避免弹窗底部保留暂停时的视频层画面。
+
+7. 监控调节窗口切门口机通道残留修复
+   问题：进入监控界面后点击 `camera_color_btn_create` 打开亮度/色度/对比度调节窗口，此时门口机 call 切换通道，调节窗口 UI 会残留并跟随新通道显示。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：在 `camera_door_call_switch()` 入口检测 `setting_win_diaplay_flag`，若调节窗口正在显示，则先调用 `camera_setting_window_display_enable(false)` 关闭调节窗口，再执行通道切换、GUI 层清理、视频预览关闭和通道 UI 刷新，避免设置窗口残留到新通道。
+
+8. 监控调节滑块点击范围优化
+   问题：亮度、色度、对比度三个滑动进度条范围为 0-10，拖动能到 10，但点击时通常只能点到 0-9，最右侧最大值 10 不容易点到。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：新增 `camera_slider_value_get()`，在 slider 点击回调中读取当前触摸释放坐标和 slider 坐标；当点击位置靠近右端 8px 范围时强制设置为 10，靠近左端 8px 范围时强制设置为 0；亮度、色度、对比度三个回调统一使用该 helper 获取值，保留原拖动逻辑。
+
+9. 门口机 call 切换清视频层和 UI 层
+   问题：门口机 call 触发监控通道切换时，旧视频帧或 GUI 层偶发残留，表现为一瞬间花屏或旧通道 UI 残影。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：在 `camera_door_call_switch()` 中当前通道切到目标通道前，先关闭视频预览 `video_display_preview_enable(false)`，清空 resident buffer，填充清理 GUI 层，刷新监控区域；切换 `monitor_channel_set()` 并重新 `monitor_open()` 后再次清空 resident buffer，再刷新通道名和通道 UI。

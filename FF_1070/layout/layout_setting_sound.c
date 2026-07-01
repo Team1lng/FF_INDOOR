@@ -77,22 +77,22 @@ static void setting_icon_create(lv_obj_t *parent)
 	lv_obj_align(setting_icon_obj, Setting_label, LV_ALIGN_OUT_LEFT_MID, -5, 0);
 }
 
-// 获取当前主音量
-static int door_ring_volume_get(void)
+// 获取当前室内机铃声音量
+static int inter_ring_volume_get(void)
 {
-    return user_data_get()->setting.door_ring_volume;
+    return user_data_get()->setting.inter_ring_volume;
 }
 
-// 设置音量
-static void door_ring_volume_set(int vol)
+// 设置室内机铃声音量
+static void inter_ring_volume_set(int vol)
 {
-    user_data_get()->setting.door_ring_volume = vol;
+    user_data_get()->setting.inter_ring_volume = vol;
 
 }
 
 static void door_ring_play_start_cb(int index)
 {
-    ring_volume_set(user_data_get()->setting.door_ring_volume);
+    ring_volume_set(user_data_get()->setting.inter_ring_volume);
 }
 
 static void door_ring_play_finish_cb(int index)
@@ -103,13 +103,13 @@ static void door_ring_play_finish_cb(int index)
 // 铃声音量调节回调（右箭头 - 音量加）
 static void setting_sound_ring_volume_btn_right_btn_up(lv_obj_t *obj)
 {
-    int bell_volume = door_ring_volume_get();
+    int bell_volume = inter_ring_volume_get();
     if (bell_volume < 4)
     {
         bell_volume++;
     }
-    door_ring_volume_set(bell_volume);
-    ring_volume_set(door_ring_volume_get());
+    inter_ring_volume_set(bell_volume);
+    ring_volume_set(inter_ring_volume_get());
     // 先格式化字符串，再更新显示
     sprintf(volume_str, "%02d", bell_volume);
     
@@ -129,13 +129,13 @@ static void setting_sound_ring_volume_btn_right_btn_up(lv_obj_t *obj)
 // 铃声音量调节回调（左箭头 - 音量减）
 static void setting_sound_ring_volume_btn_left_btn_up(lv_obj_t *obj)
 {
-    int bell_volume = door_ring_volume_get();
+    int bell_volume = inter_ring_volume_get();
     if (bell_volume > 0)
     {
         bell_volume--;
     }
-    door_ring_volume_set(bell_volume);
-    ring_volume_set(door_ring_volume_get());
+    inter_ring_volume_set(bell_volume);
+    ring_volume_set(inter_ring_volume_get());
     // 先格式化字符串，再更新显示
     sprintf(volume_str, "%02d", bell_volume);
 
@@ -167,7 +167,7 @@ static void setting_cam1_sound_song_right_btn_up(lv_obj_t *obj)
         lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_CAM1_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, ring_cctv1_str);
         lv_obj_invalidate(center_container);
 
-        if (door_ring_volume_get() > 0)
+        if (inter_ring_volume_get() > 0)
         {
             ringplay_play_form_index(index, 100, door_ring_play_start_cb, door_ring_play_finish_cb, false);
         }
@@ -191,7 +191,7 @@ static void setting_cam1_sound_song_left_btn_up(lv_obj_t *obj)
         lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_CAM1_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, ring_cctv1_str);
         lv_obj_invalidate(center_container);
 
-        if (door_ring_volume_get() > 0)
+        if (inter_ring_volume_get() > 0)
         {
             ringplay_play_form_index(index, 100, door_ring_play_start_cb, door_ring_play_finish_cb, false);
         }
@@ -214,7 +214,7 @@ static void setting_cam2_sound_song_right_btn_up(lv_obj_t *obj)
     lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(obj_door2_tone, SETTING_CAM2_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, ring_cctv2_str);
     lv_obj_invalidate(obj_door2_tone);
 
-    if (user_data_get()->setting.door_ring_volume > 0)
+    if (inter_ring_volume_get() > 0)
     {
         ringplay_play_form_index(index, 100, door_ring_play_start_cb, door_ring_play_finish_cb, false);
     }
@@ -237,7 +237,7 @@ static void setting_cam2_sound_song_left_btn_up(lv_obj_t *obj)
         lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_CAM2_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, ring_cctv2_str);
         lv_obj_invalidate(center_container);
 
-        if (door_ring_volume_get() > 0)
+        if (inter_ring_volume_get() > 0)
         {
             ringplay_play_form_index(index, 100, door_ring_play_start_cb, door_ring_play_finish_cb, false);
         }
@@ -298,7 +298,7 @@ static bool setting_sound_ring_volume_btn_create(lv_obj_t *center_cont)
     static obj_click_data click_data = obj_click_data_up_create(setting_sound_ring_volume_btn_right_btn_up);
     static obj_click_data left_click_data = obj_click_data_up_create(setting_sound_ring_volume_btn_left_btn_up);
 
-    int ring_volume = user_data_get()->setting.door_ring_volume;
+    int ring_volume = user_data_get()->setting.inter_ring_volume;
     sprintf(volume_str, "%02d", ring_volume);
     setting_double_arrow_btn_create(center_cont, 230, 70 + (75* 0), 415, 32,
                                     str_get(COMMON_LANG_SETTING_VOLUME_ID),

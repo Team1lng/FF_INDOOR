@@ -40,7 +40,7 @@ void layout_obj_click_down_func(lv_obj_t *obj)
 void ringplay_doorcall_start_default_func(int index)
 {
 	MON_CH ch = monitor_channel_get();
-	ring_volume_set(ch == MON_CH_DOOR1 ? user_data_get()->setting.door_ring_volume : user_data_get()->setting.door_ring_volume); // lynn 26.3.13
+	ring_volume_set(user_data_get()->setting.inter_ring_volume);
 	call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, true);
 }
 /***
@@ -51,9 +51,15 @@ void ringplay_doorcall_start_default_func(int index)
 ***/
 void ringplay_doorcall_finish_default_func(int index)
 {
+	MON_CH ch = monitor_channel_get();
+	if (hook_state_get() == true && (ch == MON_CH_DOOR1 || ch == MON_CH_DOOR2))
+	{
+		door_audio_talk(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2);
+		return;
+	}
+
 	/***** 开启功放 *****/
 	power_amplifier_enable(false);
-	MON_CH ch = monitor_channel_get();
 	call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
 }
 /***
@@ -524,7 +530,7 @@ void monitor_display_color_vol_set(int vol)
 // 重新封装铃声播放函数
 void ring_play(int index, int volume, ringplay_callback start, ringplay_callback finish, bool loop)
 {
-	if (0 == (monitor_channel_get() == MON_CH_DOOR1 ? user_data_get()->setting.door_ring_volume : user_data_get()->setting.door_ring_volume)) // lynn 26.3.13
+	if (user_data_get()->setting.inter_ring_volume == 0)
 	{
 		power_amplifier_enable(false);
 	}

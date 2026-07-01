@@ -605,6 +605,11 @@ static void camera_door_call_switch(MON_CH target_ch, int tone_index)
 {
 	MON_CH current_ch = monitor_channel_get();
 
+	if (setting_win_diaplay_flag == true)
+	{
+		camera_setting_window_display_enable(false);
+	}
+
 	monitor_valid_channel_set(target_ch, true);
 	monitor_enter_mask_set(MON_ENTER_CALL);
 
@@ -621,10 +626,13 @@ static void camera_door_call_switch(MON_CH target_ch, int tone_index)
 
 	if (current_ch != target_ch)
 	{
+		video_display_preview_enable(false);
+		video_input_resident_bzero();
 		fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
 		layout_monitor_refresh_1();
 		monitor_channel_set(target_ch);
 		monitor_open(true, 0x03);
+		video_input_resident_bzero();
 		camera_head_channel_label_flush();
 		camera_channel_ui_refresh();
 	}
@@ -634,10 +642,7 @@ static void camera_door_call_switch(MON_CH target_ch, int tone_index)
 	camera_call_ring_answered = false;
 	camera_call_ring_deadline = 0;
 
-	if (user_data_get()->setting.door_ring_volume != 0)
-	{
-		camera_call_ring_play(tone_index);
-	}
+	camera_call_ring_play(tone_index);
 
 	camera_call_auto_record_task_create();
 }
@@ -661,8 +666,14 @@ static void camera_unlock_ring_start_func(int index)
 
 static void camera_unlock_ring_finish_func(int index)
 {
-	power_amplifier_enable(false);
 	MON_CH ch = monitor_channel_get();
+	if (hook_state_get() == true && (ch == MON_CH_DOOR1 || ch == MON_CH_DOOR2))
+	{
+		door_audio_talk(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2);
+		return;
+	}
+
+	power_amplifier_enable(false);
 	call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
 }
 #endif
@@ -1198,11 +1209,39 @@ static void slider_common_cleanup(lv_obj_t *slider)
 	camera_btn_and_win_hidden_task_restart();
 	lv_obj_clear_state(slider, LV_STATE_PRESSED);
 }
+
+static int camera_slider_value_get(lv_obj_t *slider)
+{
+	int value = lv_slider_get_value(slider);
+	lv_indev_t *indev = lv_indev_get_act();
+	if (indev == NULL)
+	{
+		return value;
+	}
+
+	lv_point_t point;
+	lv_area_t coords;
+	lv_indev_get_point(indev, &point);
+	lv_obj_get_coords(slider, &coords);
+
+	if (point.x >= coords.x2 - 8)
+	{
+		value = 10;
+		lv_slider_set_value(slider, value, LV_ANIM_OFF);
+	}
+	else if (point.x <= coords.x1 + 8)
+	{
+		value = 0;
+		lv_slider_set_value(slider, value, LV_ANIM_OFF);
+	}
+	return value;
+}
+
 // 亮度调节滑块回调
 static void camera_brightness_adj_btn_up(lv_obj_t *obj)
 {
 	// 获取滑块当前亮度值
-	int brightness = lv_slider_get_value(obj);
+	int brightness = camera_slider_value_get(obj);
 	// 逐层通过ID获取UI对象
 	lv_obj_t *cont = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_SETTING_WINDOW_ID);
 	lv_obj_t *brightness_cont = lv_obj_get_child_form_id(cont, CAMERA_BRIGHTNESS_CONT_ID);
@@ -1218,7 +1257,7 @@ static void camera_brightness_adj_btn_up(lv_obj_t *obj)
 static void camera_color_adj_btn_up(lv_obj_t *obj)
 {
 	// 获取滑块当前亮度值
-	int color = lv_slider_get_value(obj);
+	int color = camera_slider_value_get(obj);
 	// 逐层通过ID获取UI对象
 	lv_obj_t *cont = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_SETTING_WINDOW_ID);
 	lv_obj_t *color_cont = lv_obj_get_child_form_id(cont, CAMERA_COLOR_CONT_ID);
@@ -1234,7 +1273,7 @@ static void camera_color_adj_btn_up(lv_obj_t *obj)
 static void camera_contrast_adj_btn_up(lv_obj_t *obj)
 {
 	// 获取滑块当前值
-	int contrast = lv_slider_get_value(obj);
+	int contrast = camera_slider_value_get(obj);
 	// 逐层通过ID获取UI对象
 	lv_obj_t *cont = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_SETTING_WINDOW_ID);
 	lv_obj_t *contrast_cont = lv_obj_get_child_form_id(cont, CAMERA_CONTRAST_CONT_ID);
@@ -1757,6 +1796,11 @@ static void camera_open_btn_up(lv_obj_t *obj)
 	camera_btn_and_win_hidden_task_restart();
 	camera_ticker_task_restart(CAMERA_TASK_UNLOCK);
 	is_opening = true;
+	if (camera_call_ring_active == true || ringplay_ing_check() == true)
+	{
+		camera_call_ring_ignore_finish_count++;
+		camera_call_ring_cancel();
+	}
 	call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, true);
 	monitor_unlock_open(0, ch);
 	ringplay_play_form_index(7, 100, camera_unlock_ring_start_func, camera_unlock_ring_finish_func, false);
@@ -1913,7 +1957,7 @@ static void LAYOUT_ENTER_FUNC(camera)
 
 	if (ch == MON_CH_DOOR1 || ch == MON_CH_DOOR2)
 	{
-		if (user_data_get()->setting.door_ring_volume == 0)//lynn 26.3.13
+		if (user_data_get()->setting.inter_ring_volume == 0)
 		{
 			power_amplifier_enable(false);
 		}
@@ -1959,12 +2003,12 @@ static void LAYOUT_ENTER_FUNC(camera)
 		// {
 		// 	printf("Call record created for door station 1\n");
 		// }
-		printf("user_data_get()->setting.door_ring_volume = %d\n", user_data_get()->setting.door_ring_volume);
-		if (ch == MON_CH_DOOR1 && user_data_get()->setting.door_ring_volume != 0)
+		printf("user_data_get()->setting.inter_ring_volume = %d\n", user_data_get()->setting.inter_ring_volume);
+		if (ch == MON_CH_DOOR1)
 		{
 			camera_call_ring_play(user_data_get()->setting.door1_tone);
 		}
-		else if (ch == MON_CH_DOOR2 && user_data_get()->setting.door_ring_volume != 0)
+		else if (ch == MON_CH_DOOR2)
 		{
 			camera_call_ring_play(user_data_get()->setting.door2_tone);
 		}
