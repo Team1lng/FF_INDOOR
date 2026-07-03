@@ -79,3 +79,65 @@
     问题：新增 `start.png` 或替换 UI 资源后，如果 `rom.bin/rom.h` 没同步或资源包没打进 app，板端会显示旧图、错图或按钮不变化。
     涉及文件：`FF_1070/res/ui/memory/start.png`、`FF_1070/res/rom.bin`、`FF_1070/res/rom.h`、`FF_1070/upgrade/app/rom.bin`、`AK37E_SDK_V1.05/rootfs/resource/app/app/rom.bin`
     修改内容：通过正常 `make` 打包流程同步资源，不手工只补 `rom.h` 宏；确保 `res/rom.bin`、`upgrade/app/rom.bin`、SDK rootfs 里的 app 资源包保持一致，避免编译通过但板端显示错资源。
+
+### 20260702-03
+
+1. 监控通道切换 quit/enter 交织死机修复
+   问题：`camera_change_door1/2_btn_up` 和 `camera_change_cctv1/2_btn_up` 通过 `goto_layout(pLAYOUT(camera))` 切换通道，触发 `LAYOUT_QUIT_FUNC(camera)` → `LAYOUT_ENTER_FUNC(camera)` 完整退出/进入流程，两边的硬件操作（关闭 VI/音频 vs 打开音频/VI）在异步线程中交织执行导致死机。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：新增 `camera_channel_switch_internal(MON_CH target_ch)` 页内切换函数，直接关闭预览 → 停止录像 → 切换通道 → monitor_open → 等待 VI 就绪 → 刷新 UI，不走 layout 退出/进入；四个 `camera_change_*_btn_up` 改为调用该函数。
+
+2. 门口机呼叫切换通道花屏修复
+   问题：两台门口机快速切换通道时，视频预览在 `monitor_open()` 中立即开启，但 TP9950/VI 在异步线程中复位重新初始化，视频层显示缓冲区零值或旧数据导致花屏。
+   涉及文件：`FF_1070/layout/layout_camera.c`、`FF_1070/common/video_input.c`
+   修改内容：`camera_door_call_switch()` 中 `monitor_open()` 改为 `monitor_open(false, 0x03)` 暂不开启预览，等待 `video_input_state_get()` 返回 true（VI 已打开+跳帧完成+格式有效）后再 `video_display_preview_enable(true)`；`video_input_resident_bzero()` 修复缓冲区格式 bug（原按 4 字节 ARGB 写 `0xFF000000` 到 3 字节 RGB888 缓冲区，溢出且产生彩色条纹），改为 `memset(buffer, 0, W*H*3)` 并加 `video_main_display_lock()` 防半屏黑。
+
+3. I2C 写失败修复
+   问题：`tp9950_and_isp_device_enable(false)` 中 `tp9950_power_off()` 断电后仍调用 `tp9950_vin_enable(ch, true)` 写 I2C，芯片无响应导致 `i2c addr:44 write failed` 反复打印；`en=true` 时 `comm_init()` 后立即 `vin_enable`，芯片未就绪也概率失败。
+   涉及文件：`FF_1070/layout/tp9950.c`
+   修改内容：将 `tp9950_vin_enable()` 移入 `if (en == true)` 块内，并在 `tp9950_comm_init()` 后加 `usleep(10ms)` 等待芯片启动稳定；`en=false` 时不再调用 `tp9950_vin_enable`。
+
+4. 录像按钮与拍照按钮互斥修复
+   问题：`camera_record_btn_up()`（录像）入口没有 `is_recording` 检查，先点拍照再点录像时两者并发执行。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：`camera_record_btn_up()` 入口添加 `if (video_input_state_get() == false || is_recording == true) return;`
+
+5. 同通道重复呼叫不打断录像
+   问题：door1 录像中 door1 再次呼叫，`camera_door_call_switch()` 无条件停止录像再重新创建，导致录像被重置。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：将录像停止/重启逻辑移入 `if (current_ch != target_ch)` 块内，仅在不同通道切换时执行；同通道呼叫时录像继续不受影响。
+
+6. 切换通道取消录制
+   问题：录像中点击切换通道按钮，录像继续运行，应该取消录制。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：`camera_channel_switch_internal()` 入口处添加录像/拍照停止 + UI 清理（隐藏倒计时标签、录制背景、恢复按钮图标）。
+
+7. 切换通道后图标不显示修复
+   问题：图标自动隐藏后（`func_btn_diaplay_flag = false`），call 机切通道调用 `camera_channel_ui_refresh()` 传入 `false`，图标保持隐藏。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：`camera_door_call_switch()` 中切通道后调用 `camera_func_btn_diaplay_enable(true)` + `camera_btn_and_win_hidden_task_restart()` 强制显示图标并重启自动隐藏计时器。
+
+8. 内线通话房号显示 2 位
+   问题：嵌入式 C 库不支持 `%hhu` 格式，`%hhu%hhu` 被当作 `%u` 处理，房号 01 只显示 "0"；被叫/通话界面使用 `%03u` 显示 3 位如 "001"。
+   涉及文件：`FF_1070/layout/layout_intercom_in.c`、`layout_intercom_out.c`、`layout_intercom_talk.c`
+   修改内容：本机房号 `%hhu%hhu` 改为 `%02u`，参数改为 `device_id[0] * 10 + device_id[1]`；对方房号 `%03u` 改为 `%02u`。
+
+9. 内线通话挂断延迟优化
+   问题：挂断后 `hung_up_task` 延迟 2000ms 才退出界面，用户感觉卡顿。
+   涉及文件：`FF_1070/layout/layout_intercom_in.c`、`layout_intercom_out.c`、`layout_intercom_talk.c`
+   修改内容：延迟从 2000ms 改为 300ms。
+
+10. 内线通话音量调节按钮屏蔽
+    问题：音量调节在内线通话中无实际效果（GPIO 控制的是铃声功放电路，不控制内线音频路径），用户要求去掉。
+    涉及文件：`FF_1070/layout/layout_intercom_in.c`、`layout_intercom_out.c`、`layout_intercom_talk.c`
+    修改内容：注释掉 `*_sound_btn_create(parent)` 和 `*_volume_slider_create(parent)` 调用。
+
+11. 呼出状态提示居中修复
+    问题：`LAYOUT_INTERCOM_LANG_NO_ANSWER_ID` 状态提示 x=350 偏左。
+    涉及文件：`FF_1070/layout/layout_intercom_out.c`
+    修改内容：状态标签宽度 300→400，x=350→450。
+
+12. 视频播放界面删除弹窗残留导致死机修复
+    问题：视频播放→暂停→删除弹窗打开时被门口机 call 打断，`LAYOUT_QUIT_FUNC(memory_video)` 只将 `dim_mask` 和 `memory_video_delete_box` 指针置 NULL 但未删除 LVGL 对象（对象挂在 `lv_scr_act()` 上不会随布局自动销毁），再次进入 memory_video 时 `create_dim_mask()` 创建新对象 → 旧对象泄漏累积 → 崩溃。
+    涉及文件：`FF_1070/layout/layout_memory_video.c`、`layout_memory_photo.c`
+    修改内容：`LAYOUT_QUIT_FUNC` 中先调用 `lv_obj_del(dim_mask)` 和 `lv_obj_del(memory_video_delete_box)` 再置 NULL；`memory_photo` 同样修复 `dim_mask` 泄漏。

@@ -22,7 +22,7 @@ static custom_area home_btn_area[HOME_TOTAL_BTN] =
 		{158, 361, 116, 116},
 		{454, 361, 116, 116},
 		{750, 361, 116, 116},
-		{940,  29,  30,  30},	
+		{940,  29,  40,  40},	
 	};
 
 // static int new_media_check_count = 0;

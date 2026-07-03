@@ -641,6 +641,13 @@ static void LAYOUT_ENTER_FUNC(memory_photo)
 }
 static void LAYOUT_QUIT_FUNC(memory_photo)
 {
+	// 删除挂在 lv_scr_act 上的弹窗对象，避免布局切换后残留导致下次进入崩溃
+	if (dim_mask != NULL)
+	{
+		lv_obj_del(dim_mask);
+		dim_mask = NULL;
+	}
+
 	if (photo_play_task_t != NULL)
 	{
 		lv_task_del(photo_play_task_t);

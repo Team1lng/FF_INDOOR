@@ -1085,9 +1085,12 @@ static void tp9950_and_isp_device_enable(bool en)
 		}
 		tp9950_pin_reset();
 		tp9950_comm_init();
+		// 等芯片启动稳定后再配置输入通道，避免 I2C 写失败
+		usleep(10 * 1000);
+		MON_CH ch = monitor_channel_get();
+		tp9950_vin_enable(ch, true);
 	}
-	MON_CH ch = monitor_channel_get();
-	tp9950_vin_enable(ch, true);
+	// en=false 时芯片已断电，无需调用 tp9950_vin_enable
 }
 
 /***

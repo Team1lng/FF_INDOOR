@@ -292,6 +292,90 @@ static bool camera_auto_record_ready(void)
 	return video_input_state_get() == true && is_recording == false;
 }
 
+// 页内切换监控通道，不走 goto_layout(camera) 避免 quit/enter 交织导致死机
+static void camera_channel_switch_internal(MON_CH target_ch)
+{
+	MON_CH current_ch = monitor_channel_get();
+	if (current_ch == target_ch)
+	{
+		return;
+	}
+	// 停止当前录像/拍照，切换通道直接取消录制
+	if (video_record_status_get() == true)
+	{
+		camera_ticker_task_stop(CAMERA_TASK_RECORD_VIDEO);
+		record_video_close();
+		// 清理录像UI
+		{
+			lv_obj_t *obj = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_PROMPT_MESSAGE_LABEL_ID);
+			lv_obj_t *obj1 = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_PROMPT_MESSAGE_ION_ID);
+			lv_obj_t *rec_bg = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_RECORDING_BG_IMG_ID);
+			if (obj)  lv_obj_set_hidden(obj, true);
+			if (obj1) lv_obj_set_hidden(obj1, true);
+			if (rec_bg) lv_obj_set_hidden(rec_bg, true);
+			// 恢复录制按钮图标
+			lv_obj_t *record_btn = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_RECORD_BTN_ID);
+			if (record_btn) {
+				static rom_bin_info info = rom_bin_info_get(ROM_UI_CAMERA_VIDEO_PNG);
+				lv_obj_set_style_local_pattern_image(record_btn, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &info);
+			}
+		}
+	}
+	if (mjpeg_encode_status_get() == true)
+	{
+		camera_ticker_task_stop(CAMERA_TASK_RECORD_IMAGE);
+		record_jpeg_close();
+	}
+	is_recording = false;
+
+	// 关闭设置窗口
+	if (setting_win_diaplay_flag == true)
+	{
+		camera_setting_window_display_enable(false);
+	}
+
+	// 关闭当前通道音频
+	if (current_ch == MON_CH_DOOR1 || current_ch == MON_CH_DOOR2)
+	{
+		call_ring_to_outdoor_ctrl(current_ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
+	}
+
+	// 停铃声
+	if (ringplay_ing_check() == true)
+	{
+		ringplay_play_stop();
+	}
+
+	// 关闭视频预览，清理缓冲区
+	video_display_preview_enable(false);
+	video_input_resident_bzero();
+	fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
+	layout_monitor_refresh_1();
+
+	// 切换通道
+	monitor_channel_set(target_ch);
+	monitor_open(false, 0x03);
+
+	// 等待VI设备就绪
+	int vi_wait_timeout = 100;
+	while (!video_input_state_get() && vi_wait_timeout-- > 0)
+	{
+		usleep(10 * 1000);
+	}
+	video_display_preview_enable(true);
+
+	// 刷新UI
+	camera_head_channel_label_flush();
+	camera_channel_ui_refresh();
+
+	// 强制显示图标并重启自动隐藏计时器
+	camera_func_btn_diaplay_enable(true);
+	camera_btn_and_win_hidden_task_restart();
+
+	camera_timeout_value_reset();
+}
+
+
 static void camera_change_door1_btn_up(lv_obj_t *obj)
 {
 
@@ -300,10 +384,9 @@ static void camera_change_door1_btn_up(lv_obj_t *obj)
 		return;
 	}
 	monitor_enter_mask_set(MON_ENTER_MANUAL_DOOR);
-	monitor_channel_set(MON_CH_DOOR1);
 	// camera_btn_and_win_hidden_task_restart();
 	// user_data_get()->change_channel_enable = true;
-	goto_layout(pLAYOUT(camera));
+	camera_channel_switch_internal(MON_CH_DOOR1);
 	// camera_channel_switch(MON_CH_DOOR1);
 }
 
@@ -314,10 +397,9 @@ static void camera_change_door2_btn_up(lv_obj_t *obj)
 		return;
 	}
 	monitor_enter_mask_set(MON_ENTER_MANUAL_DOOR);
-	monitor_channel_set(MON_CH_DOOR2);
 	// camera_btn_and_win_hidden_task_restart();
 	// user_data_get()->change_channel_enable = true;
-	goto_layout(pLAYOUT(camera));
+	camera_channel_switch_internal(MON_CH_DOOR2);
 	// camera_channel_switch(MON_CH_DOOR2);
 }
 
@@ -330,10 +412,8 @@ static void camera_change_cctv1_btn_up(lv_obj_t *obj)
 	}
 	// cctv_audio_video_enable_pin_ctrl(false);      lynn 26.3.10
 	monitor_enter_mask_set(MON_ENTER_MANUAL_CCTV);
-	monitor_channel_set(MON_CH_CCTV1);
-	// camera_btn_and_win_hidden_task_restart();
 	// user_data_get()->change_channel_enable = true;
-	goto_layout(pLAYOUT(camera));
+	camera_channel_switch_internal(MON_CH_CCTV1);
 	// camera_channel_switch(MON_CH_CCTV1);
 	camera_switch_btn_create_display();
 }
@@ -347,10 +427,8 @@ static void camera_change_cctv2_btn_up(lv_obj_t *obj)
 	}
 	// cctv_audio_video_enable_pin_ctrl(true);      lynn 26.3.10
 	monitor_enter_mask_set(MON_ENTER_MANUAL_CCTV);
-	monitor_channel_set(MON_CH_CCTV2);
 	// camera_btn_and_win_hidden_task_restart();
-	// user_data_get()->change_channel_enable = true;
-	goto_layout(pLAYOUT(camera));
+	camera_channel_switch_internal(MON_CH_CCTV2);
 	// camera_channel_switch(MON_CH_CCTV2);
 	camera_switch_btn_create_display();
 }
@@ -627,24 +705,48 @@ static void camera_door_call_switch(MON_CH target_ch, int tone_index)
 	if (current_ch != target_ch)
 	{
 		video_display_preview_enable(false);
+	// 停止当前通道的录像/拍照，新呼叫重新开始录制；短于3s的旧录像会被自动丢弃
+	if (video_record_status_get() == true)
+	{
+		camera_ticker_task_stop(CAMERA_TASK_RECORD_VIDEO);
+		record_video_close();
+	}
+	if (mjpeg_encode_status_get() == true)
+	{
+		camera_ticker_task_stop(CAMERA_TASK_RECORD_IMAGE);
+		record_jpeg_close();
+	}
+	is_recording = false;
+	camera_call_auto_record_task_create();
 		video_input_resident_bzero();
 		fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
 		layout_monitor_refresh_1();
 		monitor_channel_set(target_ch);
-		monitor_open(true, 0x03);
-		video_input_resident_bzero();
+		monitor_open(false, 0x03);
+
+			// 等待VI设备就绪后直接开启预览；VI关闭时已清过缓冲区，重开后跳帧保证首帧干净
+		int vi_wait_timeout = 100; // 100 * 10ms = 1秒超时
+		while (!video_input_state_get() && vi_wait_timeout-- > 0)
+		{
+			usleep(10 * 1000);
+		}
+
+		video_display_preview_enable(true);
 		camera_head_channel_label_flush();
 		camera_channel_ui_refresh();
 	}
 
 	camera_timeout_value_reset();
+	// 切通道时强制显示图标并重启自动隐藏计时器
+	camera_func_btn_diaplay_enable(true);
+	camera_btn_and_win_hidden_task_restart();
+
 	camera_call_ring_active = false;
 	camera_call_ring_answered = false;
 	camera_call_ring_deadline = 0;
 
 	camera_call_ring_play(tone_index);
 
-	camera_call_auto_record_task_create();
 }
 
 // 复位监控倒计时
@@ -1684,6 +1786,10 @@ static void camera_record_photo_video_task(lv_task_t *task)
 
 static void camera_record_btn_up(lv_obj_t *obj)
 {
+	// 防止拍照未完成时点击录像，或录像中重复点击
+	if (video_input_state_get() == false || is_recording == true)
+		return;
+
 	lv_obj_t *msg_label = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_PROMPT_MESSAGE_LABEL_ID);
 	lv_obj_t *rec_bg = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_RECORDING_BG_IMG_ID);
 	if (record_video_start(REC_MODE_MANUAL) == true)

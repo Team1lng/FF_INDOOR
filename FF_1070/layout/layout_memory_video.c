@@ -891,11 +891,17 @@ static void LAYOUT_QUIT_FUNC(memory_video)
 {
     lv_obj_click_down_callback_register(layout_obj_click_down_func);
     memory_bg_btn_click_enable(false);
-    /*
-     * If a door call interrupts the delete dialog, lv_obj_clean() will destroy
-     * the dialog objects after this quit callback. Only reset cached pointers
-     * and state here to avoid deleting an already-cleaned LVGL object later.
-     */
+
+    // 删除挂在 lv_scr_act 上的弹窗对象，避免布局切换后残留导致下次进入崩溃
+    if (dim_mask != NULL)
+    {
+        lv_obj_del(dim_mask);
+    }
+    if (memory_video_delete_box != NULL)
+    {
+        lv_obj_del(memory_video_delete_box);
+    }
+
     memory_video_delete_dialog_active = false;
     dim_mask = NULL;
     memory_video_delete_box = NULL;

@@ -107,8 +107,8 @@ static void setting_icon_create(lv_obj_t *parent)
     if (user_data_get()->device_id[0] == 0 && user_data_get()->device_id[1] == 0)
     sprintf(str, "%s : %s", str_get(LAYOUT_INTERCOM_LANG_ROOM_NO_ID), str_get(LAYOUT_INTERCOM_LANG_GUARD_1_ID));
     else
-    sprintf(str, "%s : %hhu%hhu", str_get(LAYOUT_INTERCOM_LANG_ROOM_NO_ID),
-    user_data_get()->device_id[0], user_data_get()->device_id[1]);
+    sprintf(str, "%s : %02u", str_get(LAYOUT_INTERCOM_LANG_ROOM_NO_ID),
+    user_data_get()->device_id[0] * 10 + user_data_get()->device_id[1]);
     lv_label_set_text(lbl, str);
     lv_obj_set_style_local_text_font(lbl, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, FONT_SIZE(22));
     lv_obj_set_style_local_text_color(lbl, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFFFFFF));
@@ -294,7 +294,7 @@ static void intercom_in_arrows_create(lv_obj_t *parent)
     } else {
         lv_obj_set_hidden(guard_img, true);
         lv_obj_set_hidden(room_lbl,  false);
-        lv_label_set_text_fmt(room_lbl, "%03u", call_in_number);
+        lv_label_set_text_fmt(room_lbl, "%02u", call_in_number);
     }
 }
 
@@ -311,7 +311,7 @@ static void intercom_in_hung_up_task_create(void)
     lv_obj_t *lbl = lv_obj_get_child_form_id(lv_scr_act(), INTERCOM_IN_COUNTDOWN_LABEL_ID);
     if (lbl) 
     lv_label_set_text(lbl, "00S");
-    hung_up_task = lv_layout_task_create(intercom_in_hung_up_task_cb, 2000, LV_TASK_PRIO_LOW, NULL);
+    hung_up_task = lv_layout_task_create(intercom_in_hung_up_task_cb, 300, LV_TASK_PRIO_LOW, NULL);
 }
 
 /* ---------------------------------------------------------------
@@ -395,9 +395,9 @@ static void LAYOUT_ENTER_FUNC(intercom_in)
 
     intercom_in_back_btn_create(parent);
     setting_icon_create(parent);
-    intercom_in_sound_btn_create(parent);
+/*     intercom_in_sound_btn_create(parent); */
     intercom_in_text_icon_create(parent);
-    intercom_in_volume_slider_create(parent);
+/*     intercom_in_volume_slider_create(parent); */
     intercom_in_countdown_create(parent);
     intercom_in_arrows_create(parent);
     top_time_date_text_create(parent);
