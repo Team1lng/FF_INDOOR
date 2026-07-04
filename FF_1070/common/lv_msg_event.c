@@ -62,6 +62,7 @@ static bool (*layout_intercom_event_pfunc)(unsigned int send_id, unsigned int cm
 static bool (*layout_tuya_event_func)(TUYA_CMD cmd, int) = NULL;
 static bool (*layout_custom_event_func)(unsigned int cmd,unsigned int arg) = NULL;
 static void (*layout_gate_open_pfunc)(void) = NULL;
+static void (*layout_incoming_intercom_call_pfunc)(void) = NULL;
 static void	(*layout_power_led_handler_pfunc)(void) = NULL;
 static void (*layout_intercom_out_pfunc)(unsigned int send_id, unsigned int cmd) = NULL;
 /***
@@ -138,6 +139,12 @@ static void lv_msg_event_task(lv_task_t *task)
 				layout_gate_open_pfunc();
 			}
 			break;
+			case MSG_EVENT_CMD_INCOMING_INTERCOM_CALL:
+				if (layout_incoming_intercom_call_pfunc != NULL)
+				{
+					layout_incoming_intercom_call_pfunc();
+				}
+				break;
 		case MSG_EVENT_CMD_INTERCOM_OUT:
 			if(layout_intercom_out_pfunc != NULL)
 			{
@@ -483,4 +490,10 @@ void obj_screen_click_event_register(void (*callback)(lv_obj_t*))
     screen->clict_data = &click_cb;
     lv_obj_set_event_cb(screen, obj_click_event_handler);
 
+}
+
+bool layout_incoming_intercom_call_callback_register(void (*callback)(void))
+{
+	layout_incoming_intercom_call_pfunc = callback;
+	return true;
 }

@@ -16,6 +16,7 @@ typedef enum
 	MSG_EVENT_CMD_TUYA,
 	MSG_EVENT_CMD_CUSTOM,
 	MSG_EVENT_CMD_GATE_OPEN,
+	MSG_EVENT_CMD_INCOMING_INTERCOM_CALL,
 	MSG_EVENT_CMD_INTERCOM_OUT,
 } MSG_CMD;
 
@@ -229,3 +230,4 @@ bool layout_gate_open_callback_register(void (*callback)(void));
 ***/
 bool layout_power_led_handler_register(void (*callback)(void));
 #endif
+bool layout_incoming_intercom_call_callback_register(void (*callback)(void));

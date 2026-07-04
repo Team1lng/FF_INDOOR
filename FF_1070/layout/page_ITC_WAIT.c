@@ -122,11 +122,11 @@ void Out_ACKFun(void)
     if (tag == OCR || tag == ACR) {
         intercom_state_set(INTERCOM_STATE_CALLING_IN);
 
-        /* 若当前不在来电页，则立即跳到 intercom_in */
+        /* 通过消息队列延迟到 LVGL 任务线程执行 goto_layout，避免多线程竞态 */
         const layout *cur = cur_layout_get();
         if (cur != pLAYOUT(intercom_in)) {
-            printf("[intercom_cb] Out_ACKFun: goto intercom_in\n");
-            goto_layout(pLAYOUT(intercom_in));
+            printf("[intercom_cb] Out_ACKFun: post intercom_in via msg queue\n");
+            lv_msg_send_cmd(MSG_EVENT_CMD_INCOMING_INTERCOM_CALL, 0, 0);
         }
     } else {
         intercom_state_set(INTERCOM_STATE_CALL_OUT);
@@ -241,6 +241,7 @@ void IntercomUnAckFun(void)
  */
 void IDLE_ACKFun(void)
 {
-    printf("[intercom_cb] IDLE_ACKFun: callee ring, open intercom_in\n");
-    goto_layout(pLAYOUT(intercom_in));
+    printf("[intercom_cb] IDLE_ACKFun: callee ring, post intercom_in via msg queue\n");
+    intercom_number_set((unsigned int)GetCalledCallerNumber());
+    lv_msg_send_cmd(MSG_EVENT_CMD_INCOMING_INTERCOM_CALL, 0, 0);
 }

@@ -296,7 +296,7 @@ static void intercom_out_arrows_create(lv_obj_t *parent)
         lv_obj_set_hidden(guard_img, true);
         lv_obj_set_hidden(room_lbl,  false);
         // lv_label_set_text_fmt(room_lbl, "%03d", oid0 * 10 + oid1);
-        lv_label_set_text_fmt(room_lbl, "%hhu%hhu", oid0, oid1);
+        lv_label_set_text_fmt(room_lbl, "%02u", oid0 * 10 + oid1);
     }
 
     /* 呼叫状态提示 */

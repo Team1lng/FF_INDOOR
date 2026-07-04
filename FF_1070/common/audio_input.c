@@ -236,6 +236,12 @@ void audio_input_capture_enable(bool en)
 	audio_input_capture = en;
 	pthread_mutex_unlock(&audio_input_mutex);
 }
+
+// 检查音频采集设备是否已完全关闭（handle 被释放）
+bool audio_input_device_is_idle(void)
+{
+	return audio_input_handle_id == -1;
+}
 /***
 **   日期:2022-05-26 09:45:25
 **   作者: leo.liu

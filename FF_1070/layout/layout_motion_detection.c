@@ -564,6 +564,19 @@ static void LAYOUT_QUIT_FUNC(motion_detection)
     {
         monitor_close();
     }
+
+    // 同步等待 VI/AI/VENC 设备彻底关闭，避免 quit 返回后 enter 并发操作资源
+    {
+        int timeout = 100;
+        while (video_input_state_get() == true && timeout-- > 0)
+            usleep(10 * 1000);
+    }
+    {
+        int timeout = 100;
+        while (!audio_input_device_is_idle() && timeout-- > 0)
+            usleep(10 * 1000);
+    }
+
     layout_sd_state_callback_register(layout_sdcard_state_change_default);
     motion_detection_destory();
     obj_click_event_listen(lv_scr_act(), NULL);

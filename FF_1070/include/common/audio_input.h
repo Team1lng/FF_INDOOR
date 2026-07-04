@@ -37,4 +37,5 @@ void audio_input_capture_enable(bool en);
 **   参数说明:
 ***/
 void audio_input_aec_enable(bool en);
+bool audio_input_device_is_idle(void);
 #endif

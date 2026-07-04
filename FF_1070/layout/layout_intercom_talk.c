@@ -102,7 +102,7 @@ static void setting_icon_create(lv_obj_t *parent)
     sprintf(str, "%s : %s", str_get(LAYOUT_INTERCOM_LANG_ROOM_NO_ID), str_get(LAYOUT_INTERCOM_LANG_GUARD_1_ID));
     else
     sprintf(str, "%s : %02u", str_get(LAYOUT_INTERCOM_LANG_ROOM_NO_ID),
-    user_data_get()->device_id[0] * 10 + user_data_get()->device_id[1]);;
+    user_data_get()->device_id[0] * 10 + user_data_get()->device_id[1]);
     lv_label_set_text(lbl, str);
     lv_obj_set_style_local_text_font(lbl, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, FONT_SIZE(22));
     lv_obj_set_style_local_text_color(lbl, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFFFFFF));

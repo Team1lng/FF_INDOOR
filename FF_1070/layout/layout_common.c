@@ -113,6 +113,11 @@ void layout_door2_call_default(void)
 ** 函数作用：call camera 默认处理函数
 ** 返回参数说明：
 ***/
+void layout_incoming_intercom_call_default(void)
+{
+	goto_layout(pLAYOUT(intercom_in));
+}
+
 void layout_call_camera_default(void)
 {
 

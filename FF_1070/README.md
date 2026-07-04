@@ -141,3 +141,25 @@
     问题：视频播放→暂停→删除弹窗打开时被门口机 call 打断，`LAYOUT_QUIT_FUNC(memory_video)` 只将 `dim_mask` 和 `memory_video_delete_box` 指针置 NULL 但未删除 LVGL 对象（对象挂在 `lv_scr_act()` 上不会随布局自动销毁），再次进入 memory_video 时 `create_dim_mask()` 创建新对象 → 旧对象泄漏累积 → 崩溃。
     涉及文件：`FF_1070/layout/layout_memory_video.c`、`layout_memory_photo.c`
     修改内容：`LAYOUT_QUIT_FUNC` 中先调用 `lv_obj_del(dim_mask)` 和 `lv_obj_del(memory_video_delete_box)` 再置 NULL；`memory_photo` 同样修复 `dim_mask` 泄漏。
+
+### 20260704
+
+1. VENC 异步关闭导致资源残留修复
+   问题：`video_record_stop()` 只设 `video_record_enable = false`，后台线程异步关闭 AVI 句柄。`LAYOUT_QUIT_FUNC(camera)` 调用 `record_video_close()` 后立即返回，但 VENC 设备仍在后台关闭中。下一次 camera 进入时打开新 VENC，旧句柄尚未释放 → 双重资源 → 泄漏 → 崩溃。
+   涉及文件：`FF_1070/common/video_record.c`
+   修改内容：`video_record_stop()` 末尾增加同步等待循环，`while (video_record_handle_id != NULL && timeout-- > 0) usleep(10ms);`，确保 AVI 句柄释放后才返回。
+
+2. 布局退出时资源未同步释放修复
+   问题：`LAYOUT_QUIT_FUNC(camera)` 和 `LAYOUT_QUIT_FUNC(motion_detection)` 中 `audio_input_capture_enable(false)`、`monitor_close()` 等均只设标志位，后台线程异步关闭 AI/VI。`goto_layout` 在 quit 返回后立即执行 enter，enter 初始化 UI/音频时旧资源仍在关闭中 → 竞态 → 崩溃。
+   涉及文件：`FF_1070/layout/layout_camera.c`、`layout_motion_detection.c`、`FF_1070/common/audio_input.c`、`FF_1070/include/common/audio_input.h`
+   修改内容：新增 `audio_input_device_is_idle()` 查询音频设备是否已完全关闭；在 `LAYOUT_QUIT_FUNC(camera)` 和 `LAYOUT_QUIT_FUNC(motion_detection)` 末尾增加同步等待 AI 和 VI 设备释放：`while (video_input_state_get() == true) usleep(10ms);`、`while (!audio_input_device_is_idle()) usleep(10ms);`
+
+3. 内线来电跨线程调用 LVGL 导致死机修复
+   问题：`IDLE_ACKFun` 和 `Out_ACKFun` 在 UART/Intercom 线程中被调用，直接执行 `goto_layout(intercom_in)` 操作 LVGL 对象树。LVGL 不是线程安全的，当主线程正在渲染 motion_detection/camera 时，intercom 线程同时拆解布局 → 竞态 → SEGFAULT。
+   涉及文件：`FF_1070/layout/page_ITC_WAIT.c`、`FF_1070/common/lv_msg_event.c`、`FF_1070/include/common/lv_msg_event.h`、`FF_1070/layout/layout_common.c`、`FF_1070/layout/layout_common.h`、`FF_1070/layout/layout_logo.c`
+   修改内容：新增 `MSG_EVENT_CMD_INCOMING_INTERCOM_CALL` 消息类型和 `layout_incoming_intercom_call_callback_register` 回调机制；`Out_ACKFun` 和 `IDLE_ACKFun` 改为调用 `lv_msg_send_cmd()` 将布局切换事件发送到 LVGL 消息队列，由 `lv_msg_event_task`（LVGL 任务线程）安全执行 `goto_layout(intercom_in)`；在 `layout_logo.c` 初始化时注册默认回调。
+
+4. 内线来电房号显示错误修复
+   问题：`IDLE_ACKFun` 缺少 `intercom_number_set()` 调用，导致被叫侧显示来电房号始终为 0；呼出界面 `layout_intercom_out.c` 对方房号仍用不兼容的 `%hhu%hhu` 格式。
+   涉及文件：`FF_1070/layout/page_ITC_WAIT.c`、`FF_1070/layout/layout_intercom_out.c`、`FF_1070/layout/layout_intercom_talk.c`
+   修改内容：`IDLE_ACKFun` 开头补回 `intercom_number_set((unsigned int)GetCalledCallerNumber())`；`layout_intercom_out.c:299` 对方房号 `%hhu%hhu` 改为 `"%02u", oid0 * 10 + oid1`；`layout_intercom_talk.c:105` 修复双分号语法错误。

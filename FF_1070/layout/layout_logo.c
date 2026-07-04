@@ -140,6 +140,7 @@ static void layout_logo_loding_task(lv_task_t *task)
 	layout_door1_call_callback_register(layout_door1_call_default);
 	layout_door2_call_callback_register(layout_door2_call_default);
 	layout_call_camera_callback_register(layout_call_camera_default); // lynn 26.3.14
+	layout_incoming_intercom_call_callback_register(layout_incoming_intercom_call_default);
 	/*****  听筒状态改变 *****/
 	layout_custom_event_callback_register(layout_hook_state_change_default);
 	/*****  室内机开锁事件 *****/

@@ -2246,6 +2246,17 @@ static void LAYOUT_QUIT_FUNC(camera)
 	record_video_close();
 	record_jpeg_close();
 
+		// 同步等待 VI/AI/VENC 设备彻底关闭，避免 quit 返回后 enter 并发操作资源
+		{
+			int timeout = 100;
+			while (video_input_state_get() == true && timeout-- > 0)
+				usleep(10 * 1000);
+		}
+		{
+			int timeout = 100;
+			while (!audio_input_device_is_idle() && timeout-- > 0)
+				usleep(10 * 1000);
+		}
 
 	call_record_end(CALL_DOOR_STATION_1);
 	call_record_end(CALL_DOOR_STATION_2);
