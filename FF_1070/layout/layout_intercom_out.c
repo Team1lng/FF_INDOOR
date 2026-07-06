@@ -347,8 +347,7 @@ static void intercom_out_calling_time_out_task(lv_task_t *task_t)
     lv_obj_t *status_lbl = lv_obj_get_child_form_id(lv_scr_act(), INTERCOM_OUT_STATUS_LABEL_ID);
 
     /* ① 对端已接听 → 跳转通话界面 */
-    if (intercom_remote_ack_get_and_clear() ||
-        intercom_state_get() == INTERCOM_STATE_TALKING) {
+    if (intercom_remote_ack_get_and_clear()) {
         printf("[intercom_out] remote accepted, goto intercom_talk\n");
         if (calling_task != NULL) { lv_task_del(calling_task); calling_task = NULL; }
         goto_layout(pLAYOUT(intercom_talk));
@@ -359,7 +358,7 @@ static void intercom_out_calling_time_out_task(lv_task_t *task_t)
     if (intercom_busy_flag_get_and_clear()) {
         printf("[intercom_out] busy\n");
         if (calling_task != NULL) { lv_task_del(calling_task); calling_task = NULL; }
-        if (status_lbl) lv_label_set_text(status_lbl, str_get(LAYOUT_INTERCOM_LANG_BUSY_ID));
+        if (status_lbl) lv_label_set_text(status_lbl, str_get(LAYOUT_INTERCOM_LANG_BUS_BUSY_ID));
         intercom_out_hung_up_task_create();
         return;
     }

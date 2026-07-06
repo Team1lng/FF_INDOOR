@@ -229,3 +229,40 @@ make clean
    问题：移动侦测界面正在使用 VI/VENC/AI、录像或抓拍资源时，门口机 call 机触发切到监控界面，旧界面退出流程先关闭监控再停采集和录制，可能造成硬件资源关闭顺序冲突并卡死。
    涉及文件：`FF_1070/layout/layout_motion_detection.c`
    修改内容：调整 `LAYOUT_QUIT_FUNC(motion_detection)` 的资源释放顺序；先记录是否需要 `monitor_close()`，随后停止铃声、移动侦测任务、JPEG 采集和音频采集，再关闭录像和 JPEG 录制，最后按需关闭 monitor；之后再恢复 SD 卡回调、销毁移动侦测对象、清理点击事件、保存用户数据和重启待机计时，避免 call 机切界面时采集/编码/监控关闭互相抢占。
+
+### 20260706
+
+1. 媒体视频界面操作后重置待机倒计时
+   问题：视频文件播放界面原本 60 秒无操作返回待机，但进入界面后如果倒计时已经衰减到一半，再点击播放、暂停、上一首、下一首、删除或背景区域，只是暂停/继续旧倒计时，没有按用户操作重新从 60 秒开始。
+   涉及文件：`FF_1070/layout/layout_memory_video.c`
+   修改内容：新增 `memory_video_timeout_task_start()` 和 `memory_video_user_activity_reset()`，统一把倒计时复位到 60 秒；播放、暂停、上一首、下一首、返回列表、删除确认/取消、背景点击、播放结束等入口都调用该复位逻辑；播放状态下停止待机倒计时，暂停或停止后重新启动倒计时；删除旧的 `memory_video_timeout_kuaijin`、上一首/下一首等待任务和对应计数变量，避免多套倒计时任务互相抢占。
+
+2. 媒体图片界面操作后重置待机倒计时
+   问题：Flash 图片界面和 SD 卡图片界面同样存在无操作返回待机逻辑，用户点击上一张、下一张、播放轮播、删除弹窗等操作后，需要重新按完整时间计时，而不是沿用旧倒计时。
+   涉及文件：`FF_1070/layout/layout_memory_photo.c`
+   修改内容：新增 `memory_photo_timeout_task` 记录当前待机任务，新增 `memory_photo_timeout_task_start()` 和 `memory_photo_user_activity_reset()`；进入图片界面、点击 home、上一张、下一张、播放/停止轮播、背景、删除确认和取消时统一复位倒计时；轮播播放期间删除待机任务，停止轮播后重新启动待机任务；退出页面时删除待机任务和残留弹窗，避免旧任务刷新已销毁对象。
+
+3. 房号 0 支持作为管理员
+   问题：设置本机房号时，原逻辑要求房号必须大于等于 1，导致房号 `0` 无法保存；实际需求是房号 0 表示管理员/管理机。
+   涉及文件：`FF_1070/layout/layout_intercom.c`
+   修改内容：房号设置校验从 `kb_click_num < 1 || kb_click_num > 99` 改为只拦截空输入和大于 99 的值，允许输入并保存 `00`；保存成功后同步调用 `MsgUpdateNativeId()` 更新底层内线本机 ID；界面显示时如果房号为 `00`，显示管理员文字，否则按两位房号格式显示，避免管理员被显示成普通房号。
+
+4. 内线通话接听状态修正
+   问题：新板和客样内线通话时，存在一端拿起听筒后另一端自动挂断、主叫未真正等到对端确认就进入通话、挂断后对端界面不退出等异常，根因之一是接听、通话请求和通话响应状态处理过早切换音频或误处理重复帧。
+   涉及文件：`FF_1070/layout/intercom.c`、`FF_1070/layout/layout_intercom_out.c`
+   修改内容：`MsgCallAccept()` 中先进入请求通话状态并启动超时重发，不再立即执行 `Intercom.Accept()` 和切换音频通道；`RP_ReceiveResponseTalking()` 收到对端通话响应后才停止重发、执行接听、切换对应音频通道并进入 `RP_TALKING`；被叫侧收到重复或串线的 `RQ_TALKING` 时改为忽略，避免误调用挂断并清空状态；主叫呼出界面只根据 `intercom_remote_ack_get_and_clear()` 跳转通话界面，不再仅凭本地 `INTERCOM_STATE_TALKING` 提前进入通话。
+
+5. 内线忙线提示文本修正
+   问题：内线呼出等待过程中收到忙线标志时，界面使用了普通 busy 文本 ID，可能和当前语言表里的总线忙线提示不一致。
+   涉及文件：`FF_1070/layout/layout_intercom_out.c`
+   修改内容：忙线提示从 `LAYOUT_INTERCOM_LANG_BUSY_ID` 改为 `LAYOUT_INTERCOM_LANG_BUS_BUSY_ID`，让内线总线忙时显示对应语言文案。
+
+6. camera 退出时隐藏通道标签
+   问题：从 camera/监控界面切换到内线或其它界面时，CCTV/door 通道文字有概率残留到新界面，表现为旧通道名跟随页面显示。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：在 `LAYOUT_QUIT_FUNC(camera)` 中查找 `CAMERA_HEAD_CH_LABEL_ID` 并隐藏该对象，先把通道标签从 GUI 层移除，再继续执行原有页面退出流程，减少跨页面 UI 残留。
+
+7. UART 发送调试打印清理
+   问题：内线串口发送函数之前每发送一帧都会打印 fd、长度、首字节和 errno，频繁通信时日志量过大，容易干扰实际问题分析。
+   涉及文件：`FF_1070/common/uart_ctrl.c`
+   修改内容：移除 `uart_write()` 中的逐帧调试打印和额外 `errno.h` 引用，函数恢复为直接 `write()` 并返回实际发送长度，保留原有串口发送行为不变。

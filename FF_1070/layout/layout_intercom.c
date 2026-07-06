@@ -292,7 +292,8 @@ static void intercom_ok_button_click(lv_obj_t *obj)
         }
     } else {
         /* 房号设置 */
-        if (kb_click_num < 1 || kb_click_num > 99) {
+        const char *room_text = lv_textarea_get_text(tt);
+        if (room_text == NULL || room_text[0] == '\0' || kb_click_num > 99) {
             intercom_room_out_result_task_create(str_get(LAYOUT_INTERCOM_LANG_ERROR_ID));
             lv_textarea_set_text(tt, "");
             kb_input_room_flag = false;
@@ -311,8 +312,13 @@ static void intercom_ok_button_click(lv_obj_t *obj)
             intercom_room_out_result_task_create(str_get(LAYOUT_ROOM_ID_LANG_MODIFY_SUCCESSFUL_ID));
             lv_obj_t *addr_obj = lv_obj_get_child_form_id(lv_scr_act(), INTERCOM_LOCAL_ADDR_ID);
             if (addr_obj) {
-                sprintf(str, "%s : %hhu%hhu", str_get(LAYOUT_INTERCOM_LANG_ROOM_NO_ID),
-                        ud->device_id[0], ud->device_id[1]);
+                if (ud->device_id[0] == 0 && ud->device_id[1] == 0) {
+                    sprintf(str, "%s : %s", str_get(LAYOUT_INTERCOM_LANG_ROOM_NO_ID),
+                            str_get(LAYOUT_INTERCOM_LANG_GUARD_1_ID));
+                } else {
+                    sprintf(str, "%s : %02u", str_get(LAYOUT_INTERCOM_LANG_ROOM_NO_ID),
+                            ud->device_id[0] * 10 + ud->device_id[1]);
+                }
                 lv_label_set_text(addr_obj, str);
             }
         }

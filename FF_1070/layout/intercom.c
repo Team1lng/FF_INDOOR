@@ -137,22 +137,16 @@ void InitIntercomBaseFunc(FuncSerialSend send,
   */
 void SendMsg(unsigned char *msg, unsigned char length)
 {
-    // usleep(BYTE_DELAY * 1000);
     unsigned char cnt;
-    int data[_MSG];  // + 新增数组
     for (cnt = 0; cnt < length; cnt++)
     {
-        // printf("[SendMsg] %02X\n", msg[cnt]);
         Intercom.SendByte(msg[cnt]);
-        if (BYTE_DELAY)
-        {
-            usleep(BYTE_DELAY * 1000);
-        }
-        // usleep(2 * BYTE_DELAY * 1000);
     }
-    usleep(2 * BYTE_DELAY * 1000);
-    ReadMsg(data, length); 
-    /* 收包统一由 MBPoll/SerialGetMessage 处理；发后 ReadMsg 会误读或丢包，已移除 */
+
+    if (BYTE_DELAY)
+    {
+        usleep(2 * BYTE_DELAY * 1000);
+    }
 }
 
 /**
@@ -431,16 +425,7 @@ void MsgCallAccept(void)
     if (CallTag == ACR || CallTag == OCR)
     {
         ConnectStatus = RQ_TALKING;
-        
-        Intercom.Accept();
-		if (CallTag == OCR)
-        {
-            Intercom.SwitchAudioCh(CH0_ON);
-        }
-        else if (CallTag == ACR)
-        {
-            Intercom.SwitchAudioCh(CH1_ON);
-        }
+
         ///< 尽量避免相同房号的被叫同时抬起听筒通话造成串口冲突
         ///< Try to avoid the serial number conflict caused by the callers with
         ///< the same room number raising the handset to talk at the same time
@@ -674,14 +659,8 @@ mbStatus RQ_ReceiveRequestTalking(unsigned char msg)
     {
         if (CallTag == ACR || CallTag == OCR)
         {
-            ///< 被叫收到相同房号的通话请求，结束等待接听（仅被叫可以发起通话请求，主叫响应该请求）
-            ///< The called party receives a call request with the same room number
-            ///< and ends waiting for answering (only the called party can initiate a call request,
-            ///< and the caller responds to the request)
-            Intercom.HangUp();
-            StopTimeoutRetransTimer();
-            ParamInit();
-            TempCallId = 0xff;
+            ///< 被叫侧正常不会收到 RQ_TALKING，收到重复/串线帧时忽略，避免误挂断。
+            return IDLE_WAITING;
         }
         else
         {
@@ -718,8 +697,19 @@ mbStatus RP_ReceiveResponseTalking(unsigned char msg)
         ///< The called party responds to the called party by receiving
         ///< the call request from the calling party
         StopTimeoutRetransTimer();
-        StartTalkTimer();
+
+        Intercom.Accept();
+        if (CallTag == ACR)
+        {
+            Intercom.SwitchAudioCh(CH1_ON);
+        }
+        else if (CallTag == OCR)
+        {
+            Intercom.SwitchAudioCh(CH0_ON);
+        }
+
         ConnectStatus = RP_TALKING;
+        StartTalkTimer();
     }
     return IDLE_WAITING;
 }

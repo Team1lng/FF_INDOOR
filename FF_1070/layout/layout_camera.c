@@ -2221,6 +2221,11 @@ static void LAYOUT_ENTER_FUNC(camera)
 }
 static void LAYOUT_QUIT_FUNC(camera)
 {
+	// 隐藏通道标签，避免切换到内线等界面时残留CCTV文字
+	{
+		lv_obj_t *ch_obj = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_HEAD_CH_LABEL_ID);
+		if (ch_obj != NULL) lv_obj_set_hidden(ch_obj, true);
+	}
 	// if(user_data_get()->change_channel_enable == false)
 	// {
 	// 	manual_enter_monitor_set(false);

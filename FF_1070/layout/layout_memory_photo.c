@@ -49,6 +49,8 @@ static custom_area photo_btn_area[MEMORY_TOTAL_BTN] =
 static int memory_photo_timeout_val = MEMORY_PHOTO_TIMEOUT_DURATION;
 // 静态变量存储遮罩层，供后续删除（确认/取消时）
 static lv_obj_t *dim_mask = NULL;
+static lv_task_t *memory_photo_timeout_task = NULL;
+static lv_task_t *photo_play_task_t = NULL;
 static bool func_btn_diaplay_flag = true;
 extern int photo_index_get(void);
 extern void photo_index_set(int index);
@@ -75,6 +77,17 @@ static void photo_next_btn_up(lv_obj_t *obj);
 void memory_photo_timeout_value_reset(void)
 {
 	memory_photo_timeout_val = MEMORY_PHOTO_TIMEOUT_DURATION;
+}
+
+static void memory_photo_timeout_task_start(void);
+
+static void memory_photo_user_activity_reset(void)
+{
+	memory_photo_timeout_value_reset();
+	if (photo_play_task_t == NULL)
+	{
+		memory_photo_timeout_task_start();
+	}
 }
 
 static int photo_index_new = 0;  // 本地图片索引（0~photo_total-1)
@@ -203,6 +216,7 @@ static void photo_head_label_display(const file_info *pinfo)
 
 static void photo_home_btn_up(lv_obj_t *obj)
 {
+	memory_photo_user_activity_reset();
 	int list_global_index = photo_total - 1 - photo_index_new;
 	photo_list_page_set(list_global_index);
 	goto_layout(pLAYOUT(photo_list));
@@ -236,6 +250,7 @@ static void photo_mode_btn_create(lv_obj_t * parent)
 
 static void photo_prev_btn_up(lv_obj_t *obj)
 {
+    memory_photo_user_activity_reset();
     if (photo_total <= 1)
         return;
 
@@ -262,8 +277,6 @@ static void photo_prev_btn_create(lv_obj_t *parent)
 	lv_obj_t *btn = camera_img_btn_create(parent, photo_btn_area[MEMORY_PREV_BTN_ID], NULL, &btn_data, &info);
 	lv_obj_set_id(btn, MEMORY_PREV_BTN_ID);
 }
-
-static lv_task_t *photo_play_task_t = NULL;
 
 static void memory_photo_btn_click_set(int obj_id, bool en)
 {
@@ -307,6 +320,12 @@ static void photo_play_btn_state_display(bool is_playing)
 
 static void memory_photo_ticker_task(lv_task_t *task_t)
 {
+	if (task_t != memory_photo_timeout_task)
+	{
+		lv_task_del(task_t);
+		return;
+	}
+
 	if (memory_photo_timeout_val-- <= 0)
 	{
 		if (dim_mask != NULL)
@@ -314,11 +333,21 @@ static void memory_photo_ticker_task(lv_task_t *task_t)
 			lv_obj_del(dim_mask);
 			dim_mask = NULL;
 		}
+		memory_photo_timeout_task = NULL;
 		goto_layout(pLAYOUT(standby));
 	}
 	if (photo_play_task_t != NULL)
 	{
+		memory_photo_timeout_task = NULL;
 		lv_task_del(task_t);
+	}
+}
+
+static void memory_photo_timeout_task_start(void)
+{
+	if (memory_photo_timeout_task == NULL)
+	{
+		memory_photo_timeout_task = lv_layout_task_create(memory_photo_ticker_task, 500, LV_TASK_PRIO_HIGH, NULL);
 	}
 }
 
@@ -340,6 +369,7 @@ static void memory_func_btn_diaplay_enable(bool en)
 }
 static void photo_play_btn_up(lv_obj_t *obj)
 {
+	memory_photo_user_activity_reset();
 	if (photo_total <= 0)
 		return;
 	if (photo_play_task_t == NULL)
@@ -360,7 +390,7 @@ static void photo_play_btn_up(lv_obj_t *obj)
 		photo_play_btn_state_display(false);
 
 		memory_photo_timeout_value_reset();
-		lv_layout_task_create(memory_photo_ticker_task, 500, LV_TASK_PRIO_HIGH, NULL);
+		memory_photo_timeout_task_start();
 	}
 }
 // 创建play按钮
@@ -376,6 +406,7 @@ static void photo_play_btn_create(lv_obj_t *parent)
 
 static void photo_next_btn_up(lv_obj_t *obj)
 {
+    memory_photo_user_activity_reset();
     if (photo_total <= 1)
         return;
 
@@ -407,6 +438,7 @@ static void photo_next_btn_create(lv_obj_t *parent)
 
 static void memory_bg_btn_up(lv_obj_t *obj)
 {
+	memory_photo_user_activity_reset();
 	if (photo_total <= 0)
 		return;
 	if (photo_play_task_t == NULL)
@@ -427,7 +459,7 @@ static void memory_bg_btn_up(lv_obj_t *obj)
 		photo_play_btn_state_display(false);
 
 		memory_photo_timeout_value_reset();
-		lv_layout_task_create(memory_photo_ticker_task, 500, LV_TASK_PRIO_HIGH, NULL);
+		memory_photo_timeout_task_start();
 	}
 }
 static void memory_bg_btn_click_enable(bool en)
@@ -445,6 +477,7 @@ static void memory_bg_btn_click_enable(bool en)
 
 static void photo_delete_yes_btn_up(lv_obj_t *obj)
 {
+	memory_photo_user_activity_reset();
 	if (dim_mask != NULL)
 	{
 		lv_obj_del(dim_mask);
@@ -456,6 +489,7 @@ static void photo_delete_yes_btn_up(lv_obj_t *obj)
 }
 static void photo_delete_no_btn_up(lv_obj_t *obj)
 {
+	memory_photo_user_activity_reset();
 	memory_bg_btn_click_enable(true);
 	if (dim_mask != NULL)
 	{
@@ -494,6 +528,7 @@ static void create_dim_mask()
 }
 static void photo_delete_btn_up(lv_obj_t *obj)
 {
+	memory_photo_user_activity_reset();
 	if (photo_total == 0)
 		return;
 	memory_bg_btn_click_enable(false);
@@ -638,9 +673,15 @@ static void LAYOUT_ENTER_FUNC(memory_photo)
 	layout_sd_state_callback_register(memory_photo_sdcard_state_change_event_cb);
 
 	memory_photo_param_init(); /*初始化*/
+	memory_photo_user_activity_reset();
 }
 static void LAYOUT_QUIT_FUNC(memory_photo)
 {
+	if (memory_photo_timeout_task != NULL)
+	{
+		lv_task_del(memory_photo_timeout_task);
+		memory_photo_timeout_task = NULL;
+	}
 	// 删除挂在 lv_scr_act 上的弹窗对象，避免布局切换后残留导致下次进入崩溃
 	if (dim_mask != NULL)
 	{

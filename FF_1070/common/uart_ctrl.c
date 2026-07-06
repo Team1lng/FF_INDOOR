@@ -191,14 +191,9 @@ int uart_open(char *dev, int speed, int data_bits, int stop_bits, int parity)
 **   函数作用：发送串口数据
 **   参数说明:
 ***/
-#include <errno.h>
-
 int uart_write(int fd, char *data, int size)
 {
-	printf("[UART_WRITE] fd=%d size=%d data[0]=0x%02X\n", 
-		fd, size, (unsigned char)data[0]);
 	size = write(fd, data, size);
-	printf("[UART_WRITE] write ret=%d errno=%d\n", size, errno);
 	// usleep(1 * 1000);
 	return size;
 }

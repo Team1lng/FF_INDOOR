@@ -40,18 +40,13 @@ static custom_area video_btn_area[MEMORY_TOTAL_BTN] =
 #define MEMORY_HEAD_PLAY_TIME_LABEL_ID 12
 #define MEMORY_HEAD_INDEX_NUM_LABEL_ID 13
 #define MEMORY_VIDEO_PROGRESS_BAR_ID 14
-static bool memory_video_timeout_kuaijin = false;
 static int memory_video_timeout_val = 60;
 
 static bool func_btn_diaplay_flag = true;
-static int per_time_count = 0;
-static int next_time_count = 0;
 static bool memory_video_finish_handled = false;
 static bool memory_video_delete_dialog_active = false;
 static lv_task_t *memory_video_timeout_task = NULL;
 static lv_task_t *memory_video_play_state_task = NULL;
-static lv_task_t *memory_video_per_wait_task = NULL;
-static lv_task_t *memory_video_next_wait_task = NULL;
 static lv_obj_t *dim_mask = NULL;
 static lv_obj_t *memory_video_delete_box = NULL;
 
@@ -77,6 +72,12 @@ void memory_video_timeout_value_reset(int num)
 
 static void memory_video_ticker_task(lv_task_t *task_t)
 {
+    if (task_t != memory_video_timeout_task)
+    {
+        lv_task_del(task_t);
+        return;
+    }
+
     printf(">>>>>>>>>>>>>>>>>[%d]\n", memory_video_timeout_val);
     if (memory_video_timeout_val-- <= 0)
     {
@@ -88,7 +89,7 @@ static void memory_video_ticker_task(lv_task_t *task_t)
         memory_video_timeout_task = NULL;
         goto_layout(pLAYOUT(standby));
     }
-    if ((video_play_status_get() == VIDEO_PLAY_STATE_PLAY) || (memory_video_timeout_kuaijin == true))
+    if (video_play_status_get() == VIDEO_PLAY_STATE_PLAY)
     {
         memory_video_timeout_task = NULL;
         lv_task_del(task_t);
@@ -104,22 +105,21 @@ static void memory_video_timeout_task_stop(void)
     }
 }
 
-static void memory_video_wait_task_stop(void)
+static void memory_video_timeout_task_start(void)
 {
-    if (memory_video_per_wait_task != NULL)
+    if (memory_video_timeout_task == NULL)
     {
-        lv_task_del(memory_video_per_wait_task);
-        memory_video_per_wait_task = NULL;
+        memory_video_timeout_task = lv_layout_task_create(memory_video_ticker_task, 1000, LV_TASK_PRIO_MID, NULL);
     }
+}
 
-    if (memory_video_next_wait_task != NULL)
+static void memory_video_user_activity_reset(void)
+{
+    memory_video_timeout_value_reset(60);
+    if (video_play_status_get() != VIDEO_PLAY_STATE_PLAY)
     {
-        lv_task_del(memory_video_next_wait_task);
-        memory_video_next_wait_task = NULL;
+        memory_video_timeout_task_start();
     }
-
-    per_time_count = 0;
-    next_time_count = 0;
 }
 
 static void memory_video_play_state_task_stop(void)
@@ -144,35 +144,6 @@ static void memory_video_play_state_task_start(void)
 void video_index_reset(void)
 {
     video_index = 0;
-}
-
-static void memory_video_per_goto_standby_wait_task(lv_task_t *task_t)
-{
-    if (memory_video_per_wait_task == NULL)
-    {
-        lv_task_del(task_t);
-    }
-    per_time_count++;
-    printf("++++++++++++++++++++[%d]\n", per_time_count);
-    if (per_time_count == 60)
-    {
-        lv_task_del(task_t);
-        goto_layout(pLAYOUT(standby));
-    }
-}
-
-static void memory_video_next_goto_standby_wait_task(lv_task_t *task_t)
-{
-    if (memory_video_next_wait_task == NULL)
-    {
-        lv_task_del(task_t);
-    }
-    next_time_count++;
-    printf("++++++++++++++++++++[%d]\n", next_time_count);
-    if (next_time_count == 60)
-    {
-        goto_layout(pLAYOUT(standby));
-    }
 }
 
 static void video_head_label_create(lv_obj_t *parent)
@@ -312,6 +283,7 @@ static void video_progress_bar_update(int play_time, int play_total)
 
 static void video_home_btn_up(lv_obj_t *obj)
 {
+    memory_video_user_activity_reset();
     photo_list_page_set(video_index);
     goto_layout(pLAYOUT(photo_list));
 }
@@ -327,6 +299,7 @@ static void video_home_btn_create(lv_obj_t *parent)
 // 修复：上一个按钮逻辑（显示索引反向）
 static void video_prev_btn_up(lv_obj_t *obj)
 {
+    memory_video_user_activity_reset();
     if (video_total <= 1)
     return;
 
@@ -343,14 +316,7 @@ static void video_prev_btn_up(lv_obj_t *obj)
     video_progress_bar_update(0, 0);
     video_play_stop();
     layout_memory_video_load();
-    memory_video_timeout_kuaijin = true;
-    memory_video_per_wait_task = NULL;
-
-    if (memory_video_next_wait_task == NULL)
-    {
-        next_time_count = 0;
-        memory_video_next_wait_task = lv_layout_task_create(memory_video_next_goto_standby_wait_task, 1000, LV_TASK_PRIO_LOW, NULL);
-    }
+    memory_video_user_activity_reset();
 }
 
 static void video_prev_btn_create(lv_obj_t *parent)
@@ -416,13 +382,11 @@ static void memory_func_btn_diaplay_enable(bool en)
 
 static void video_play_btn_up(lv_obj_t *obj)
 {
+    memory_video_user_activity_reset();
     if (video_total <= 0)
         return;
 
     VIDEO_PLAY_STATUS status = video_play_status_get();
-    memory_video_per_wait_task = NULL;
-    memory_video_next_wait_task = NULL;
-    memory_video_timeout_kuaijin = false;
 
     if (status == VIDEO_PLAY_STATE_IDLE)
     {
@@ -437,6 +401,7 @@ static void video_play_btn_up(lv_obj_t *obj)
 
         memory_func_btn_diaplay_enable(true);
         standby_timer_close();
+        memory_video_timeout_task_stop();
         video_play_btn_state_display(true);
         return;
     }
@@ -459,6 +424,7 @@ static void video_play_btn_up(lv_obj_t *obj)
 
         memory_func_btn_diaplay_enable(true);
         standby_timer_close();
+        memory_video_timeout_task_stop();
         video_play_btn_state_display(true);
         return;
     }
@@ -477,6 +443,7 @@ static void video_play_btn_create(lv_obj_t *parent)
 // 修复：下一个按钮逻辑（显示索引反向）
 static void video_next_btn_up(lv_obj_t *obj)
 {
+    memory_video_user_activity_reset();
 
 	if (video_total <= 1)
     return;
@@ -494,14 +461,7 @@ static void video_next_btn_up(lv_obj_t *obj)
     video_progress_bar_update(0, 0);
     video_play_stop();
     layout_memory_video_load();
-    memory_video_timeout_kuaijin = true;
-    memory_video_next_wait_task = NULL;
-
-    if (memory_video_per_wait_task == NULL)
-    {
-        per_time_count = 0;
-        memory_video_per_wait_task = lv_layout_task_create(memory_video_per_goto_standby_wait_task, 1000, LV_TASK_PRIO_LOW, NULL);
-    }
+    memory_video_user_activity_reset();
 }
 
 static void video_next_btn_create(lv_obj_t *parent)
@@ -530,6 +490,7 @@ static void create_dim_mask()
 
 static void video_delete_yes_btn_up(lv_obj_t *obj)
 {
+    memory_video_user_activity_reset();
     video_play_stop();
     memory_video_finish_handled = false;
     memory_video_delete_dialog_active = false;
@@ -563,19 +524,18 @@ static void video_delete_yes_btn_up(lv_obj_t *obj)
 
 static void memory_bg_btn_up(lv_obj_t *obj)
 {
+    memory_video_user_activity_reset();
     if (video_total <= 0)
         return;
 
     VIDEO_PLAY_STATUS status = video_play_status_get();
-    memory_video_per_wait_task = NULL;
-    memory_video_next_wait_task = NULL;
-    memory_video_timeout_kuaijin = false;
 
     if (status == VIDEO_PLAY_STATE_PLAY)
     {
         memory_func_btn_diaplay_enable(!func_btn_diaplay_flag);
         video_play_btn_state_display(true);
         standby_timer_close();
+        memory_video_timeout_task_stop();
         return;
     }
 
@@ -600,6 +560,7 @@ static void memory_bg_btn_up(lv_obj_t *obj)
     {
         memory_func_btn_diaplay_enable(false);
         standby_timer_close();
+        memory_video_timeout_task_stop();
         video_play_btn_state_display(true);
     }
     else
@@ -624,6 +585,7 @@ static void memory_bg_btn_click_enable(bool en)
 
 static void video_delete_no_btn_up(lv_obj_t *obj)
 {
+    memory_video_user_activity_reset();
     memory_video_delete_dialog_active = false;
     memory_bg_btn_click_enable(true);
     if (dim_mask != NULL)
@@ -644,25 +606,20 @@ static void video_delete_no_btn_up(lv_obj_t *obj)
     memory_video_btn_click_set(MEMORY_DELETE_BTN_ID, true);
     memory_video_btn_click_set(MEMORY_HOME_BTN_ID, true);
     video_play_btn_state_display(false);
-    memory_video_timeout_value_reset(60);
-    if (memory_video_timeout_task == NULL)
-    {
-        memory_video_timeout_task = lv_layout_task_create(memory_video_ticker_task, 1000, LV_TASK_PRIO_MID, NULL);
-    }
+    memory_video_user_activity_reset();
     memory_video_play_state_task_start();
 }
 
 static void video_delete_btn_up(lv_obj_t *obj)
 {
+    memory_video_user_activity_reset();
     if (video_total == 0 || memory_video_delete_dialog_active == true)
         return;
 
     memory_video_delete_dialog_active = true;
     memory_video_timeout_task_stop();
     memory_video_finish_handled = false;
-    memory_video_wait_task_stop();
     memory_video_play_state_task_stop();
-    memory_video_timeout_kuaijin = false;
 
     video_play_stop();
     video_input_resident_bzero();
@@ -738,12 +695,7 @@ static void layout_play_state_task(lv_task_t *task_t)
         layout_memory_video_load();
         video_play_btn_state_display(false);
         memory_func_btn_diaplay_enable(true);
-        memory_video_timeout_value_reset(60);
-
-        if (memory_video_timeout_task == NULL)
-        {
-            memory_video_timeout_task = lv_layout_task_create(memory_video_ticker_task, 1000, LV_TASK_PRIO_MID, NULL);
-        }
+        memory_video_user_activity_reset();
         return;
     }
 
@@ -764,12 +716,7 @@ static void layout_play_state_task(lv_task_t *task_t)
         prev_statu = statu;
         video_play_btn_state_display(false);
         memory_func_btn_diaplay_enable(true);
-        memory_video_timeout_value_reset(60);
-
-        if (memory_video_timeout_task == NULL)
-        {
-            memory_video_timeout_task = lv_layout_task_create(memory_video_ticker_task, 1000, LV_TASK_PRIO_MID, NULL);
-        }
+        memory_video_user_activity_reset();
     }
 }
 
@@ -840,6 +787,7 @@ static void memory_video_param_init(void)
     layout_memory_video_load();
 
     memory_video_play_state_task_start();
+    memory_video_user_activity_reset();
 }
 
 static void memory_video_sdcard_state_change_event_cb(void)
@@ -891,6 +839,8 @@ static void LAYOUT_QUIT_FUNC(memory_video)
 {
     lv_obj_click_down_callback_register(layout_obj_click_down_func);
     memory_bg_btn_click_enable(false);
+    memory_video_timeout_task_stop();
+    memory_video_play_state_task_stop();
 
     // 删除挂在 lv_scr_act 上的弹窗对象，避免布局切换后残留导致下次进入崩溃
     if (dim_mask != NULL)
@@ -907,9 +857,6 @@ static void LAYOUT_QUIT_FUNC(memory_video)
     memory_video_delete_box = NULL;
     memory_video_timeout_task = NULL;
     memory_video_play_state_task = NULL;
-    memory_video_per_wait_task = NULL;
-    memory_video_next_wait_task = NULL;
-    memory_video_timeout_kuaijin = false;
     memory_video_finish_handled = false;
     video_play_stop();
     power_amplifier_enable(true);
