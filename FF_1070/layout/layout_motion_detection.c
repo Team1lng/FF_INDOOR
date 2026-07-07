@@ -40,6 +40,14 @@ static cam_mode_t camera_mode = CAMERA_MODE_MONITOR;
 static int camera_record_video_count_down = 0; // 录像倒计时(秒)
 static bool is_photo_mode = false;             // 新增：标记是否为拍照模式
 
+static bool motion_intercom_pending(void)
+{
+    callSIGN tag = GetIntercomCallTag();
+    return intercom_state_get() != INTERCOM_STATE_IDLE ||
+           tag == OCR ||
+           tag == ACR;
+}
+
 // UI组件ID定义
 #define CAMERA_HEAD_CH_LABEL_ID 8           // 顶部通道标签
 #define CAMERA_HEAD_TIME_LABEL_ID 9         // 顶部时间标签
@@ -518,6 +526,15 @@ static void standby_bg_click_event_cb(lv_obj_t *obj)
 // 进入移动侦测界面
 static void LAYOUT_ENTER_FUNC(motion_detection)
 {
+    if (motion_intercom_pending())
+    {
+        printf("移动侦测：检测到内线来电，跳过移动侦测界面\n");
+        motion_detection_stop();
+        motion_detection_destory();
+        goto_layout(pLAYOUT(intercom_in));
+        return;
+    }
+
     printf("移动侦测：进入移动侦测界面\n");
     layout_monitor_detection_refresh_1();
     
@@ -552,6 +569,16 @@ static void LAYOUT_QUIT_FUNC(motion_detection)
     printf("移动侦测：退出移动侦测界面\n");
     bool need_monitor_close = (screen_clicked == false);
     screen_clicked = false;
+
+    // 先隐藏当前画面，再做耗时的 VI/AI/VENC 释放，避免内线来电亮屏时露出移动侦测旧 UI。
+    backlight_enable(false);
+    video_display_preview_enable(false);
+    fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
+    lv_obj_clean(lv_scr_act());
+    {
+        refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
+        gui_refresh_area(&area, 1);
+    }
 
     // Stop tasks/capture/encoders before closing VI to avoid teardown races.
     ringplay_play_stop();

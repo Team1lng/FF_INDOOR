@@ -10,11 +10,19 @@
 static lv_task_t *motion_move_check_task_t = NULL;
 static lv_task_t *motion_timing_check_task_t = NULL;
 static lv_task_t *motion_delay_start_task_t = NULL;
+static bool motion_detection_inited = false;
+static bool motion_detection_started = false;
+static bool standby_entering_motion_detection = false;
 /***移动侦测相关函数***/
 static void standby_resource_release_sfunc(bool motion)
 {
 	if (motion)
 	{
+		if (motion_delay_start_task_t != NULL)
+		{
+			lv_task_del(motion_delay_start_task_t);
+			motion_delay_start_task_t = NULL;
+		}
 		if (motion_move_check_task_t != NULL)
 		{
 			lv_task_del(motion_move_check_task_t);
@@ -26,6 +34,28 @@ static void standby_resource_release_sfunc(bool motion)
 			motion_timing_check_task_t = NULL;
 		}
 	}
+}
+
+static void standby_motion_detection_stop_and_destroy(void)
+{
+	if (motion_detection_started)
+	{
+		motion_detection_stop();
+		motion_detection_started = false;
+	}
+	if (motion_detection_inited)
+	{
+		motion_detection_destory();
+		motion_detection_inited = false;
+	}
+}
+
+static bool standby_intercom_busy(void)
+{
+	callSIGN tag = GetIntercomCallTag();
+	return intercom_state_get() != INTERCOM_STATE_IDLE ||
+		   tag == OCR ||
+		   tag == ACR;
 }
 // static void motion_sel_dvr(void)
 // {
@@ -70,7 +100,26 @@ static void layout_motion_monitor_open(void)
 static void motion_move_check_task(lv_task_t *task)
 {
 
-	standby_resource_release_sfunc(true);
+	if (standby_intercom_busy())
+	{
+		motion_move_check_task_t = NULL;
+		lv_task_del(task);
+		standby_motion_detection_stop_and_destroy();
+		return;
+	}
+
+	if (motion_delay_start_task_t != NULL)
+	{
+		lv_task_del(motion_delay_start_task_t);
+		motion_delay_start_task_t = NULL;
+	}
+	if (motion_timing_check_task_t != NULL)
+	{
+		lv_task_del(motion_timing_check_task_t);
+		motion_timing_check_task_t = NULL;
+	}
+	motion_move_check_task_t = NULL;
+	standby_entering_motion_detection = true;
 
 	// 移动侦测触发后的处理
 	printf("Motion detected! Taking action...\n");
@@ -157,7 +206,9 @@ static void motion_timing_check_task(lv_task_t *task)
 			{
 				motion_init();
 				motion_detection_init();
+				motion_detection_inited = true;
 				motion_detection_start();
+				motion_detection_started = true;
 				printf("启动移动侦测任务\n");
 				motion_move_check_task_t = lv_layout_task_create(motion_move_check_task, 100, LV_TASK_PRIO_HIGH, NULL);
 			}
@@ -169,6 +220,7 @@ static void motion_timing_check_task(lv_task_t *task)
 				lv_task_del(motion_move_check_task_t);
 				motion_move_check_task_t = NULL;
 				motion_detection_stop();
+				motion_detection_started = false;
 			}
 		}
 	}
@@ -180,7 +232,9 @@ static void motion_timing_check_task(lv_task_t *task)
 		printf("启动移动侦测任务\n");
 		motion_init();
 		motion_detection_init();
+		motion_detection_inited = true;
 		motion_detection_start();
+		motion_detection_started = true;
 		motion_move_check_task_t = lv_layout_task_create(motion_move_check_task, 100, LV_TASK_PRIO_HIGH, NULL);
 	}
 }
@@ -196,6 +250,10 @@ static void motion_delay_start_task(lv_task_t *task)
 	}
 	if (user_data_get()->motion.enable)
 	{
+		if (standby_intercom_busy())
+		{
+			return;
+		}
 
 		refresh_area_t area = {0, 0, 1024, 600};
 		gui_refresh_area(&area, 1);
@@ -245,7 +303,17 @@ static void LAYOUT_QUIT_FUNC(standby)
 	printf("Exiting standby layout.\n");
 	// 清理移动侦测资源
 	standby_resource_release_sfunc(true);
-	
+	if (!standby_entering_motion_detection)
+	{
+		standby_motion_detection_stop_and_destroy();
+	}
+	else
+	{
+		motion_detection_started = false;
+		motion_detection_inited = false;
+	}
+	standby_entering_motion_detection = false;
+
 	obj_click_event_listen(lv_scr_act(), NULL);
 	standby_timer_restart(true);
 	backlight_enable(true);

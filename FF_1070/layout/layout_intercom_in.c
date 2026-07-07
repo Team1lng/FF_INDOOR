@@ -52,13 +52,35 @@ static custom_area intercom_in_btn_area[INTERCOM_IN_TOTAL_BTN] =
 #define INTERCOM_LOCAL_ADDR_ID              13
 #define INTERCOM_IN_GUARD_IMG_ID            14
 #define GUARD_INTERCOM_NUMBER   0
+#define INTERCOM_IN_BACKLIGHT_DELAY_MS 200
 
 static lv_task_t *hung_up_task  = NULL;
 static lv_task_t *calling_task  = NULL;
+static lv_task_t *backlight_task = NULL;
 static int count = 30;
 static bool vol_slider_visible = false;
 
 static void intercom_in_hung_up_task_create(void);
+
+static void intercom_in_backlight_task_cb(lv_task_t *task_t)
+{
+    backlight_task = NULL;
+    backlight_enable(true);
+    lv_task_del(task_t);
+}
+
+static void intercom_in_backlight_task_create(void)
+{
+    if (backlight_task != NULL) {
+        lv_task_del(backlight_task);
+        backlight_task = NULL;
+    }
+
+    backlight_task = lv_layout_task_create(intercom_in_backlight_task_cb,
+                                           INTERCOM_IN_BACKLIGHT_DELAY_MS,
+                                           LV_TASK_PRIO_LOW,
+                                           NULL);
+}
 
 /* ---------------------------------------------------------------
  * 拒接（返回按钮 / 挂断按钮）
@@ -390,7 +412,6 @@ static void LAYOUT_ENTER_FUNC(intercom_in)
 {
     power_amplifier_enable(true);
     standby_timer_close();
-    backlight_enable(true);
     lv_obj_t *parent = common_bg_display(lv_scr_act());
 
     intercom_in_back_btn_create(parent);
@@ -414,6 +435,7 @@ static void LAYOUT_ENTER_FUNC(intercom_in)
 
     /* 通知底层 UI 已就绪 */
     UiIntercomStateNormal();
+    intercom_in_backlight_task_create();
 
     /* 启动来电等待倒计时任务 */
     intercom_in_calling_time_out_task_create();
@@ -421,6 +443,10 @@ static void LAYOUT_ENTER_FUNC(intercom_in)
 
 static void LAYOUT_QUIT_FUNC(intercom_in)
 {
+    if (backlight_task != NULL) {
+        lv_task_del(backlight_task);
+        backlight_task = NULL;
+    }
     hung_up_task = NULL;
     calling_task = NULL;
     standby_timer_restart(true);

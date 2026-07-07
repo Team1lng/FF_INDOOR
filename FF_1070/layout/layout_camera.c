@@ -8,7 +8,12 @@
 #include "layout_define.h"
 
 #define CAMERA_AUTO_RECORD_ENABLE 0 // 开启自动连续拍照、录像，测试用
-#define CAMERA_DISPLAY_DELAY 20		// 监控显示延时（20*100ms=2秒）
+#define CAMERA_DISPLAY_DELAY 2		// 监控显示延时（20*100ms=2秒）
+#define CAMERA_SWITCH_DISPLAY_DELAY 12 // 门口机切通道黑屏延时（12*100ms）
+#define CAMERA_VIDEO_MASK_X 0
+#define CAMERA_VIDEO_MASK_Y 70
+#define CAMERA_VIDEO_MASK_W 1024
+#define CAMERA_VIDEO_MASK_H 400
 
 enum
 {
@@ -174,6 +179,7 @@ static void camera_record_photo_video(REC_MODE mode);
 static void camera_record_photo_video_task(lv_task_t *task);
 static void camera_setting_window_display_enable(bool en);
 static void camera_display_delay_start(void);
+static void camera_channel_switch_delay_start(void);
 static void camera_switch_btn_create_display(void);
 static void camera_record_btn_create_display(void);
 static void camera_zoom_btn_create_display(void);
@@ -196,6 +202,8 @@ static bool camera_change_win_diaplay_flag = true;
 static cam_mode_t camera_mode = CAMERA_MODE_MONITOR;
 static int camera_timeout_val = 90;						// 监控时长90秒
 static int camera_display_delay = CAMERA_DISPLAY_DELAY; // * 100ms
+static bool camera_display_delay_wait_video_ready = true;
+static bool camera_display_delay_control_backlight = true;
 static int camera_record_video_count_down = 15;
 static lv_task_t *camera_display_delay_task_t = NULL;
 static lv_task_t *camera_call_auto_record_task_t = NULL;
@@ -704,27 +712,34 @@ static void camera_door_call_switch(MON_CH target_ch, int tone_index)
 
 	if (current_ch != target_ch)
 	{
+		camera_channel_switch_delay_start();
 		video_display_preview_enable(false);
-	// 停止当前通道的录像/拍照，新呼叫重新开始录制；短于3s的旧录像会被自动丢弃
-	if (video_record_status_get() == true)
-	{
-		camera_ticker_task_stop(CAMERA_TASK_RECORD_VIDEO);
-		record_video_close();
-	}
-	if (mjpeg_encode_status_get() == true)
-	{
-		camera_ticker_task_stop(CAMERA_TASK_RECORD_IMAGE);
-		record_jpeg_close();
-	}
-	is_recording = false;
-	camera_call_auto_record_task_create();
+		lv_video_mode_enable(false);
 		video_input_resident_bzero();
-		fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
-		layout_monitor_refresh_1();
 		monitor_channel_set(target_ch);
+
+		// 先切到目标门口机 UI，视频区域保持黑底，避免停在旧通道画面等待新视频。
+		camera_head_channel_label_flush();
+		camera_channel_ui_refresh();
+		screen_force_refresh();
+
+		// 停止当前通道的录像/拍照，新呼叫重新开始录制；短于3s的旧录像会被自动丢弃
+		if (video_record_status_get() == true)
+		{
+			camera_ticker_task_stop(CAMERA_TASK_RECORD_VIDEO);
+			record_video_close();
+		}
+		if (mjpeg_encode_status_get() == true)
+		{
+			camera_ticker_task_stop(CAMERA_TASK_RECORD_IMAGE);
+			record_jpeg_close();
+		}
+		is_recording = false;
+		camera_call_auto_record_task_create();
+
 		monitor_open(false, 0x03);
 
-			// 等待VI设备就绪后直接开启预览；VI关闭时已清过缓冲区，重开后跳帧保证首帧干净
+		// 等待VI设备就绪后直接开启预览；VI关闭时已清过缓冲区，重开后跳帧保证首帧干净
 		int vi_wait_timeout = 100; // 100 * 10ms = 1秒超时
 		while (!video_input_state_get() && vi_wait_timeout-- > 0)
 		{
@@ -732,8 +747,7 @@ static void camera_door_call_switch(MON_CH target_ch, int tone_index)
 		}
 
 		video_display_preview_enable(true);
-		camera_head_channel_label_flush();
-		camera_channel_ui_refresh();
+		camera_channel_switch_delay_start();
 	}
 
 	camera_timeout_value_reset();
@@ -1179,6 +1193,8 @@ static void camera_head_monitor_count_label_create(lv_obj_t *parent)
 	lv_obj_set_id(countdown_label, CAMERA_MONITOR_COUNT_DOWN_ID);
 	lv_obj_set_style_local_text_color(countdown_label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xFFFFFF));
 	lv_obj_set_style_local_text_font(countdown_label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, FONT_SIZE(30));
+	lv_label_set_text_fmt(countdown_label, "%02dS", camera_timeout_val);
+	lv_obj_set_pos(countdown_label, 816, 28);
 	lv_layout_task_create(camera_head_monitor_count_flush, 1000, LV_TASK_PRIO_MID, NULL);
 }
 
@@ -2121,6 +2137,7 @@ static void camera_door_call_ring_play_timer(lv_task_t *pt)
 static void LAYOUT_ENTER_FUNC(camera)
 {
 	/*清状态*/
+	backlight_enable(false);
 	layout_monitor_refresh_1();
 	MON_CH ch = monitor_channel_get();
 
@@ -2334,7 +2351,8 @@ static void layout_camera_callring_finish_default_func(int index)
 // 监控延时显示任务
 static void camera_display_delay_task(lv_task_t *task_t)
 {
-	if (--camera_display_delay < 0 || video_input_state_get())
+	if (--camera_display_delay < 0 ||
+		(camera_display_delay_wait_video_ready == true && video_input_state_get()))
 	{
 		lv_obj_t *obj = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_DISPLAY_DELAY_MASK_OBJ_ID);
 		if (obj != NULL)
@@ -2343,22 +2361,68 @@ static void camera_display_delay_task(lv_task_t *task_t)
 		}
 		lv_task_del(task_t);
 		camera_display_delay_task_t = NULL;
-		backlight_enable(true);
+		camera_display_delay_wait_video_ready = true;
+		if (camera_display_delay_control_backlight == true)
+		{
+			backlight_enable(true);
+		}
+		camera_display_delay_control_backlight = true;
 	}
 }
-// 监控延时显示开始
-static void camera_display_delay_start(void)
+
+static void camera_display_delay_mask_start(int delay_count, bool wait_video_ready, bool video_only)
 {
-	backlight_enable(false);
-	camera_display_delay = CAMERA_DISPLAY_DELAY;
+	if (video_only == false)
+	{
+		backlight_enable(false);
+	}
+	camera_display_delay = delay_count;
+	camera_display_delay_wait_video_ready = wait_video_ready;
+	camera_display_delay_control_backlight = !video_only;
+
 	if (camera_display_delay_task_t == NULL)
 	{
 		camera_display_delay_task_t = lv_layout_task_create(camera_display_delay_task, 100, LV_TASK_PRIO_HIGH, NULL);
-		lv_obj_t *mask_obj = lv_obj_create(lv_scr_act(), NULL);
+	}
+
+	lv_obj_t *mask_obj = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_DISPLAY_DELAY_MASK_OBJ_ID);
+	if (mask_obj == NULL)
+	{
+		mask_obj = lv_obj_create(lv_scr_act(), NULL);
 		lv_obj_set_id(mask_obj, CAMERA_DISPLAY_DELAY_MASK_OBJ_ID);
+		lv_obj_set_style_local_bg_color(mask_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x000000));
+		lv_obj_set_style_local_bg_opa(mask_obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_COVER);
+	}
+	else
+	{
+		lv_obj_set_hidden(mask_obj, false);
+	}
+
+	if (video_only == true)
+	{
+		lv_obj_set_pos(mask_obj, CAMERA_VIDEO_MASK_X, CAMERA_VIDEO_MASK_Y);
+		lv_obj_set_size(mask_obj, CAMERA_VIDEO_MASK_W, CAMERA_VIDEO_MASK_H);
+		lv_obj_move_background(mask_obj);
+	}
+	else
+	{
 		lv_obj_set_pos(mask_obj, 0, 0);
 		lv_obj_set_size(mask_obj, 1024, 600);
+		lv_obj_move_foreground(mask_obj);
 	}
+}
+
+// 监控延时显示开始
+static void camera_display_delay_start(void)
+{
+	camera_display_delay_mask_start(CAMERA_DISPLAY_DELAY, true, false);
+}
+
+static void camera_channel_switch_delay_start(void)
+{
+	// Door call channel switching should not create an LVGL black object:
+	// it can cover camera UI. The video layer is blacked by disabling preview
+	// and clearing the resident video buffer during the switch.
 }
 
 static void layout_camera_open_btn_func(void)

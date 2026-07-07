@@ -3,6 +3,24 @@
 
 #define HOME_TOP_TIME_DATE_ID 0x1001
 
+static void layout_prepare_intercom_in_black_transition(void)
+{
+	const layout *cur = cur_layout_get();
+
+	if (cur != pLAYOUT(standby) && cur != pLAYOUT(motion_detection))
+	{
+		return;
+	}
+
+	printf("[intercom_in] black transition before incoming intercom\n");
+	backlight_enable(false);
+	video_display_preview_enable(false);
+	fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
+	lv_obj_clean(lv_scr_act());
+	refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
+	gui_refresh_area(&area, 1);
+}
+
 /***
 ** 日期: 2022-05-20 17:30
 ** 作者: leo.liu
@@ -115,6 +133,7 @@ void layout_door2_call_default(void)
 ***/
 void layout_incoming_intercom_call_default(void)
 {
+	layout_prepare_intercom_in_black_transition();
 	goto_layout(pLAYOUT(intercom_in));
 }
 
