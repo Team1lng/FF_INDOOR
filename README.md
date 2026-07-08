@@ -293,3 +293,25 @@ make clean
    问题：进入监控页面和门口机交换 call 都需要处理视频流未就绪的过渡，但两者效果不同；进入监控可以整页黑屏等待，交换 call 不能遮住 UI。
    涉及文件：`FF_1070/layout/layout_camera.c`
    修改内容：保留进入 camera 页面时的整屏延时遮罩和背光控制，用于防止刚进入监控时旧帧或脏帧外露；门口机交换 call 的 `camera_channel_switch_delay_start()` 改为不创建遮罩，只依赖关闭视频预览和清空视频 buffer 实现黑色视频区域过渡，避免把整页遮罩逻辑误用到页内通道切换。
+
+### 20260708
+
+1. 监控倒计时首帧显示 89S 修复
+   问题：监控界面倒计时应从 90S 开始，但进入监控时偶尔会先闪一下 89S，再显示 90S；原因是倒计时复位在监控 UI 创建之后执行，倒计时 label 或刷新任务可能先拿到上一次已经自减后的旧值。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：在 `LAYOUT_ENTER_FUNC(camera)` 中将 `camera_timeout_value_reset()` 提前到 `camera_goto_monitor_mode(parent)` 之前执行，让监控倒计时 label 创建时直接使用复位后的 90S；删除 UI 创建后重复复位的调用，避免任务和 label 初始化顺序不一致导致首帧显示旧值。
+
+2. 待机唤醒进入 Home 的 UI 残留处理
+   问题：室内机待机黑屏久了以后点击屏幕进入 Home，亮屏瞬间可能看到上一界面 UI 残留或半帧旧内容；原因是待机页面只关闭背光，没有清 GUI 层，且退出待机时过早打开背光，Home UI 还没完全刷新到屏幕。
+   涉及文件：`FF_1070/layout/layout_standby.c`、`FF_1070/layout/layout_home.c`
+   修改内容：进入 standby 时关闭背光后立即调用 `fb_gui_layer_rect_fill()` 清黑整屏，并刷新整屏 GUI 区域；待机退出时不再提前打开背光；Home 页面创建完成后不再立即开背光，而是新增 `home_backlight_task` 延时打开背光，给 LVGL 背景和按钮刷新留出时间，减少亮屏瞬间旧 UI 外露。
+
+3. 待机点击唤醒防重入和连续点击死机修复
+   问题：待机黑屏后连续快速点击屏幕，可能重复触发 `goto_layout(home)`，或在 Home 延迟亮屏任务未执行前再次切页，导致 LVGL task 指针悬空、重复删除任务，严重时室内机死机或长时间黑屏。
+   涉及文件：`FF_1070/layout/layout_standby.c`、`FF_1070/layout/layout_home.c`
+   修改内容：待机背景点击从松手 `CLICKED` 改为按下 `PRESSED` 即响应，减少黑屏唤醒时 release 丢失导致的无响应；新增 `standby_wakeup_in_progress` 标志，第一次点击后立即取消 standby 屏幕点击回调，防止唤醒过程中重复进入 `goto_layout(home)`；Home 的延时亮屏任务设置 `clean_lock = false`，不再由全局 `lv_task_clean()` 自动删除，改为在 `LAYOUT_QUIT_FUNC(home)` 中手动删除并置空，避免悬空指针；Home 亮屏任务未完成前，Home 上的时间、媒体、内线、监控、初始化、设置、待机按钮回调全部直接返回，避免黑屏延迟期间连续点击误触发其它页面切换。
+
+4. 待机移动侦测误触发处理
+   问题：开启移动侦测后进入待机，移动侦测检查任务启动后会直接进入 “Motion detected” 跳转流程，没有先判断是否真正检测到移动，可能导致待机唤醒、内线来电或其它切页时被移动侦测流程抢占，出现闪帧、延迟响应或黑屏异常。
+   涉及文件：`FF_1070/layout/layout_standby.c`
+   修改内容：在 `motion_move_check_task()` 中增加 `motion_detection_check()` 判断；当没有检测到移动时直接返回，只有检测到真实移动后才清理延时任务/定时任务、设置 `standby_entering_motion_detection`，并进入移动侦测页面；保留内线忙碌时停止并销毁移动侦测资源的原有保护逻辑。

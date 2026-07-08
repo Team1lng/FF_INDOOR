@@ -2161,6 +2161,7 @@ static void LAYOUT_ENTER_FUNC(camera)
 
 	lv_obj_t *parent = lv_scr_act();
 	lv_obj_set_style_local_pattern_image(parent, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL);
+	camera_timeout_value_reset();
 	camera_goto_monitor_mode(parent);
 	// camera_screen_adjust_enable(user_data_get()->setting.window_display_enable);
 	/* 主界面插卡的时候进入监控，有ui残留 */
@@ -2176,7 +2177,6 @@ static void LAYOUT_ENTER_FUNC(camera)
 
 	// camera_auto_record_task_create();
 	/*启动定时任务*/
-	camera_timeout_value_reset();
 	camera_ticker_task_create();
 	camera_display_delay_start();
 

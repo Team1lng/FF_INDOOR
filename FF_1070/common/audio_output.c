@@ -195,7 +195,7 @@ bool audido_output_volume_set(int volume)
 	{
 		return false;
 	}
-	audio_output_volume = (volume == 60 ? 70 : 70);
+	audio_output_volume = 70; //(volume == 60 ? 70 : 70);
 	return true;
 }
 

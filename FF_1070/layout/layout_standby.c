@@ -13,6 +13,7 @@ static lv_task_t *motion_delay_start_task_t = NULL;
 static bool motion_detection_inited = false;
 static bool motion_detection_started = false;
 static bool standby_entering_motion_detection = false;
+static bool standby_wakeup_in_progress = false;
 /***移动侦测相关函数***/
 static void standby_resource_release_sfunc(bool motion)
 {
@@ -99,12 +100,16 @@ static void layout_motion_monitor_open(void)
 // 移动侦测检查任务
 static void motion_move_check_task(lv_task_t *task)
 {
-
 	if (standby_intercom_busy())
 	{
 		motion_move_check_task_t = NULL;
 		lv_task_del(task);
 		standby_motion_detection_stop_and_destroy();
+		return;
+	}
+
+	if (motion_detection_check() == false)
+	{
 		return;
 	}
 
@@ -266,20 +271,29 @@ static void motion_delay_start_task(lv_task_t *task)
 
 static void standby_bg_click_event_cb(lv_obj_t *obj)
 {
-	printf("Standby background clicked, returning to home layout.\n");
-	backlight_enable(true);
+	if (standby_wakeup_in_progress)
+	{
+		return;
+	}
 
+	standby_wakeup_in_progress = true;
+	obj_click_event_listen(lv_scr_act(), NULL);
+	printf("Standby background clicked, returning to home layout.\n");
 	goto_layout(pLAYOUT(home));
 }
 
 static void LAYOUT_ENTER_FUNC(standby)
 {
 	printf("Entering standby layout.\n");
+	standby_wakeup_in_progress = false;
 	standby_timer_close();
 	backlight_enable(false);
+	fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
+	refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
+	gui_refresh_area(&area, 1);
 
 	// 创建背景点击事件
-	static obj_click_data bg_btn_data = obj_click_data_up_create(standby_bg_click_event_cb);
+	static obj_click_data bg_btn_data = obj_click_data_create(standby_bg_click_event_cb, NULL);
 	obj_click_event_listen(lv_scr_act(), &bg_btn_data);
 
 	// 如果移动侦测启用，延时启动
@@ -316,7 +330,6 @@ static void LAYOUT_QUIT_FUNC(standby)
 
 	obj_click_event_listen(lv_scr_act(), NULL);
 	standby_timer_restart(true);
-	backlight_enable(true);
 	lv_task_clean();
 }
 

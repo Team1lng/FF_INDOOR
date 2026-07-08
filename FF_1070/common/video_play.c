@@ -322,7 +322,7 @@ bool video_play_start(const char *file)
 	printf("===========>>>[%s]<<<===========\n", __func__);
 	pthread_mutex_lock(&video_play_mutex);
 	power_amplifier_enable(true);
-	ring_volume_set(4);
+	ring_volume_set(2);
 	if (video_play_status != VIDEO_PLAY_STATE_IDLE)
 	{
 		pthread_mutex_unlock(&video_play_mutex);

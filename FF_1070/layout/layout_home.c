@@ -13,6 +13,9 @@ typedef enum
 } home_btn_module;
 
 #define HOME_GEAR_OBJ_ID 10
+#define HOME_BACKLIGHT_DELAY_MS 300
+
+static lv_task_t *home_backlight_task = NULL;
 
 static custom_area home_btn_area[HOME_TOTAL_BTN] =
 	{
@@ -97,21 +100,37 @@ static void setting_icon_create(lv_obj_t *parent)
 
 static void home_time_btn_up(lv_obj_t *obj)
 {
+	if (home_backlight_task != NULL)
+	{
+		return;
+	}
 	goto_layout(pLAYOUT(time));
 }
 
 static void home_media_btn_up(lv_obj_t *obj)
 {
+	if (home_backlight_task != NULL)
+	{
+		return;
+	}
 	goto_layout(pLAYOUT(photo_list));
 }
 
 static void home_intercom_btn_up(lv_obj_t *obj)
 {
+	if (home_backlight_task != NULL)
+	{
+		return;
+	}
 	goto_layout(pLAYOUT(intercom));
 }
 
 static void home_monitor_btn_up(lv_obj_t *obj)
 {
+	if (home_backlight_task != NULL)
+	{
+		return;
+	}
 	monitor_channel_set(MON_CH_DOOR1);
 	monitor_enter_mask_set(MON_ENTER_MANUAL_DOOR);
 	goto_layout(pLAYOUT(camera));
@@ -119,16 +138,28 @@ static void home_monitor_btn_up(lv_obj_t *obj)
 
 static void home_initialize_btn_up(lv_obj_t *obj)
 {
+	if (home_backlight_task != NULL)
+	{
+		return;
+	}
 	goto_layout(pLAYOUT(init));
 }
 
 static void home_setting_btn_up(lv_obj_t *obj)
 {
+	if (home_backlight_task != NULL)
+	{
+		return;
+	}
 	goto_layout(pLAYOUT(setting));
 }
 
 static void home_standby_btn_up(lv_obj_t *obj)
 {
+	if (home_backlight_task != NULL)
+	{
+		return;
+	}
 	goto_layout(pLAYOUT(standby));
 }
 
@@ -181,6 +212,28 @@ static void home_standby_btn_create(lv_obj_t *parent)
 	common_img_btn_create(parent, home_btn_area[HOME_STANDBY_OBJ_ID], NULL, &btn_data, &info);
 }
 
+static void home_backlight_task_cb(lv_task_t *task)
+{
+	home_backlight_task = NULL;
+	backlight_enable(true);
+	lv_task_del(task);
+}
+
+static void home_backlight_task_create(void)
+{
+	if (home_backlight_task != NULL)
+	{
+		lv_task_del(home_backlight_task);
+		home_backlight_task = NULL;
+	}
+
+	home_backlight_task = lv_layout_task_create(home_backlight_task_cb,
+												HOME_BACKLIGHT_DELAY_MS,
+												LV_TASK_PRIO_LOW,
+												NULL);
+	home_backlight_task->clean_lock = false;
+}
+
 static void LAYOUT_ENTER_FUNC(home)
 {
 	printf("Entering home layout.\n");
@@ -196,10 +249,16 @@ static void LAYOUT_ENTER_FUNC(home)
 	home_standby_btn_create(parent);
 	setting_icon_create(parent);
 	top_time_date_text_create(parent);
+	home_backlight_task_create();
 }
 
 static void LAYOUT_QUIT_FUNC(home)
 {
+	if (home_backlight_task != NULL)
+	{
+		lv_task_del(home_backlight_task);
+		home_backlight_task = NULL;
+	}
 	
 	layout_sd_state_callback_register(layout_sdcard_state_change_default);
 	user_data_save();
