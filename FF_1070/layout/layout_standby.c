@@ -263,6 +263,12 @@ static void motion_delay_start_task(lv_task_t *task)
 		refresh_area_t area = {0, 0, 1024, 600};
 		gui_refresh_area(&area, 1);
 		layout_motion_monitor_open();
+		if (monitor_open(false, 0x01) == false)
+		{
+			printf("Motion detection monitor open failed.\n");
+			return;
+		}
+		video_input_skip_frame_count_set(15);
 
 		// 启动定时检查任务
 		motion_timing_check_task_t = lv_layout_task_create(motion_timing_check_task, 100, LV_TASK_PRIO_HIGH, NULL);
@@ -288,6 +294,8 @@ static void LAYOUT_ENTER_FUNC(standby)
 	standby_wakeup_in_progress = false;
 	standby_timer_close();
 	backlight_enable(false);
+	video_display_preview_enable(false);
+	lv_video_mode_enable(false);
 	fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
 	refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
 	gui_refresh_area(&area, 1);
@@ -320,6 +328,7 @@ static void LAYOUT_QUIT_FUNC(standby)
 	if (!standby_entering_motion_detection)
 	{
 		standby_motion_detection_stop_and_destroy();
+		monitor_close();
 	}
 	else
 	{
@@ -330,7 +339,6 @@ static void LAYOUT_QUIT_FUNC(standby)
 
 	obj_click_event_listen(lv_scr_act(), NULL);
 	standby_timer_restart(true);
-	lv_task_clean();
 }
 
 CREATE_LAYOUT(standby);

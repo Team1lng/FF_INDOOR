@@ -223,8 +223,6 @@ bool goto_layout(const layout *en_layout)
 	{
 		return false;
 	}
-	lv_task_clean();
-	lv_anim_del_all();
 	const layout *old_layout = playout;
 	playout = en_layout;
 	if ((old_layout != NULL) && (old_layout->quit != NULL))
@@ -232,6 +230,8 @@ bool goto_layout(const layout *en_layout)
 		old_layout->quit();
 		
 	}
+	lv_task_clean();
+	lv_anim_del_all();
 	lv_obj_clean(lv_scr_act());
 	refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
 	gui_refresh_area(&area, 1);

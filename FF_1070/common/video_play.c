@@ -47,6 +47,7 @@ static unsigned long long video_play_clock_base = 0;
 static int video_play_resume_video_index = 0;
 /***** 开启功放 *****/
 extern void power_amplifier_enable(bool);
+extern bool hook_state_get(void);
 extern void ring_volume_set(int vol);
 
 static int video_play_audio_frame_index_from_video(void)
@@ -321,8 +322,15 @@ bool video_play_start(const char *file)
 {
 	printf("===========>>>[%s]<<<===========\n", __func__);
 	pthread_mutex_lock(&video_play_mutex);
-	power_amplifier_enable(true);
 	ring_volume_set(2);
+	if (hook_state_get() == false)
+	{
+		power_amplifier_enable(true);
+	}
+	else
+	{
+		power_amplifier_enable(false);
+	}
 	if (video_play_status != VIDEO_PLAY_STATE_IDLE)
 	{
 		pthread_mutex_unlock(&video_play_mutex);
@@ -358,11 +366,7 @@ bool video_play_stop(void)
 	printf("===========>>>[%s]<<<===========\n", __func__);
 	pthread_mutex_lock(&video_play_mutex);
 	power_amplifier_enable(false);
-	if (video_play_status == VIDEO_PLAY_STATE_IDLE)
-	{
-		pthread_mutex_unlock(&video_play_mutex);
-		return false;
-	}
+	bool was_active = (video_play_status != VIDEO_PLAY_STATE_IDLE);
 	video_play_status = VIDEO_PLAY_STATE_IDLE;
 	video_play_resume_video_index = 0;
 	video_play_eof_flg = false;
@@ -384,7 +388,7 @@ bool video_play_stop(void)
 	video_display_preview_enable(false);
 
 	pthread_mutex_unlock(&video_play_mutex);
-	return true;
+	return was_active;
 }
 
 bool video_play_eof_check(void)

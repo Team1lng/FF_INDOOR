@@ -315,3 +315,35 @@ make clean
    问题：开启移动侦测后进入待机，移动侦测检查任务启动后会直接进入 “Motion detected” 跳转流程，没有先判断是否真正检测到移动，可能导致待机唤醒、内线来电或其它切页时被移动侦测流程抢占，出现闪帧、延迟响应或黑屏异常。
    涉及文件：`FF_1070/layout/layout_standby.c`
    修改内容：在 `motion_move_check_task()` 中增加 `motion_detection_check()` 判断；当没有检测到移动时直接返回，只有检测到真实移动后才清理延时任务/定时任务、设置 `standby_entering_motion_detection`，并进入移动侦测页面；保留内线忙碌时停止并销毁移动侦测资源的原有保护逻辑。
+
+### 20260709
+
+1. 视频回放退出待机后黑屏处理
+   问题：回放视频后挂断退到待机，重复几次后室内机可能一直黑屏；触摸有按键音、串口也有反应，说明主循环仍在，但显示层或 LVGL task 状态异常。
+   涉及文件：`FF_1070/common/video_play.c`、`FF_1070/layout/layout_standby.c`、`FF_1070/common/lv_msg_event.c`、`FF_1070/share/lvgl/src/lv_misc/lv_task.c`
+   修改内容：`video_play_stop()` 改为即使当前已经是 `VIDEO_PLAY_STATE_IDLE`，也会兜底关闭功放、关闭 AVI 句柄、恢复 JPEG 解码回调、关闭 `lv_video_mode_enable(false)` 和 `video_display_preview_enable(false)`，避免视频层残留影响 GUI 刷新；进入 standby 时增加关闭 video preview/video mode 和清黑 GUI 层；`goto_layout()` 调整为先执行旧页面 `quit()`，再做全局 task/动画/对象清理，避免页面自己的 task 指针被全局清理提前删掉后再次删除；修复 `lv_task_clean()` 遍历链表时边遍历边删除当前节点的问题，改为删除前先保存 next 节点，避免访问已释放 task 节点导致任务链表异常。
+
+2. 待机摘挂机不亮屏及功放异常处理
+   问题：待机黑屏时拿起话筒会亮屏，放下话筒会挂机黑屏；拿起话筒期间播放 call 铃声或视频文件，挂掉话筒时功放会瞬间打开，表现为声音突然放大。
+   涉及文件：`FF_1070/layout/layout_common.c`、`FF_1070/common/video_play.c`、`FF_1070/layout/layout_memory_video.c`
+   修改内容：`layout_hook_state_change_default()` 在 standby 页面收到摘机/挂机事件时只打印并返回，不再 `goto_layout(home)`，避免待机摘机亮屏；camera 页面挂机分支先停止铃声、关闭门口机铃声通道并关闭功放，再退 standby；`ring_play()` 增加摘机但非通话页面的保护，避免媒体或普通提示音在摘机状态主动打开功放；`video_play_start()` 根据 `hook_state_get()` 决定功放状态，摘机时保持功放关闭；`layout_memory_video` 退出时删除无条件 `power_amplifier_enable(true)`，避免视频页退出后把功放重新打开。
+
+3. 录像倒计时开锁时 UI 卡住修复
+   问题：监控界面正在录像倒计时时点击开锁，实际倒计时仍在运行，但界面上的倒计时数字会停住，直到开锁状态结束或界面切换后才恢复。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：`camera_record_video_count_down_task()` 不再用 `is_opening` 屏蔽录像倒计时 UI 刷新；开锁期间录像倒计时 label 和录像图标仍持续显示、更新并执行 `lv_obj_invalidate()`；录像结束或异常结束时也不再受开锁状态影响，统一隐藏倒计时 label、录像图标和相关提示对象，避免旧倒计时或提示残留。
+
+4. 待机移动侦测不触发修复
+   问题：进入待机后移动侦测看起来不触发；原因是 `motion_detection_check()` 依赖 `video_input_state_get() == true`，但 standby 移动侦测启动时只设置了监控通道，没有打开 VIN，导致没有视频帧可用于移动侦测。
+   涉及文件：`FF_1070/layout/layout_standby.c`
+   修改内容：在 `motion_delay_start_task()` 中设置移动侦测通道后调用 `monitor_open(false, 0x01)`，让待机黑屏状态下打开视频输入但不显示预览；移动侦测专用启动后把 `video_input_skip_frame_count_set(15)`，避免 `monitor_open()` 默认 1000 帧过滤导致长时间不检测；退出 standby 且不是进入移动侦测页面时调用 `monitor_close()`，避免待机后台视频输入残留。
+
+5. 移动侦测点击回 Home 闪旧画面修复
+   问题：进入移动侦测界面后点击屏幕返回 Home，正常流程应先黑屏再进入 Home，但实际在跳转到 Home 前会闪一下移动侦测旧画面，表现为 UI 残留。
+   涉及文件：`FF_1070/layout/layout_motion_detection.c`
+   修改内容：移动侦测背景点击回调中先取消屏幕点击回调、关闭背光、关闭 video preview、关闭 video mode、清黑 GUI 层并刷新整屏，再执行 `goto_layout(home)`；`LAYOUT_QUIT_FUNC(motion_detection)` 中也补充关闭 `lv_video_mode_enable(false)`，并统一执行 `monitor_close()` 和后续资源等待，避免点击回 Home 时跳过关闭等待导致视频层回刷旧帧。
+
+6. 拍照提示图概率残留修复
+   问题：监控界面拍照时，拍照提示图片有概率一直显示在屏幕上，直到退出监控界面才消失；开锁期间抓拍更容易出现，因为旧逻辑在 `is_opening == true` 时不隐藏抓拍提示。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：`camera_record_image_end_task()` 不再受 `is_opening` 限制；拍照结束任务触发后，只要抓拍提示图和提示容器存在，就直接隐藏并执行 `lv_obj_invalidate()`，随后清除 `is_recording` 并停止 `CAMERA_TASK_RECORD_IMAGE`，保证抓拍提示不会因为开锁状态或刷新窗口错过隐藏。

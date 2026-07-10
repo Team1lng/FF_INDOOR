@@ -218,11 +218,7 @@ bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg)
 	}
 	else if (cur_layout_get() == pLAYOUT(standby))
 	{
-		if (cmd == true)
-		{
-			printf("=============>>>  home \n");
-			goto_layout(pLAYOUT(home));
-		}
+		printf("=============>>> standby hook change ignored: %d\n", cmd);
 		return true;
 	}
 	else if (cur_layout_get() == pLAYOUT(camera))
@@ -260,6 +256,10 @@ bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg)
 		else
 		{
 			printf("=============>>> hung up \n");
+			ringplay_play_stop();
+			MON_CH ch = monitor_channel_get();
+			call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
+			power_amplifier_enable(false);
 			goto_layout(pLAYOUT(standby));
 		}
 	}
@@ -554,7 +554,18 @@ void monitor_display_color_vol_set(int vol)
 // 重新封装铃声播放函数
 void ring_play(int index, int volume, ringplay_callback start, ringplay_callback finish, bool loop)
 {
+	const layout *cur = cur_layout_get();
+	bool hook_media_play = hook_state_get() == true &&
+						   cur != pLAYOUT(camera) &&
+						   cur != pLAYOUT(intercom_in) &&
+						   cur != pLAYOUT(intercom_out) &&
+						   cur != pLAYOUT(intercom_talk);
+
 	if (user_data_get()->setting.inter_ring_volume == 0)
+	{
+		power_amplifier_enable(false);
+	}
+	else if (hook_media_play)
 	{
 		power_amplifier_enable(false);
 	}

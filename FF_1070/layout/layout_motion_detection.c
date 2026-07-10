@@ -519,8 +519,16 @@ static void standby_bg_click_event_cb(lv_obj_t *obj)
 {   
     printf("待机背景被点击，返回主界面\n");
     screen_clicked = true;
-    monitor_close();
-    lv_task_create(delay_backlight_open_task, 500, LV_TASK_PRIO_LOWEST, NULL);
+    obj_click_event_listen(lv_scr_act(), NULL);
+    backlight_enable(false);
+    video_display_preview_enable(false);
+    lv_video_mode_enable(false);
+    fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
+    lv_obj_clean(lv_scr_act());
+    {
+        refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
+        gui_refresh_area(&area, 1);
+    }
     goto_layout(pLAYOUT(home));
 }
 // 进入移动侦测界面
@@ -567,12 +575,12 @@ static void LAYOUT_ENTER_FUNC(motion_detection)
 static void LAYOUT_QUIT_FUNC(motion_detection)
 {
     printf("移动侦测：退出移动侦测界面\n");
-    bool need_monitor_close = (screen_clicked == false);
     screen_clicked = false;
 
     // 先隐藏当前画面，再做耗时的 VI/AI/VENC 释放，避免内线来电亮屏时露出移动侦测旧 UI。
     backlight_enable(false);
     video_display_preview_enable(false);
+    lv_video_mode_enable(false);
     fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
     lv_obj_clean(lv_scr_act());
     {
@@ -587,10 +595,7 @@ static void LAYOUT_QUIT_FUNC(motion_detection)
     audio_input_capture_enable(false);
     record_video_close();
     record_jpeg_close();
-    if (need_monitor_close)
-    {
-        monitor_close();
-    }
+    monitor_close();
 
     // 同步等待 VI/AI/VENC 设备彻底关闭，避免 quit 返回后 enter 并发操作资源
     {

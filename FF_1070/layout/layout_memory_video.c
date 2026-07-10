@@ -859,7 +859,6 @@ static void LAYOUT_QUIT_FUNC(memory_video)
     memory_video_play_state_task = NULL;
     memory_video_finish_handled = false;
     video_play_stop();
-    power_amplifier_enable(true);
 
     if (cur_layout_get() == pLAYOUT(camera))
     {

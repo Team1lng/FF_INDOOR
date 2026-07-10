@@ -179,7 +179,6 @@ static void camera_record_photo_video(REC_MODE mode);
 static void camera_record_photo_video_task(lv_task_t *task);
 static void camera_setting_window_display_enable(bool en);
 static void camera_display_delay_start(void);
-static void camera_channel_switch_delay_start(void);
 static void camera_switch_btn_create_display(void);
 static void camera_record_btn_create_display(void);
 static void camera_zoom_btn_create_display(void);
@@ -712,7 +711,6 @@ static void camera_door_call_switch(MON_CH target_ch, int tone_index)
 
 	if (current_ch != target_ch)
 	{
-		camera_channel_switch_delay_start();
 		video_display_preview_enable(false);
 		lv_video_mode_enable(false);
 		video_input_resident_bzero();
@@ -747,7 +745,6 @@ static void camera_door_call_switch(MON_CH target_ch, int tone_index)
 		}
 
 		video_display_preview_enable(true);
-		camera_channel_switch_delay_start();
 	}
 
 	camera_timeout_value_reset();
@@ -938,10 +935,15 @@ static void camera_record_image_end_task(void)
 {
 	lv_obj_t *capture_img = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_CAPTURE_PROMPT_IMG_ID);
 	lv_obj_t *obj1 = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_PROMPT_MESSAGE_ION_ID);
-	if (!is_opening && capture_img != NULL)
+	if (capture_img != NULL)
 	{
 		lv_obj_set_hidden(capture_img, true);
+		lv_obj_invalidate(capture_img);
+	}
+	if (obj1 != NULL)
+	{
 		lv_obj_set_hidden(obj1, true);
+		lv_obj_invalidate(obj1);
 	}
 	is_recording = false;
 	user_data_get()->new_photo_file_flag = true;
@@ -958,17 +960,25 @@ static void camera_record_video_count_down_task(void)
 		video_record_status_get() == false ||
 		video_input_state_get() == false)
 	{
-		if (!is_opening && obj != NULL)
+		if (obj != NULL)
 		{
-			lv_obj_set_hidden(obj, true);   
-            lv_obj_set_hidden(obj1, true);  
-			lv_obj_set_hidden(rec_bg, true); 
+			lv_obj_set_hidden(obj, true);
+		}
+		if (obj1 != NULL)
+		{
+			lv_obj_set_hidden(obj1, true);
+		}
+		if (rec_bg != NULL)
+		{
+			lv_obj_set_hidden(rec_bg, true);
+		}
+		if (obj != NULL)
+		{
 			lv_obj_t *video_icon_obj = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_PROMPT_MESSAGE_ION_ID);
 			if (video_icon_obj != NULL)
 			{
 				lv_obj_set_hidden(video_icon_obj, true);
 			}
-			lv_obj_set_hidden(rec_bg, true);
 		}
 		// 若SD卡已插入，标记「有新媒体文件」
 		if (media_sdcard_insert_check())
@@ -990,10 +1000,13 @@ static void camera_record_video_count_down_task(void)
 		return;
 	}
 	camera_ticker_task_restart(CAMERA_TASK_RECORD_VIDEO);
-	if (!is_opening && obj != NULL)
+	if (obj != NULL)
 	{
 		lv_obj_set_hidden(obj, false);
-		lv_obj_set_hidden(rec_bg, false);
+		if (rec_bg != NULL)
+		{
+			lv_obj_set_hidden(rec_bg, false);
+		}
 		if (user_data_get()->setting.language == LANG_ENGLISH)
 		{
 			lv_label_set_text_fmt(obj, "%02d", camera_record_video_count_down);
@@ -1001,6 +1014,11 @@ static void camera_record_video_count_down_task(void)
 		else
 		{
 			lv_label_set_text_fmt(obj, "%02d ", camera_record_video_count_down);
+		}
+		lv_obj_invalidate(obj);
+		if (rec_bg != NULL)
+		{
+			lv_obj_invalidate(rec_bg);
 		}
 	}
 }
@@ -2416,13 +2434,6 @@ static void camera_display_delay_mask_start(int delay_count, bool wait_video_rea
 static void camera_display_delay_start(void)
 {
 	camera_display_delay_mask_start(CAMERA_DISPLAY_DELAY, true, false);
-}
-
-static void camera_channel_switch_delay_start(void)
-{
-	// Door call channel switching should not create an LVGL black object:
-	// it can cover camera UI. The video layer is blacked by disabling preview
-	// and clearing the resident video buffer during the switch.
 }
 
 static void layout_camera_open_btn_func(void)
