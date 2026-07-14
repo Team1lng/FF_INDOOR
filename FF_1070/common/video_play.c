@@ -111,8 +111,14 @@ static void video_play_device_open(void)
 		audio_output_open(AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_8000);
 		audio_output_device_restart();
 		audido_output_volume_set(60);
-		/***** 执行用户回调函数 *****/
-		power_amplifier_enable(true);
+		if (hook_state_get() == false)
+		{
+			power_amplifier_enable(true);
+		}
+		else
+		{
+			power_amplifier_enable(false);
+		}
 	}
 
 	if (video_play_resume_video_index > 0)
@@ -322,9 +328,9 @@ bool video_play_start(const char *file)
 {
 	printf("===========>>>[%s]<<<===========\n", __func__);
 	pthread_mutex_lock(&video_play_mutex);
-	ring_volume_set(2);
 	if (hook_state_get() == false)
 	{
+		ring_volume_set(2);
 		power_amplifier_enable(true);
 	}
 	else

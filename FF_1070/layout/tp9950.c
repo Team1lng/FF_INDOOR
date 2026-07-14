@@ -908,10 +908,10 @@ static bool video_isp_core_open(TP9950_FORMAT fmt)
 		param.sub_width = 512; // 640;
 		param.sub_hight = 288; // 288;
 
-		param.main_crop_width = 960;
-		param.main_crop_hight = 288;
-		param.main_crop_pos_x = 0;
-		param.main_crop_pos_y = 0;
+		param.main_crop_width = 940;
+		param.main_crop_hight = 248;	//288;
+		param.main_crop_pos_x = 10;
+		param.main_crop_pos_y = 20;
 
 		param.fps = 25;
 		break;

@@ -139,11 +139,28 @@ static bool thumb_media_jpg_load(const char *file)
 		return false;
 	}
 	unsigned char *data = (unsigned char *)ak_mem_alloc(MODULE_ID_VDEC, size);
-	read(fd, data, size);
+	if (data == NULL)
+	{
+		close(fd);
+		return false;
+	}
+
+	int read_len = 0;
+	while (read_len < size)
+	{
+		int len = read(fd, data + read_len, size - read_len);
+		if (len <= 0)
+		{
+			close(fd);
+			ak_mem_free(data);
+			return false;
+		}
+		read_len += len;
+	}
 	close(fd);
-	jpg_decode_stream_write(data, size);
+	bool result = jpg_decode_stream_write(data, size);
 	ak_mem_free(data);
-	return true;
+	return result;
 }
 /***
 **   日期:2022-05-23 11:36:52
@@ -243,17 +260,25 @@ bool thumb_media_load(int x, int y, int w, int h, const char *file)
 	thumb_media_pos_y = y;
 	thumb_media_pos_w = w;
 	thumb_media_pos_h = h;
+	bool loaded;
 	if (type != FILE_TYPE_VIDEO)
 	{
-		thumb_media_jpg_load(file);
+		loaded = thumb_media_jpg_load(file);
 	}
 	else
 	{
-		thumb_media_video_load(file);
+		loaded = thumb_media_video_load(file);
+	}
+	if (loaded == false)
+	{
+		thumb_media_decode_finish = true;
+		return false;
 	}
 	if (thumb_media_decode_finish_wait() == false)
 	{
 		printf("thumb media wait decode finish tiemout ... \n");
+		jpg_decode_buffer_clear();
+		thumb_media_decode_finish = true;
 		return false;
 	}
 	return true;

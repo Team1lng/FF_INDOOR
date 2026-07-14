@@ -178,6 +178,7 @@ static void camera_bg_btn_click_enable(bool en);
 static void camera_record_photo_video(REC_MODE mode);
 static void camera_record_photo_video_task(lv_task_t *task);
 static void camera_setting_window_display_enable(bool en);
+static void camera_setting_window_close_for_action(void);
 static void camera_display_delay_start(void);
 static void camera_switch_btn_create_display(void);
 static void camera_record_btn_create_display(void);
@@ -346,6 +347,9 @@ static void camera_channel_switch_internal(MON_CH target_ch)
 	{
 		call_ring_to_outdoor_ctrl(current_ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
 	}
+	/* Clear the old door-talk route before selecting the next video channel. */
+	door_audio_talk(AUDIO_CH_CLOSE);
+	camera_in_talk_state = false;
 
 	// 停铃声
 	if (ringplay_ing_check() == true)
@@ -370,6 +374,19 @@ static void camera_channel_switch_internal(MON_CH target_ch)
 		usleep(10 * 1000);
 	}
 	video_display_preview_enable(true);
+
+	/* A raised handset may talk only to a door station, never to CCTV. */
+	if (hook_state_get() == true && (target_ch == MON_CH_DOOR1 || target_ch == MON_CH_DOOR2))
+	{
+		door_audio_talk(target_ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2);
+		monitor_enter_mask_set(MON_ENTER_TALK);
+		camera_in_talk_state = true;
+	}
+	else
+	{
+		door_audio_talk(AUDIO_CH_CLOSE);
+	}
+	camera_last_hook_state = hook_state_get();
 
 	// 刷新UI
 	camera_head_channel_label_flush();
@@ -1734,6 +1751,8 @@ static void camera_record_photo_video(REC_MODE mode)
 	if (video_input_state_get() == false || is_recording == true)
 		return;
 	printf("=============>> record_mode : [%d] \n", user_data_get()->setting.record_mode);
+	/* Transient capture/record prompts must not overlap the color window. */
+	camera_setting_window_close_for_action();
 	
     // 获取UI对象指针
     lv_obj_t *msg_label = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_PROMPT_MESSAGE_LABEL_ID);
@@ -1753,15 +1772,8 @@ static void camera_record_photo_video(REC_MODE mode)
 		return;
 	}
     
-    // 刷新区域
-	if (setting_win_diaplay_flag == true)
-	{
-		layout_monitor_refresh_5();
-	}
-	else
-	{
-		layout_monitor_refresh_2();
-	}
+    // The color window has already been hidden before showing the prompt.
+	layout_monitor_refresh_2();
     
     // ========== 抓拍模式 (或无SD卡) ==========
 	if (user_data_get()->setting.record_mode == RECORD_MODE_IMAGE || media_sdcard_insert_check() == false)
@@ -1823,6 +1835,8 @@ static void camera_record_btn_up(lv_obj_t *obj)
 	// 防止拍照未完成时点击录像，或录像中重复点击
 	if (video_input_state_get() == false || is_recording == true)
 		return;
+
+	camera_setting_window_close_for_action();
 
 	lv_obj_t *msg_label = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_PROMPT_MESSAGE_LABEL_ID);
 	lv_obj_t *rec_bg = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_RECORDING_BG_IMG_ID);
@@ -1888,14 +1902,9 @@ static void camera_zoom_btn_up(lv_obj_t *obj)
 	// layout_monitor_refresh_3();
 	if (video_input_state_get() == false || is_recording == true)
 		return;
-	if (setting_win_diaplay_flag == true)
-	{
-		layout_monitor_refresh_5();
-	}
-	else
-	{
-		layout_monitor_refresh_2();
-	}
+
+	camera_setting_window_close_for_action();
+	layout_monitor_refresh_2();
 	lv_obj_t *capture_img = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_CAPTURE_PROMPT_IMG_ID);
 	if (record_jpeg_start(REC_MODE_MANUAL) == true)
 	{
@@ -1941,15 +1950,35 @@ static void camera_setting_window_display_enable(bool en)
 	if (win == NULL)
 		return;
 
-	lv_obj_t *cont = lv_obj_get_child_form_id(win, CAMERA_BRIGHTNESS_CONT_ID);
-	lv_slider_set_value((lv_obj_t *)(cont->user_data), monitor_display_brightness_vol_get(), LV_ANIM_OFF);
-	cont = lv_obj_get_child_form_id(win, CAMERA_COLOR_CONT_ID);
-	lv_slider_set_value((lv_obj_t *)(cont->user_data), monitor_display_color_vol_get(), LV_ANIM_OFF);
-	cont = lv_obj_get_child_form_id(win, CAMERA_CONTRAST_CONT_ID);
-	lv_slider_set_value((lv_obj_t *)(cont->user_data), monitor_display_cont_vol_get(), LV_ANIM_OFF);
+	if (en)
+	{
+		lv_obj_t *cont = lv_obj_get_child_form_id(win, CAMERA_BRIGHTNESS_CONT_ID);
+		if (cont != NULL && cont->user_data != NULL)
+		{
+			lv_slider_set_value((lv_obj_t *)(cont->user_data), monitor_display_brightness_vol_get(), LV_ANIM_OFF);
+		}
+		cont = lv_obj_get_child_form_id(win, CAMERA_COLOR_CONT_ID);
+		if (cont != NULL && cont->user_data != NULL)
+		{
+			lv_slider_set_value((lv_obj_t *)(cont->user_data), monitor_display_color_vol_get(), LV_ANIM_OFF);
+		}
+		cont = lv_obj_get_child_form_id(win, CAMERA_CONTRAST_CONT_ID);
+		if (cont != NULL && cont->user_data != NULL)
+		{
+			lv_slider_set_value((lv_obj_t *)(cont->user_data), monitor_display_cont_vol_get(), LV_ANIM_OFF);
+		}
+	}
 
-	layout_monitor_refresh_4();
 	lv_obj_set_hidden(win, !en);
+	layout_monitor_refresh_4();
+}
+
+static void camera_setting_window_close_for_action(void)
+{
+	if (setting_win_diaplay_flag == true)
+	{
+		camera_setting_window_display_enable(false);
+	}
 }
 
 static void camera_hang_up_btn_click(lv_obj_t *obj)
@@ -1975,15 +2004,8 @@ static void camera_open_btn_up(lv_obj_t *obj)
 	MON_CH ch = monitor_channel_get();
 	if ((is_opening) || (ch == MON_CH_CCTV1 || ch == MON_CH_CCTV2 || (video_input_state_get() == false)))
 		return;
-	if (setting_win_diaplay_flag == true)
-	{
-		camera_setting_window_display_enable(false);
-		layout_monitor_refresh_5();
-	}
-	else
-	{
-		layout_monitor_refresh_2();
-	}
+	camera_setting_window_close_for_action();
+	layout_monitor_refresh_2();
 	lv_obj_t *unlock_img = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_UNLOCK_PROMPT_IMG_ID);
 	if (unlock_img != NULL)
 	{
@@ -2256,7 +2278,6 @@ static void LAYOUT_ENTER_FUNC(camera)
 }
 static void LAYOUT_QUIT_FUNC(camera)
 {
-	// 隐藏通道标签，避免切换到内线等界面时残留CCTV文字
 	{
 		lv_obj_t *ch_obj = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_HEAD_CH_LABEL_ID);
 		if (ch_obj != NULL) lv_obj_set_hidden(ch_obj, true);

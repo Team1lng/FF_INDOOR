@@ -116,7 +116,7 @@ bool motion_detection_start(void)
 		printf("The device has been activated for motion detection \n");
 		return false;
 	}
-	motion_detection_skip_frame = 10;
+	motion_detection_skip_frame = 3;
 	is_motion_detection_start = true;
 	is_motion_detection_move = false;
 	return true;

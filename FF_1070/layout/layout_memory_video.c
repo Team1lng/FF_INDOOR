@@ -45,6 +45,7 @@ static int memory_video_timeout_val = 60;
 static bool func_btn_diaplay_flag = true;
 static bool memory_video_finish_handled = false;
 static bool memory_video_delete_dialog_active = false;
+static bool memory_video_sdcard_removing = false;
 static lv_task_t *memory_video_timeout_task = NULL;
 static lv_task_t *memory_video_play_state_task = NULL;
 static lv_obj_t *dim_mask = NULL;
@@ -800,7 +801,20 @@ static void memory_video_sdcard_state_change_event_cb(void)
     }
     else
     {
-        goto_layout(pLAYOUT(home));
+        if (memory_video_sdcard_removing == true)
+        {
+            return;
+        }
+
+        memory_video_sdcard_removing = true;
+        memory_bg_btn_click_enable(false);
+        memory_video_timeout_task_stop();
+        memory_video_play_state_task_stop();
+
+        /* Stop all SD-backed playback before the layout is destroyed. */
+        video_play_stop();
+        video_input_resident_bzero();
+        goto_layout(pLAYOUT(memory_video));
     }
 }
 
@@ -817,6 +831,7 @@ static void LAYOUT_ENTER_FUNC(memory_video)
 {
     lv_obj_click_down_callback_register(memory_video_click_down_func);
     printf("come in memory_video\n");
+    memory_video_sdcard_removing = false;
 
     lv_obj_t *parent = lv_scr_act();
     video_head_label_create(parent);

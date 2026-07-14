@@ -347,3 +347,30 @@ make clean
    问题：监控界面拍照时，拍照提示图片有概率一直显示在屏幕上，直到退出监控界面才消失；开锁期间抓拍更容易出现，因为旧逻辑在 `is_opening == true` 时不隐藏抓拍提示。
    涉及文件：`FF_1070/layout/layout_camera.c`
    修改内容：`camera_record_image_end_task()` 不再受 `is_opening` 限制；拍照结束任务触发后，只要抓拍提示图和提示容器存在，就直接隐藏并执行 `lv_obj_invalidate()`，随后清除 `is_recording` 并停止 `CAMERA_TASK_RECORD_IMAGE`，保证抓拍提示不会因为开锁状态或刷新窗口错过隐藏。
+
+### 20260713
+
+1. 监控画面调节窗口与拍照/录像提示重叠修复
+   问题：监控界面打开色彩、亮度、对比度调节窗口后，仍可触发抓拍、录像或开锁；原流程只刷新局部区域而没有关闭调节窗口，导致滑块窗口与抓拍相机图、录像提示或开锁提示同时显示，并可能留下旧图层。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：新增 `camera_setting_window_close_for_action()`，在自动抓拍、手动抓拍、手动录像和开锁前统一关闭画面调节窗口；调节窗口显示函数调整为先更新对象隐藏状态再刷新对应区域，并为亮度、色彩、对比度滑块容器增加空指针保护，避免窗口对象未完整创建时访问异常。
+
+2. 摘机状态下监控切换门口机通话修复
+   问题：拿起话筒进入监控后，当前门口机可以直接对讲；切换到另一台门口机时，原对讲路由已关闭但目标通道没有重新建立通话，导致切换后无声音。切换到 CCTV 时也必须确保不能保留门口机对讲。
+   涉及文件：`FF_1070/layout/layout_camera.c`
+   修改内容：`camera_channel_switch_internal()` 切换前统一关闭旧门口机对讲路由并清除当前通话状态；切换完成后仅当听筒仍处于拿起状态且目标通道为 `DOOR1/DOOR2` 时，调用对应 `door_audio_talk()` 建立目标门口机通话并同步通话状态；目标为 `CCTV1/CCTV2` 或听筒已放下时保持音频关闭。
+
+3. 视频媒体页 SD 卡状态切换资源清理
+   问题：视频媒体页收到 SD 卡拔出事件时，如果播放状态任务、超时任务或视频缓冲仍在运行，页面切换期间可能继续访问已经失效的 SD 媒体资源。
+   涉及文件：`FF_1070/layout/layout_memory_video.c`
+   修改内容：新增 `memory_video_sdcard_removing` 防止重复拔卡事件重复进入切页流程；拔卡处理先禁用页面操作、停止超时和播放状态任务，调用 `video_play_stop()` 关闭媒体播放，再清理视频显示缓冲后刷新媒体页面；重新进入视频页时复位该状态标志。
+
+4. SD 图片循环播放拔卡概率死机修复
+   问题：SD 图片循环播放时拔卡，定时任务可能已经进入下一张图片加载；文件索引会失效，JPEG 解码可能读取到不完整数据。日志表现为 `mmcblk0 error -110`、`JPEGDEC_INCREASE_INPUT_BUFFER`、`thumb media wait decode finish timeout` 和 `find sd media index failed`，随后可能访问空的图片信息导致死机。
+   涉及文件：`FF_1070/layout/layout_memory_photo.c`、`FF_1070/common/media_thumb.c`
+   修改内容：新增统一的 `memory_photo_sdcard_exit()`，在拔卡回调、循环播放任务、下一张翻页和图片加载入口复用，停止循环/超时任务、关闭 JPEG 缩略图解码、重置索引并退出到媒体列表；图片加载前增加 SD 状态和 `media_file_info_get()` 返回值检查，避免空指针访问；`thumb_media_jpg_load()` 增加内存分配及完整读取校验，SD 读取失败或短读时不再把残缺数据送入 JPEG 解码器；缩略图解码启动失败或等待超时时清理解码缓存并返回失败，由图片页立即结束 SD 图片播放流程。
+
+5. 移动侦测拍照图标常驻显示优化
+   问题：移动侦测设置为拍照模式，或未插 SD 卡自动降级为拍照时，进入移动侦测页面后拍照图标一直显示，不符合实际“触发一次拍照”的状态，也影响界面观感。
+   涉及文件：`FF_1070/layout/layout_motion_detection.c`
+   修改内容：拍照模式创建移动侦测页面时默认隐藏拍照图标；`record_jpeg_start(REC_MODE_MOTION)` 成功后才调用 `motion_detection_photo_icon_flash()` 短暂显示拍照图标；现有拍照结束任务触发时隐藏并刷新图标。录像模式继续常驻显示录像图标和倒计时，不改变原录像提示逻辑。

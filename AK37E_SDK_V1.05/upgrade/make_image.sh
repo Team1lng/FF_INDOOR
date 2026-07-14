@@ -51,7 +51,7 @@ make_squashfs_images()
 copy_uboot_kernel_images()
 {
         cp  ../os/ubd/u-boot.bin                                                platform/
-        cp  ../os/kbd/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_TABA.dtb        platform/
+        cp  ../os/kbd/arch/arm/boot/dts/EVB_CBDM_AK3760E_V1.0.1_FF.dtb          platform/
         cp  ../os/kbd/arch/arm/boot/uImage                                      platform/
 }
 
@@ -75,10 +75,10 @@ images_compress()
 {
         # cp ../rootfs/scripts/flash/update.nor.sh        platform/update.sh
         # cp upgrade_progress/upgrade_progress            platform/
-        # rm -rf SAT_TABA2070OS
+        # rm -rf SAT_FFOS
         # cd platform/
-        # tar -zcvf SAT_TABA2070OS *
-        # mv SAT_TABA2070OS ../
+        # tar -zcvf SAT_FFOS *
+        # mv SAT_FFOS ../
         # cd ../
         ./partition_image.sh
 }
@@ -96,4 +96,3 @@ copy_uboot_kernel_images
 copy_env_logo_images
 
 images_compress
-

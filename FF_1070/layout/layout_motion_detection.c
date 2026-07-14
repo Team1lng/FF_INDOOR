@@ -33,6 +33,7 @@ static void camera_sdcard_state_display_flush(void);
 static void camera_head_monitor_count_label_create(lv_obj_t *parent);
 static void camera_head_time_display_flush(void);
 static void camera_head_monitor_count_flush(void);
+static void motion_detection_photo_icon_flash(void);
 
 // 全局状态变量
 static bool is_recording = false;
@@ -133,6 +134,13 @@ static void camera_record_image_end_task(void)
 
     // 拍照完成后立即设置标志，但不退出
     user_data_get()->new_photo_file_flag = true;
+
+    lv_obj_t *record_icon_obj = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_RECORD_ICON_LABEL_ID);
+    if (is_photo_mode == true && record_icon_obj != NULL)
+    {
+        lv_obj_set_hidden(record_icon_obj, true);
+        lv_obj_invalidate(record_icon_obj);
+    }
 
     // 停止拍照结束任务，启动拍照倒计时任务
     motion_ticker_task_stop(MOTION_TASK_RECORD_IMAGE);
@@ -302,12 +310,25 @@ static void motion_detection_record_state_display_flush(void)
     if (user_data_get()->motion.saving_fmt == 0 || (!media_sdcard_insert_check()))
     { // 拍照模式
         lv_obj_set_style_local_pattern_image(record_icon_obj, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &info_photo);
+        lv_obj_set_hidden(record_icon_obj, true);
     }
     else
     { // 录像模式
         lv_obj_set_style_local_pattern_image(record_icon_obj, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &info_record);
+        lv_obj_set_hidden(record_icon_obj, false);
     }
+}
+
+static void motion_detection_photo_icon_flash(void)
+{
+    lv_obj_t *record_icon_obj = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_RECORD_ICON_LABEL_ID);
+    if (record_icon_obj == NULL)
+        return;
+
+    static rom_bin_info info_photo = rom_bin_info_get(ROM_UI_CAMERA_MOTION_DETECTION_PHOTO_PNG);
+    lv_obj_set_style_local_pattern_image(record_icon_obj, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &info_photo);
     lv_obj_set_hidden(record_icon_obj, false);
+    lv_obj_invalidate(record_icon_obj);
 }
 // 创建拍照/录制图标
 static void motion_detection_record_icon_create(lv_obj_t *parent)
@@ -436,6 +457,7 @@ static void camera_auto_record(void)
             printf("移动侦测：自动拍照启动成功\n");
             is_recording = true;
             is_photo_mode = true;
+            motion_detection_photo_icon_flash();
 
             // 设置倒计时时间（使用配置的录像时长）
             camera_record_video_count_down = get_record_duration_seconds();

@@ -52,6 +52,7 @@ static lv_obj_t *dim_mask = NULL;
 static lv_task_t *memory_photo_timeout_task = NULL;
 static lv_task_t *photo_play_task_t = NULL;
 static bool func_btn_diaplay_flag = true;
+static bool memory_photo_sdcard_removing = false;
 extern int photo_index_get(void);
 extern void photo_index_set(int index);
 extern void photo_total_set(int index);
@@ -72,6 +73,8 @@ extern void video_index_reset(void);
 static void layout_memory_photo_load(void);
 static void memory_photo_param_init(void);
 static void photo_next_btn_up(lv_obj_t *obj);
+static void memory_bg_btn_click_enable(bool en);
+static void memory_photo_sdcard_exit(void);
 
 // 复位显示倒计时
 void memory_photo_timeout_value_reset(void)
@@ -353,7 +356,13 @@ static void memory_photo_timeout_task_start(void)
 
 static void photo_play_task(lv_task_t *task_t)
 {
-	photo_next_btn_up(NULL);
+	if (photo_file_type == FILE_TYPE_PHOTO && media_sdcard_insert_check() == false)
+	{
+		memory_photo_sdcard_exit();
+		return;
+	}
+
+    photo_next_btn_up(NULL);
 }
 static void memory_func_btn_diaplay_enable(bool en)
 {
@@ -406,6 +415,12 @@ static void photo_play_btn_create(lv_obj_t *parent)
 
 static void photo_next_btn_up(lv_obj_t *obj)
 {
+	if (photo_file_type == FILE_TYPE_PHOTO && media_sdcard_insert_check() == false)
+	{
+		memory_photo_sdcard_exit();
+		return;
+	}
+
     memory_photo_user_activity_reset();
     if (photo_total <= 1)
         return;
@@ -569,15 +584,38 @@ static void photo_delete_btn_create(lv_obj_t *parent)
 
 static void layout_memory_photo_load(void)
 {
+	if (photo_file_type == FILE_TYPE_PHOTO && media_sdcard_insert_check() == false)
+	{
+		memory_photo_sdcard_exit();
+		return;
+	}
+
 	thumb_media_buffer_clear();
 	const file_info *pinfo = media_file_info_get(photo_file_type, photo_index_new);
+	if (pinfo == NULL)
+	{
+		printf("load photo info failed: type=%d index=%d\n", photo_file_type, photo_index_new);
+		if (photo_file_type == FILE_TYPE_PHOTO)
+		{
+			memory_photo_sdcard_exit();
+		}
+		return;
+	}
 	char file[128] = {0};
 	strcpy(file, photo_file_path);
 	strcat(file, pinfo->file_name);
 
 	printf("=================>> 图片索引:[%d]   索引:[%d]   文件路径:[%s] \n", photo_index_new, media_index, file);
 
-	thumb_media_load(0, 0, 1024, 600, file);
+	if (thumb_media_load(0, 0, 1024, 600, file) == false)
+	{
+		printf("load photo failed: %s\n", file);
+		if (photo_file_type == FILE_TYPE_PHOTO)
+		{
+			memory_photo_sdcard_exit();
+		}
+		return;
+	}
 	printf("======%d=======[][][%d]\n",pinfo->is_new, photo_index_new);
 	if (pinfo->is_new == true)
 	{
@@ -637,8 +675,42 @@ static void memory_photo_param_init(void)
 	layout_memory_photo_load();
 }
 
+static void memory_photo_sdcard_exit(void)
+{
+	if (memory_photo_sdcard_removing == true)
+	{
+		return;
+	}
+
+	memory_photo_sdcard_removing = true;
+	memory_bg_btn_click_enable(false);
+	if (photo_play_task_t != NULL)
+	{
+		lv_task_del(photo_play_task_t);
+		photo_play_task_t = NULL;
+	}
+	if (memory_photo_timeout_task != NULL)
+	{
+		lv_task_del(memory_photo_timeout_task);
+		memory_photo_timeout_task = NULL;
+	}
+
+	/* Stop JPEG decoding before another task can access the removed SD card. */
+	thumb_media_close();
+	photo_index_reset();
+	video_index_reset();
+	photo_index_set(0);
+	goto_layout(pLAYOUT(photo_list));
+}
+
 static void memory_photo_sdcard_state_change_event_cb(void)
 {
+	if (media_sdcard_insert_check() == false && photo_file_type == FILE_TYPE_PHOTO)
+	{
+		memory_photo_sdcard_exit();
+		return;
+	}
+
 	photo_index_reset();
 	video_index_reset();
 	photo_index_set(0);
@@ -648,6 +720,7 @@ static void memory_photo_sdcard_state_change_event_cb(void)
 static void LAYOUT_ENTER_FUNC(memory_photo)
 {
 	printf("come in memory_photo\n");
+	memory_photo_sdcard_removing = false;
 	// standby_timer_close();
 	lv_obj_t *parent = lv_scr_act();
 
