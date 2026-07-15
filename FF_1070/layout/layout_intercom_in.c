@@ -347,7 +347,11 @@ static void intercom_ring_play_start_fun(int index)
 
 static void intercom_ring_play_finish_fun(int index)
 {
-    power_amplifier_enable(false);
+    if (cur_layout_get() == pLAYOUT(intercom_in) &&
+        intercom_state_get() == INTERCOM_STATE_CALLING_IN)
+    {
+        power_amplifier_enable(false);
+    }
 }
 
 /* ---------------------------------------------------------------

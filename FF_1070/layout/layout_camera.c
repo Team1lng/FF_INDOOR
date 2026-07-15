@@ -9,7 +9,10 @@
 
 #define CAMERA_AUTO_RECORD_ENABLE 0 // 开启自动连续拍照、录像，测试用
 #define CAMERA_DISPLAY_DELAY 2		// 监控显示延时（20*100ms=2秒）
-#define CAMERA_SWITCH_DISPLAY_DELAY 12 // 门口机切通道黑屏延时（12*100ms）
+#define CAMERA_CALL_RING_DELAY_MS 500
+#define CAMERA_CALL_RECORD_SETTLE_MS 100
+#define CAMERA_CALL_RECORD_WAIT_TIMEOUT_MS 2000
+#define CAMERA_CALL_RING_RECHECK_MS 50
 #define CAMERA_VIDEO_MASK_X 0
 #define CAMERA_VIDEO_MASK_Y 70
 #define CAMERA_VIDEO_MASK_W 1024
@@ -181,6 +184,7 @@ static void camera_setting_window_display_enable(bool en);
 static void camera_setting_window_close_for_action(void);
 static void camera_capture_prompt_hide(void);
 static void camera_display_delay_start(void);
+static void camera_display_delay_mask_start(int delay_count, bool wait_video_ready, bool video_only);
 static void camera_switch_btn_create_display(void);
 static void camera_record_btn_create_display(void);
 static void camera_zoom_btn_create_display(void);
@@ -208,6 +212,9 @@ static bool camera_display_delay_control_backlight = true;
 static int camera_record_video_count_down = 15;
 static lv_task_t *camera_display_delay_task_t = NULL;
 static lv_task_t *camera_call_auto_record_task_t = NULL;
+static lv_task_t *camera_call_ring_delay_task_t = NULL;
+static unsigned long long camera_call_ring_not_before = 0;
+static unsigned long long camera_call_record_wait_deadline = 0;
 static bool camera_in_talk_state = false;
 static bool camera_last_hook_state = false;
 static bool camera_call_ring_active = false;
@@ -311,6 +318,92 @@ static bool camera_auto_record_ready(void)
 	return video_input_state_get() == true && is_recording == false;
 }
 
+static void camera_channel_transient_ui_reset(void)
+{
+	camera_ticker_task_stop(CAMERA_TASK_RECORD_VIDEO);
+	camera_ticker_task_stop(CAMERA_TASK_RECORD_IMAGE);
+	camera_ticker_task_stop(CAMERA_TASK_UNLOCK);
+
+	if (camera_call_auto_record_task_t != NULL)
+	{
+		lv_task_del(camera_call_auto_record_task_t);
+		camera_call_auto_record_task_t = NULL;
+	}
+
+	camera_record_video_count_down = 15;
+	camera_setting_window_close_for_action();
+	camera_capture_prompt_hide();
+
+	lv_obj_t *msg_label = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_PROMPT_MESSAGE_LABEL_ID);
+	lv_obj_t *prompt_icon = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_PROMPT_MESSAGE_ION_ID);
+	lv_obj_t *record_bg = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_RECORDING_BG_IMG_ID);
+	lv_obj_t *unlock_img = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_UNLOCK_PROMPT_IMG_ID);
+	lv_obj_t *record_btn = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_RECORD_BTN_ID);
+	lv_obj_t *open_btn = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_OPEN_BTN_ID);
+
+	if (msg_label != NULL)
+	{
+		lv_obj_set_hidden(msg_label, true);
+		lv_label_set_text(msg_label, "");
+	}
+	if (prompt_icon != NULL)
+	{
+		lv_obj_set_hidden(prompt_icon, true);
+	}
+	if (record_bg != NULL)
+	{
+		lv_obj_set_hidden(record_bg, true);
+	}
+	if (unlock_img != NULL)
+	{
+		lv_obj_set_hidden(unlock_img, true);
+	}
+	if (record_btn != NULL)
+	{
+		static rom_bin_info record_info = rom_bin_info_get(ROM_UI_CAMERA_VIDEO_PNG);
+		lv_obj_set_style_local_pattern_image(record_btn, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &record_info);
+	}
+	if (open_btn != NULL)
+	{
+		static rom_bin_info open_info = rom_bin_info_get(ROM_UI_CAMERA_LOCK_PNG);
+		lv_obj_set_style_local_pattern_image(open_btn, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &open_info);
+	}
+}
+
+static void camera_channel_transient_resource_close(void)
+{
+	if (video_record_status_get() == true)
+	{
+		record_video_close();
+	}
+	if (mjpeg_encode_status_get() == true)
+	{
+		record_jpeg_close();
+	}
+	if (is_opening == true)
+	{
+		monitor_unlcok_close();
+	}
+
+	is_recording = false;
+	is_opening = false;
+}
+
+static void camera_channel_switch_ui_prepare(MON_CH target_ch)
+{
+	video_display_preview_enable(false);
+	lv_video_mode_enable(false);
+	video_input_resident_bzero();
+	monitor_channel_set(target_ch);
+
+	camera_head_channel_label_flush();
+	camera_channel_ui_refresh();
+
+	/* Present the target UI before record_video_close() waits for AVI finalization. */
+	lv_refr_now(NULL);
+	screen_force_refresh();
+}
+
 // 页内切换监控通道，不走 goto_layout(camera) 避免 quit/enter 交织导致死机
 static void camera_channel_switch_internal(MON_CH target_ch)
 {
@@ -319,40 +412,7 @@ static void camera_channel_switch_internal(MON_CH target_ch)
 	{
 		return;
 	}
-	// 停止当前录像/拍照，切换通道直接取消录制
-	if (video_record_status_get() == true)
-	{
-		camera_ticker_task_stop(CAMERA_TASK_RECORD_VIDEO);
-		record_video_close();
-		// 清理录像UI
-		{
-			lv_obj_t *obj = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_PROMPT_MESSAGE_LABEL_ID);
-			lv_obj_t *obj1 = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_PROMPT_MESSAGE_ION_ID);
-			lv_obj_t *rec_bg = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_RECORDING_BG_IMG_ID);
-			if (obj)  lv_obj_set_hidden(obj, true);
-			if (obj1) lv_obj_set_hidden(obj1, true);
-			if (rec_bg) lv_obj_set_hidden(rec_bg, true);
-			// 恢复录制按钮图标
-			lv_obj_t *record_btn = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_RECORD_BTN_ID);
-			if (record_btn) {
-				static rom_bin_info info = rom_bin_info_get(ROM_UI_CAMERA_VIDEO_PNG);
-				lv_obj_set_style_local_pattern_image(record_btn, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &info);
-			}
-		}
-	}
-	if (mjpeg_encode_status_get() == true)
-	{
-		camera_ticker_task_stop(CAMERA_TASK_RECORD_IMAGE);
-		record_jpeg_close();
-	}
-	camera_capture_prompt_hide();
-	is_recording = false;
-
-	// 关闭设置窗口
-	if (setting_win_diaplay_flag == true)
-	{
-		camera_setting_window_display_enable(false);
-	}
+	camera_channel_transient_ui_reset();
 
 	// 关闭当前通道音频
 	if (current_ch == MON_CH_DOOR1 || current_ch == MON_CH_DOOR2)
@@ -369,14 +429,9 @@ static void camera_channel_switch_internal(MON_CH target_ch)
 		ringplay_play_stop();
 	}
 
-	// 关闭视频预览，清理缓冲区
-	video_display_preview_enable(false);
-	video_input_resident_bzero();
-	fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
-	layout_monitor_refresh_1();
-
-	// 切换通道
-	monitor_channel_set(target_ch);
+	// 先显示目标通道UI和黑色视频区域，再等待旧录像文件关闭。
+	camera_channel_switch_ui_prepare(target_ch);
+	camera_channel_transient_resource_close();
 	monitor_open(false, 0x03);
 
 	// 等待VI设备就绪
@@ -399,10 +454,6 @@ static void camera_channel_switch_internal(MON_CH target_ch)
 		door_audio_talk(AUDIO_CH_CLOSE);
 	}
 	camera_last_hook_state = hook_state_get();
-
-	// 刷新UI
-	camera_head_channel_label_flush();
-	camera_channel_ui_refresh();
 
 	// 强制显示图标并重启自动隐藏计时器
 	camera_func_btn_diaplay_enable(true);
@@ -589,6 +640,11 @@ static void door_call_auto_camere(lv_task_t *task)
 	if (camera_auto_record_ready() == true)
 	{
 		camera_call_auto_record_start();
+		unsigned long long audio_ready_time = user_timestamp_get() + CAMERA_CALL_RECORD_SETTLE_MS;
+		if (camera_call_ring_not_before < audio_ready_time)
+		{
+			camera_call_ring_not_before = audio_ready_time;
+		}
 		camera_call_auto_record_task_t = NULL;
 		lv_task_del(task);
 		return;
@@ -665,6 +721,77 @@ static void camera_call_ring_play(int index)
 	ringplay_play_form_index(index, 100, ringplay_doorcall_start_default_func, layout_camera_callring_finish_default_func, false);
 }
 
+static void camera_call_ring_delay_task(lv_task_t *task)
+{
+	if (task != camera_call_ring_delay_task_t)
+	{
+		lv_task_del(task);
+		return;
+	}
+
+	camera_call_ring_delay_task_t = NULL;
+	unsigned long long now = user_timestamp_get();
+	if (camera_call_auto_record_task_t != NULL)
+	{
+		if (now < camera_call_record_wait_deadline)
+		{
+			camera_call_ring_delay_task_t = task;
+			lv_task_set_period(task, CAMERA_CALL_RING_RECHECK_MS);
+			return;
+		}
+
+		lv_task_del(camera_call_auto_record_task_t);
+		camera_call_auto_record_task_t = NULL;
+	}
+	if (now < camera_call_ring_not_before)
+	{
+		camera_call_ring_delay_task_t = task;
+		lv_task_set_period(task, CAMERA_CALL_RING_RECHECK_MS);
+		return;
+	}
+
+	if (cur_layout_get() == pLAYOUT(camera) &&
+		monitor_enter_mask_get() == MON_ENTER_CALL &&
+		hook_state_get() == false)
+	{
+		MON_CH ch = monitor_channel_get();
+		if (ch == MON_CH_DOOR1)
+		{
+			camera_call_ring_play(user_data_get()->setting.door1_tone);
+		}
+		else if (ch == MON_CH_DOOR2)
+		{
+			camera_call_ring_play(user_data_get()->setting.door2_tone);
+		}
+	}
+	lv_task_del(task);
+}
+
+static void camera_call_ring_delay_task_create(void)
+{
+	if (camera_call_ring_delay_task_t != NULL)
+	{
+		lv_task_del(camera_call_ring_delay_task_t);
+	}
+	unsigned long long now = user_timestamp_get();
+	camera_call_ring_not_before = now + CAMERA_CALL_RING_DELAY_MS;
+	camera_call_record_wait_deadline = now + CAMERA_CALL_RECORD_WAIT_TIMEOUT_MS;
+	camera_call_ring_delay_task_t = lv_layout_task_create(camera_call_ring_delay_task,
+											CAMERA_CALL_RING_DELAY_MS,
+											LV_TASK_PRIO_MID, NULL);
+}
+
+static void camera_call_ring_delay_task_cancel(void)
+{
+	if (camera_call_ring_delay_task_t != NULL)
+	{
+		lv_task_del(camera_call_ring_delay_task_t);
+		camera_call_ring_delay_task_t = NULL;
+	}
+	camera_call_ring_not_before = 0;
+	camera_call_record_wait_deadline = 0;
+}
+
 static bool camera_call_ring_should_replay(void)
 {
 	return camera_call_ring_active == true &&
@@ -675,6 +802,7 @@ static bool camera_call_ring_should_replay(void)
 
 static void camera_call_ring_cancel(void)
 {
+	camera_call_ring_delay_task_cancel();
 	camera_call_ring_active = false;
 	camera_call_ring_answered = true;
 	camera_call_ring_ignore_finish_count = 0;
@@ -704,6 +832,7 @@ static void camera_hook_answer_call(void)
 	{
 		return;
 	}
+	camera_call_ring_delay_task_cancel();
 
 	camera_call_ring_active = false;
 	camera_call_ring_answered = true;
@@ -723,11 +852,8 @@ static void camera_hook_answer_call(void)
 static void camera_door_call_switch(MON_CH target_ch, int tone_index)
 {
 	MON_CH current_ch = monitor_channel_get();
-
-	if (setting_win_diaplay_flag == true)
-	{
-		camera_setting_window_display_enable(false);
-	}
+	camera_call_ring_delay_task_cancel();
+	camera_setting_window_close_for_action();
 
 	monitor_valid_channel_set(target_ch, true);
 	monitor_enter_mask_set(MON_ENTER_CALL);
@@ -745,30 +871,9 @@ static void camera_door_call_switch(MON_CH target_ch, int tone_index)
 
 	if (current_ch != target_ch)
 	{
-		video_display_preview_enable(false);
-		lv_video_mode_enable(false);
-		video_input_resident_bzero();
-		monitor_channel_set(target_ch);
-
-		// 先切到目标门口机 UI，视频区域保持黑底，避免停在旧通道画面等待新视频。
-		camera_head_channel_label_flush();
-		camera_channel_ui_refresh();
-		screen_force_refresh();
-
-		// 停止当前通道的录像/拍照，新呼叫重新开始录制；短于3s的旧录像会被自动丢弃
-		if (video_record_status_get() == true)
-		{
-			camera_ticker_task_stop(CAMERA_TASK_RECORD_VIDEO);
-			record_video_close();
-		}
-		if (mjpeg_encode_status_get() == true)
-		{
-			camera_ticker_task_stop(CAMERA_TASK_RECORD_IMAGE);
-			record_jpeg_close();
-		}
-		is_recording = false;
-		camera_call_auto_record_task_create();
-
+		camera_channel_transient_ui_reset();
+		camera_channel_switch_ui_prepare(target_ch);
+		camera_channel_transient_resource_close();
 		monitor_open(false, 0x03);
 
 		// 等待VI设备就绪后直接开启预览；VI关闭时已清过缓冲区，重开后跳帧保证首帧干净
@@ -779,6 +884,7 @@ static void camera_door_call_switch(MON_CH target_ch, int tone_index)
 		}
 
 		video_display_preview_enable(true);
+		camera_call_auto_record_task_create();
 	}
 
 	camera_timeout_value_reset();
@@ -2048,6 +2154,10 @@ static void camera_open_btn_up(lv_obj_t *obj)
 	if (camera_call_ring_active == true || ringplay_ing_check() == true)
 	{
 		camera_call_ring_ignore_finish_count++;
+	}
+	if (camera_call_ring_active == true || ringplay_ing_check() == true ||
+		camera_call_ring_delay_task_t != NULL)
+	{
 		camera_call_ring_cancel();
 	}
 	call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, true);
@@ -2237,8 +2347,6 @@ static void LAYOUT_ENTER_FUNC(camera)
 	lv_obj_click_down_callback_register(layout_camera_click_down_func);
 	layout_gate_open_callback_register(layout_camera_open_btn_func);
 
-	ak_sleep_ms(500); // 延时播放铃声，ai打开的同时，铃声开始播放，会有顿一下
-
 	// camera_auto_record_task_create();
 	/*启动定时任务*/
 	camera_ticker_task_create();
@@ -2248,21 +2356,16 @@ static void LAYOUT_ENTER_FUNC(camera)
 	{
 		// lv_task_t *pt = lv_layout_task_create(camera_door_call_ring_play_timer, 100, LV_TASK_PRIO_MID, NULL);
 		// lv_task_set_repeat_count(pt, 30);
-		MON_CH ch = monitor_channel_get();
 		// if (call_record_start(true, ch, 0))
 		// {
 		// 	printf("Call record created for door station 1\n");
 		// }
 		printf("user_data_get()->setting.inter_ring_volume = %d\n", user_data_get()->setting.inter_ring_volume);
-		if (ch == MON_CH_DOOR1)
-		{
-			camera_call_ring_play(user_data_get()->setting.door1_tone);
-		}
-		else if (ch == MON_CH_DOOR2)
-		{
-			camera_call_ring_play(user_data_get()->setting.door2_tone);
-		}
 		camera_call_auto_record_task_create();
+		if (hook_state_get() == false)
+		{
+			camera_call_ring_delay_task_create();
+		}
 	}
 	if (hook_state_get() == true)
 	{

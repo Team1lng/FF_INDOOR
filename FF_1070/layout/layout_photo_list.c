@@ -979,6 +979,7 @@ static void setting_icon_create(lv_obj_t *parent)
 static void LAYOUT_ENTER_FUNC(photo_list)
 {
     // printf("============================enter_photo_list\n");
+    power_amplifier_enable(true);
     media_list_sdcard_removing = false;
     file_type_photo=FILE_TYPE_FLASH_PHOTO;
     user_data_get()->new_photo_file_flag = false;
@@ -1083,6 +1084,7 @@ static void LAYOUT_QUIT_FUNC(photo_list)
     photo_page = NULL;
     video_page = NULL;
     // last_selected_btn_id = PHOTO_LIST_FLASH_PHOTO_BTN_ID;
+    layout_media_power_amplifier_release();
 }
 
 CREATE_LAYOUT(photo_list);

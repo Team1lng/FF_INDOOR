@@ -820,7 +820,12 @@ static void memory_video_sdcard_state_change_event_cb(void)
 
 static void memory_video_click_down_func(lv_obj_t *obj)
 {
-    if (video_play_status_get() == VIDEO_PLAY_STATE_PLAY)
+    if (obj == lv_obj_get_child_form_id(lv_scr_act(), MEMORY_PLAY_BTN_ID))
+    {
+        return;
+    }
+
+    if (video_play_status_get() != VIDEO_PLAY_STATE_IDLE)
     {
         return;
     }
@@ -829,6 +834,7 @@ static void memory_video_click_down_func(lv_obj_t *obj)
 
 static void LAYOUT_ENTER_FUNC(memory_video)
 {
+    power_amplifier_enable(true);
     lv_obj_click_down_callback_register(memory_video_click_down_func);
     printf("come in memory_video\n");
     memory_video_sdcard_removing = false;
@@ -891,6 +897,7 @@ static void LAYOUT_QUIT_FUNC(memory_video)
         video_index_set(0);
     }
     thumb_media_close();
+    layout_media_power_amplifier_release();
 }
 
 CREATE_LAYOUT(memory_video);

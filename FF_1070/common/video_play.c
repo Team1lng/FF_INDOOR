@@ -45,9 +45,6 @@ static bool video_play_has_audio = false;
 static unsigned long long video_play_clock_base = 0;
 /***** 暂停恢复时的视频帧位置 *****/
 static int video_play_resume_video_index = 0;
-/***** 开启功放 *****/
-extern void power_amplifier_enable(bool);
-extern bool hook_state_get(void);
 extern void ring_volume_set(int vol);
 
 static int video_play_audio_frame_index_from_video(void)
@@ -111,14 +108,6 @@ static void video_play_device_open(void)
 		audio_output_open(AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_8000);
 		audio_output_device_restart();
 		audido_output_volume_set(60);
-		if (hook_state_get() == false)
-		{
-			power_amplifier_enable(true);
-		}
-		else
-		{
-			power_amplifier_enable(false);
-		}
 	}
 
 	if (video_play_resume_video_index > 0)
@@ -328,15 +317,7 @@ bool video_play_start(const char *file)
 {
 	printf("===========>>>[%s]<<<===========\n", __func__);
 	pthread_mutex_lock(&video_play_mutex);
-	if (hook_state_get() == false)
-	{
-		ring_volume_set(2);
-		power_amplifier_enable(true);
-	}
-	else
-	{
-		power_amplifier_enable(false);
-	}
+	ring_volume_set(2);
 	if (video_play_status != VIDEO_PLAY_STATE_IDLE)
 	{
 		pthread_mutex_unlock(&video_play_mutex);
@@ -371,15 +352,22 @@ bool video_play_stop(void)
 {
 	printf("===========>>>[%s]<<<===========\n", __func__);
 	pthread_mutex_lock(&video_play_mutex);
-	power_amplifier_enable(false);
 	bool was_active = (video_play_status != VIDEO_PLAY_STATE_IDLE);
+	bool had_audio = video_play_has_audio;
 	video_play_status = VIDEO_PLAY_STATE_IDLE;
 	video_play_resume_video_index = 0;
 	video_play_eof_flg = false;
+	if (had_audio == true)
+	{
+		audio_output_device_restart();
+		audio_output_close();
+	}
+	video_play_has_audio = false;
 	if (avi_handle_id != NULL)
 	{
 		video_play_device_close();
 	}
+	jpg_decode_buffer_clear();
 	if (old_decode_finish_func != NULL)
 	{
 		jpg_decode_read_frame_func_register(old_decode_finish_func);

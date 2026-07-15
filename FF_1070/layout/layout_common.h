@@ -190,6 +190,7 @@ lv_obj_t *memory_delete_box_create(lv_obj_t *parent, obj_click_data *yes_btn_dat
 // lv_obj_t *setting_left_icon_create(lv_obj_t *parent,layout_lang_id id);
 
 void ring_play(int index, int volume, ringplay_callback start, ringplay_callback finish, bool loop);
+void layout_media_power_amplifier_release(void);
 void get_curr_relesse_date(int *day, int *month, int *year);
 
 #endif

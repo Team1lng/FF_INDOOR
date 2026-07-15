@@ -247,6 +247,18 @@ bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg)
 		printf("=============>>> standby hook change ignored: %d\n", cmd);
 		return true;
 	}
+	else if (cur_layout_get() == pLAYOUT(photo_list) ||
+			 cur_layout_get() == pLAYOUT(memory_video))
+	{
+		if (cmd == true)
+		{
+			power_amplifier_enable(true);
+		}
+		else
+		{
+			goto_layout(pLAYOUT(standby));
+		}
+	}
 	else if (cur_layout_get() == pLAYOUT(camera))
 	{
 		if (cmd)
@@ -600,6 +612,23 @@ void ring_play(int index, int volume, ringplay_callback start, ringplay_callback
 		power_amplifier_enable(true);
 	}
 	ringplay_play_form_index(index, volume, start, finish, loop);
+}
+
+void layout_media_power_amplifier_release(void)
+{
+	const layout *next = cur_layout_get();
+	bool keep_enabled = next == pLAYOUT(photo_list) ||
+						next == pLAYOUT(memory_video) ||
+						next == pLAYOUT(camera) ||
+						next == pLAYOUT(calling) ||
+						next == pLAYOUT(intercom_in) ||
+						next == pLAYOUT(intercom_out) ||
+						next == pLAYOUT(intercom_talk);
+
+	if (keep_enabled == false)
+	{
+		power_amplifier_enable(false);
+	}
 }
 
 // 文件列表图标按键创建
