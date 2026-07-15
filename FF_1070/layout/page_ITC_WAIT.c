@@ -38,6 +38,28 @@
 #include "layout_define.h" 
 #include <stdio.h>
 
+static bool intercom_incoming_busy_by_layout(void)
+{
+    return cur_layout_get() == pLAYOUT(camera);
+}
+
+static bool intercom_reject_if_busy_by_layout(const char *from)
+{
+    if (!intercom_incoming_busy_by_layout())
+    {
+        return false;
+    }
+
+    printf("[intercom_cb] %s: local monitor active, reject incoming intercom\n", from);
+    intercom_state_set(INTERCOM_STATE_IDLE);
+    intercom_hangup_flag_get_and_clear();
+    intercom_remote_ack_get_and_clear();
+    intercom_busy_flag_get_and_clear();
+    intercom_unack_flag_get_and_clear();
+    MsgCallBusyRefuse();
+    return true;
+}
+
 void IntercomSwitchAudioChannel(unsigned char ch)
 {
     switch (ch) {
@@ -96,6 +118,11 @@ unsigned long IntercomGetTimerMsec(void)
 void Out_ACKFun(void)
 {
     printf("[intercom_cb] Out_ACKFun: RP_HANDSHAKE sent, UI ready\n");
+
+    if (intercom_reject_if_busy_by_layout("Out_ACKFun"))
+    {
+        return;
+    }
 
     /*
      * 告知底层"UI 页面已就绪"
@@ -242,6 +269,12 @@ void IntercomUnAckFun(void)
 void IDLE_ACKFun(void)
 {
     printf("[intercom_cb] IDLE_ACKFun: callee ring, post intercom_in via msg queue\n");
+    if (intercom_reject_if_busy_by_layout("IDLE_ACKFun"))
+    {
+        return;
+    }
+
     intercom_number_set((unsigned int)GetCalledCallerNumber());
+    intercom_state_set(INTERCOM_STATE_CALLING_IN);
     lv_msg_send_cmd(MSG_EVENT_CMD_INCOMING_INTERCOM_CALL, 0, 0);
 }

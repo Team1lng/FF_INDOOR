@@ -71,7 +71,10 @@ bool thumb_media_open(void)
 		return false;
 	}
 	thumb_media_decode_finish = true;
-	jpg_decode_open(thumb_media_thume_decode_func);
+	if (jpg_decode_open(thumb_media_thume_decode_func) == false)
+	{
+		return false;
+	}
 	// h264_decode_open(thumb_media_thume_decode_func);
 	thumb_media_buffer = video_input_resident_buffer_get(NULL);
 	static rom_bin_info img = rom_bin_raw_get();

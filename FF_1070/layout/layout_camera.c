@@ -179,6 +179,7 @@ static void camera_record_photo_video(REC_MODE mode);
 static void camera_record_photo_video_task(lv_task_t *task);
 static void camera_setting_window_display_enable(bool en);
 static void camera_setting_window_close_for_action(void);
+static void camera_capture_prompt_hide(void);
 static void camera_display_delay_start(void);
 static void camera_switch_btn_create_display(void);
 static void camera_record_btn_create_display(void);
@@ -228,6 +229,16 @@ static void camera_capture_prompt_img_create(lv_obj_t *parent)
 	lv_img_set_zoom(img, LV_IMG_ZOOM_NONE);
 	lv_img_set_angle(img, 0);
 	lv_img_set_pivot(img, 0, 0);
+}
+
+static void camera_capture_prompt_hide(void)
+{
+	lv_obj_t *capture_img = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_CAPTURE_PROMPT_IMG_ID);
+	if (capture_img != NULL)
+	{
+		lv_obj_set_hidden(capture_img, true);
+		lv_obj_invalidate(capture_img);
+	}
 }
 
 static void camera_unlock_prompt_img_create(lv_obj_t *parent)
@@ -334,6 +345,7 @@ static void camera_channel_switch_internal(MON_CH target_ch)
 		camera_ticker_task_stop(CAMERA_TASK_RECORD_IMAGE);
 		record_jpeg_close();
 	}
+	camera_capture_prompt_hide();
 	is_recording = false;
 
 	// 关闭设置窗口
@@ -677,6 +689,11 @@ static void camera_call_ring_finish_cleanup(void)
 	camera_call_ring_ignore_finish_count = 0;
 	power_amplifier_enable(false);
 	MON_CH ch = monitor_channel_get();
+	if (video_record_status_get() == true && (ch == MON_CH_DOOR1 || ch == MON_CH_DOOR2))
+	{
+		monitor_record_pin_enable(true);
+		return;
+	}
 	call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
 }
 
@@ -804,6 +821,12 @@ static void camera_unlock_ring_finish_func(int index)
 	}
 
 	power_amplifier_enable(false);
+	if (video_record_status_get() == true && (ch == MON_CH_DOOR1 || ch == MON_CH_DOOR2))
+	{
+		monitor_record_pin_enable(true);
+		return;
+	}
+
 	call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
 }
 #endif
@@ -1627,6 +1650,7 @@ static void camera_color_btn_up(lv_obj_t *obj)
 	}
 	else
 	{
+		camera_capture_prompt_hide();
 		camera_setting_window_display_enable(true);
 		// camera_func_btn_diaplay_enable(false);
 		camera_bg_btn_click_enable(true);

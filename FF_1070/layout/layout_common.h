@@ -46,6 +46,7 @@ void layout_door2_call_default(void);
 ** 返回参数说明：
 ***/
 void layout_incoming_intercom_call_default(void);
+void layout_motion_detection_prepare_intercom_in(void);
 void layout_call_camera_default(void);
 /***
 ** 日期: 2022-05-12 10:27

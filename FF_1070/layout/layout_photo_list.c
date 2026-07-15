@@ -60,6 +60,7 @@ static int video_list_curr_page_num = 1;
 // 通用删除相关
 static file_type delete_file_type = FILE_TYPE_NONE;
 static int start_angle = 270;// 加载圆弧的起始角度
+static bool media_list_sdcard_removing = false;
 
 // UI容器相关
 static lv_obj_t *main_func_cont = NULL;    
@@ -774,6 +775,26 @@ static void media_list_delete_no_btn_up(lv_obj_t *obj)
     }
 }
 
+static void media_list_delete_dialog_close(void)
+{
+    int dialog_id = 0;
+
+    if (last_selected_btn_id == PHOTO_LIST_VIDEO_BTN_ID)
+    {
+        dialog_id = LAYOUT_MEMORY_LANG_DELETE_ALL_VIDEO_ID;
+    }
+    else if (last_selected_btn_id == PHOTO_LIST_SD_PHOTO_BTN_ID)
+    {
+        dialog_id = LAYOUT_MEMORY_LANG_DELETE_ALL_PICTURE_ID;
+    }
+
+    if (dialog_id != 0 &&
+        lv_obj_get_child_form_id(lv_scr_act(), dialog_id + 1) != NULL)
+    {
+        setting_msgdialog_msg_bg_delete(dialog_id);
+    }
+}
+
 // 通用删除按钮回调
 static void media_list_delete_btn_up(lv_obj_t *obj)
 {
@@ -885,6 +906,23 @@ static void list_no_sd_create(lv_obj_t *parent)
 
 static void media_list_sdcard_state_change_func(void)
 {
+    if (media_sdcard_insert_check() == false &&
+        last_selected_btn_id != PHOTO_LIST_FLASH_PHOTO_BTN_ID)
+    {
+        if (media_list_sdcard_removing == true)
+        {
+            return;
+        }
+
+        media_list_sdcard_removing = true;
+        delete_file_type = FILE_TYPE_NONE;
+        exit_time_count = 0;
+        media_list_delete_dialog_close();
+        layout_sd_state_callback_register(NULL);
+        goto_layout(pLAYOUT(home));
+        return;
+    }
+
     // 重新初始化媒体参数
     photo_play_parameter_init();
     video_play_parameter_init();
@@ -941,6 +979,7 @@ static void setting_icon_create(lv_obj_t *parent)
 static void LAYOUT_ENTER_FUNC(photo_list)
 {
     // printf("============================enter_photo_list\n");
+    media_list_sdcard_removing = false;
     file_type_photo=FILE_TYPE_FLASH_PHOTO;
     user_data_get()->new_photo_file_flag = false;
     photo_play_parameter_init();
@@ -1021,6 +1060,7 @@ static void LAYOUT_QUIT_FUNC(photo_list)
     }
     
     layout_sd_state_callback_register(NULL);
+    media_list_delete_dialog_close();
     if ((cur_layout != pLAYOUT(memory_photo)) && (cur_layout != pLAYOUT(memory_video)) && (cur_layout != pLAYOUT(photo_list))) {
         photo_index_set(0);
         video_index_set(0);

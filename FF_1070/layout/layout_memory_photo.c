@@ -51,8 +51,11 @@ static int memory_photo_timeout_val = MEMORY_PHOTO_TIMEOUT_DURATION;
 static lv_obj_t *dim_mask = NULL;
 static lv_task_t *memory_photo_timeout_task = NULL;
 static lv_task_t *photo_play_task_t = NULL;
+static lv_task_t *memory_photo_delete_action_task = NULL;
+static lv_obj_t *memory_photo_delete_box = NULL;
 static bool func_btn_diaplay_flag = true;
 static bool memory_photo_sdcard_removing = false;
+static bool memory_photo_delete_confirmed = false;
 extern int photo_index_get(void);
 extern void photo_index_set(int index);
 extern void photo_total_set(int index);
@@ -75,6 +78,8 @@ static void memory_photo_param_init(void);
 static void photo_next_btn_up(lv_obj_t *obj);
 static void memory_bg_btn_click_enable(bool en);
 static void memory_photo_sdcard_exit(void);
+static void photo_delete_action_task(lv_task_t *task_t);
+static void memory_photo_reload_after_delete(void);
 
 // 复位显示倒计时
 void memory_photo_timeout_value_reset(void)
@@ -490,35 +495,94 @@ static void memory_bg_btn_click_enable(bool en)
 	}
 }
 
-static void photo_delete_yes_btn_up(lv_obj_t *obj)
+static void memory_photo_delete_dialog_destroy(void)
 {
-	memory_photo_user_activity_reset();
+	printf("[photo_delete] destroy dialog=%p mask=%p\n", (void *)memory_photo_delete_box, (void *)dim_mask);
 	if (dim_mask != NULL)
 	{
 		lv_obj_del(dim_mask);
 		dim_mask = NULL;
 	}
-	media_file_delete(photo_file_type, photo_index_new);
-	photo_index_set(photo_index_get() - 1);
-	goto_layout(pLAYOUT(memory_photo));
+
+	if (memory_photo_delete_box != NULL)
+	{
+		lv_obj_del(memory_photo_delete_box);
+		memory_photo_delete_box = NULL;
+	}
 }
-static void photo_delete_no_btn_up(lv_obj_t *obj)
+
+static void memory_photo_delete_btn_enable(void)
 {
-	memory_photo_user_activity_reset();
-	memory_bg_btn_click_enable(true);
-	if (dim_mask != NULL)
-	{
-		lv_obj_del(dim_mask);
-		dim_mask = NULL;
-	}
-	lv_obj_t *btn_area = obj->parent;
-	lv_obj_t *msg_box_cont = btn_area->parent;
-	lv_obj_del(msg_box_cont);
 	memory_photo_btn_click_set(MEMORY_HOME_BTN_ID, true);
 	memory_photo_btn_click_set(MEMORY_PREV_BTN_ID, true);
 	memory_photo_btn_click_set(MEMORY_PLAY_BTN_ID, true);
 	memory_photo_btn_click_set(MEMORY_NEXT_BTN_ID, true);
 	memory_photo_btn_click_set(MEMORY_DELETE_BTN_ID, true);
+}
+
+static void photo_delete_action_task(lv_task_t *task_t)
+{
+	printf("[photo_delete] task enter task=%p expected=%p confirmed=%d\n",
+		   (void *)task_t, (void *)memory_photo_delete_action_task, memory_photo_delete_confirmed);
+	if (task_t != memory_photo_delete_action_task)
+	{
+		lv_task_del(task_t);
+		return;
+	}
+
+	memory_photo_delete_action_task = NULL;
+	lv_task_del(task_t);
+	memory_photo_delete_dialog_destroy();
+
+	if (memory_photo_delete_confirmed == true)
+	{
+		printf("[photo_delete] task reload current page\n");
+		memory_photo_reload_after_delete();
+		printf("[photo_delete] task reload current page returned\n");
+		return;
+	}
+
+	printf("[photo_delete] task cancel restore controls\n");
+	memory_bg_btn_click_enable(true);
+	memory_photo_delete_btn_enable();
+}
+
+static void photo_delete_action_task_start(bool confirmed)
+{
+	if (memory_photo_delete_action_task != NULL)
+	{
+		printf("[photo_delete] task already pending=%p\n", (void *)memory_photo_delete_action_task);
+		return;
+	}
+
+	memory_photo_delete_confirmed = confirmed;
+	/* Defer dialog deletion until the button event has returned. */
+	memory_photo_delete_action_task = lv_task_create(photo_delete_action_task, 1, LV_TASK_PRIO_HIGH, NULL);
+	printf("[photo_delete] task schedule confirmed=%d task=%p dialog=%p mask=%p\n",
+		   confirmed, (void *)memory_photo_delete_action_task,
+		   (void *)memory_photo_delete_box, (void *)dim_mask);
+}
+
+static void photo_delete_yes_btn_up(lv_obj_t *obj)
+{
+	printf("[photo_delete] confirm type=%d index=%d page_index=%d\n",
+		   photo_file_type, photo_index_new, photo_index_get());
+	memory_photo_user_activity_reset();
+	bool deleted = media_file_delete(photo_file_type, photo_index_new);
+	printf("[photo_delete] media_file_delete result=%d\n", deleted);
+	if (deleted == true)
+	{
+		photo_index_set(photo_index_get() - 1);
+	}
+
+	/* Defer screen cleanup until this button event has completely returned. */
+	photo_delete_action_task_start(true);
+}
+static void photo_delete_no_btn_up(lv_obj_t *obj)
+{
+	printf("[photo_delete] cancel\n");
+	memory_photo_user_activity_reset();
+	photo_delete_action_task_start(false);
 }
 static void create_dim_mask()
 {
@@ -556,7 +620,9 @@ static void photo_delete_btn_up(lv_obj_t *obj)
 	create_dim_mask();
 	static obj_click_data btn_data = obj_click_data_up_create(photo_delete_yes_btn_up);
 	static obj_click_data btn_data1 = obj_click_data_up_create(photo_delete_no_btn_up);
-	memory_delete_box_create(lv_scr_act(), &btn_data, &btn_data1, LAYOUT_MEMORY_LANG_DELETE_PICTURE_ID);
+	memory_photo_delete_box = memory_delete_box_create(lv_scr_act(), &btn_data, &btn_data1, LAYOUT_MEMORY_LANG_DELETE_PICTURE_ID);
+	lv_obj_move_foreground(dim_mask);
+	lv_obj_move_foreground(memory_photo_delete_box);
 }
 // 创建delete按钮
 static void photo_delete_btn_create(lv_obj_t *parent)
@@ -626,6 +692,62 @@ static void layout_memory_photo_load(void)
 	lv_obj_invalidate(lv_scr_act());
 }
 
+static void memory_photo_reload_after_delete(void)
+{
+	if (photo_file_type == FILE_TYPE_PHOTO && media_sdcard_insert_check() == false)
+	{
+		memory_photo_sdcard_exit();
+		return;
+	}
+
+	if ((media_sdcard_insert_check() == true) && (photo_file_type == FILE_TYPE_PHOTO))
+	{
+		sd_media_all_file_total_get(&media_total, NULL);
+	}
+	else
+	{
+		media_file_total_get(photo_file_type, &media_total, NULL);
+	}
+
+	media_file_total_get(photo_file_type, &photo_total, NULL);
+	printf("[photo_delete] reload media_total=%d photo_total=%d page_index=%d\n",
+		   media_total, photo_total, photo_index_get());
+
+	if (photo_total <= 0)
+	{
+		photo_index_reset();
+		video_index_reset();
+		photo_index_set(0);
+		goto_layout(pLAYOUT(photo_list));
+		return;
+	}
+
+	if (photo_index_get() < 0)
+	{
+		photo_index_set(0);
+	}
+	else if (photo_index_get() >= photo_total)
+	{
+		photo_index_set(photo_total - 1);
+	}
+
+	photo_index_new = photo_total - photo_index_get() - 1;
+	if (photo_index_new < 0)
+	{
+		photo_index_new = 0;
+	}
+	else if (photo_index_new >= photo_total)
+	{
+		photo_index_new = photo_total - 1;
+	}
+
+	memory_bg_btn_click_enable(true);
+	memory_photo_delete_btn_enable();
+	memory_photo_delete_confirmed = false;
+	layout_memory_photo_load();
+	memory_photo_user_activity_reset();
+}
+
 static void memory_photo_param_init(void)
 {
 	if ((media_sdcard_insert_check() == true) && (photo_state_get() == FILE_TYPE_PHOTO))
@@ -677,6 +799,8 @@ static void memory_photo_param_init(void)
 
 static void memory_photo_sdcard_exit(void)
 {
+	printf("[memory_photo_sd] remove enter removing=%d action_task=%p\n",
+		   memory_photo_sdcard_removing, (void *)memory_photo_delete_action_task);
 	if (memory_photo_sdcard_removing == true)
 	{
 		return;
@@ -700,12 +824,17 @@ static void memory_photo_sdcard_exit(void)
 	photo_index_reset();
 	video_index_reset();
 	photo_index_set(0);
+	printf("[memory_photo_sd] remove goto photo_list\n");
 	goto_layout(pLAYOUT(photo_list));
+	printf("[memory_photo_sd] remove goto photo_list returned\n");
 }
 
 static void memory_photo_sdcard_state_change_event_cb(void)
 {
-	if (media_sdcard_insert_check() == false && photo_file_type == FILE_TYPE_PHOTO)
+	bool inserted = media_sdcard_insert_check();
+	printf("[memory_photo_sd] event inserted=%d type=%d action_task=%p\n",
+		   inserted, photo_file_type, (void *)memory_photo_delete_action_task);
+	if (inserted == false && photo_file_type == FILE_TYPE_PHOTO)
 	{
 		memory_photo_sdcard_exit();
 		return;
@@ -714,7 +843,9 @@ static void memory_photo_sdcard_state_change_event_cb(void)
 	photo_index_reset();
 	video_index_reset();
 	photo_index_set(0);
+	printf("[memory_photo_sd] insert goto memory_photo\n");
 	goto_layout(pLAYOUT(memory_photo));
+	printf("[memory_photo_sd] insert goto memory_photo returned\n");
 }
 
 static void LAYOUT_ENTER_FUNC(memory_photo)
@@ -750,18 +881,22 @@ static void LAYOUT_ENTER_FUNC(memory_photo)
 }
 static void LAYOUT_QUIT_FUNC(memory_photo)
 {
+	printf("[memory_photo] quit action_task=%p dialog=%p mask=%p\n",
+		   (void *)memory_photo_delete_action_task,
+		   (void *)memory_photo_delete_box, (void *)dim_mask);
+	if (memory_photo_delete_action_task != NULL)
+	{
+		lv_task_del(memory_photo_delete_action_task);
+		memory_photo_delete_action_task = NULL;
+	}
+	memory_photo_delete_dialog_destroy();
+	memory_photo_delete_confirmed = false;
+
 	if (memory_photo_timeout_task != NULL)
 	{
 		lv_task_del(memory_photo_timeout_task);
 		memory_photo_timeout_task = NULL;
 	}
-	// 删除挂在 lv_scr_act 上的弹窗对象，避免布局切换后残留导致下次进入崩溃
-	if (dim_mask != NULL)
-	{
-		lv_obj_del(dim_mask);
-		dim_mask = NULL;
-	}
-
 	if (photo_play_task_t != NULL)
 	{
 		lv_task_del(photo_play_task_t);

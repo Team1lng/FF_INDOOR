@@ -13,6 +13,10 @@ static void layout_prepare_intercom_in_black_transition(void)
 	}
 
 	printf("[intercom_in] black transition before incoming intercom\n");
+	if (cur == pLAYOUT(motion_detection))
+	{
+		layout_motion_detection_prepare_intercom_in();
+	}
 	backlight_enable(false);
 	video_display_preview_enable(false);
 	fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
@@ -86,12 +90,33 @@ void ringplay_doorcall_finish_default_func(int index)
 ** 函数作用：door1 call 默认处理函数
 ** 返回参数说明：
 ***/
+static void layout_interrupt_intercom_for_door_call(void)
+{
+	const layout *cur = cur_layout_get();
+	if (cur != pLAYOUT(intercom_in) &&
+		cur != pLAYOUT(intercom_out) &&
+		cur != pLAYOUT(intercom_talk))
+	{
+		return;
+	}
+
+	printf("[door_call] interrupt intercom before entering camera\n");
+	ringplay_play_stop();
+	MsgCallEnd();
+	intercom_state_set(INTERCOM_STATE_IDLE);
+	intercom_hangup_flag_get_and_clear();
+	intercom_remote_ack_get_and_clear();
+	intercom_busy_flag_get_and_clear();
+	intercom_unack_flag_get_and_clear();
+}
+
 void layout_door1_call_default(void)
 {
 	monitor_valid_channel_set(MON_CH_DOOR1, true);
 	if (cur_layout_get() != pLAYOUT(camera) /* && cur_layout_get() != pLAYOUT(intercom_talk) */)
 	{
 
+		layout_interrupt_intercom_for_door_call();
 		intercom_state_set(IDLE_WAITING);  /* 修改：替换为IDLE_WAITING */
 		monitor_channel_set(MON_CH_DOOR1);
 		monitor_enter_mask_set(MON_ENTER_CALL);
@@ -114,6 +139,7 @@ void layout_door2_call_default(void)
 	monitor_valid_channel_set(MON_CH_DOOR2, true);
 	if (cur_layout_get() != pLAYOUT(camera) /* && cur_layout_get() != pLAYOUT(intercom_talk) */)
 	{
+		layout_interrupt_intercom_for_door_call();
 		intercom_state_set(IDLE_WAITING);  /* 修改：替换为IDLE_WAITING */
 		monitor_channel_set(MON_CH_DOOR2);
 		monitor_enter_mask_set(MON_ENTER_CALL);

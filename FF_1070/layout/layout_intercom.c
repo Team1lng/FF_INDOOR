@@ -459,12 +459,22 @@ static void intercom_number_kb_create(lv_obj_t *parent)
  * --------------------------------------------------------------- */
 static void intercom_call_out_result_task_create(const char *str)
 {
+    if (ta == NULL)
+    {
+        return;
+    }
+    lv_textarea_set_text(ta, "");
     lv_obj_set_style_local_value_str(ta, LV_TEXTAREA_PART_BG, LV_STATE_DEFAULT, str);
     lv_obj_set_style_local_value_opa(ta, LV_TEXTAREA_PART_BG, LV_STATE_DEFAULT, LV_OPA_100);
 }
 
 static void intercom_room_out_result_task_create(const char *str)
 {
+    if (tt == NULL)
+    {
+        return;
+    }
+    lv_textarea_set_text(tt, "");
     lv_obj_set_style_local_value_str(tt, LV_TEXTAREA_PART_BG, LV_STATE_DEFAULT, str);
     lv_obj_set_style_local_value_opa(tt, LV_TEXTAREA_PART_BG, LV_STATE_DEFAULT, LV_OPA_100);
 }

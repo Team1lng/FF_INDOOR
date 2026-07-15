@@ -52,8 +52,9 @@ static custom_area intercom_talk_btn_area[INTERCOM_TALK_TOTAL_BTN] =
 
 static lv_task_t *hung_up_task  = NULL;
 static lv_task_t *talking_task  = NULL;
-static int count = 180; 
+static int count = 180;
 static bool vol_slider_visible = false;
+static bool remote_hangup_exit_home = false;
 
 static void intercom_talk_hung_up_task_create(void);
 
@@ -64,6 +65,7 @@ static void do_hang_up(void)
 {
     if (hung_up_task != NULL) return;
 
+    remote_hangup_exit_home = false;
     MsgCallEnd();
     intercom_state_set(INTERCOM_STATE_IDLE);
     intercom_hangup_flag_get_and_clear();
@@ -285,6 +287,11 @@ static void intercom_talk_arrows_create(lv_obj_t *parent)
 
 static void intercom_talk_hung_up_task_cb(lv_task_t *task_t)
 {
+    if (remote_hangup_exit_home) {
+        goto_layout(pLAYOUT(home));
+        return;
+    }
+
     if (intercom_call_in_flag) {
         goto_layout(pLAYOUT(standby));
     } else {
@@ -313,6 +320,7 @@ static void intercom_talk_talking_task(lv_task_t *task_t)
         intercom_state_get() == INTERCOM_STATE_IDLE) {
         printf("[intercom_talk] remote hung up\n");
         if (talking_task != NULL) { lv_task_del(talking_task); talking_task = NULL; }
+        remote_hangup_exit_home = true;
         if (hung_up_task == NULL) intercom_talk_hung_up_task_create();
         return;
     }
@@ -359,6 +367,7 @@ static void intercom_talk_talking_task_create(void)
  * --------------------------------------------------------------- */
 static void LAYOUT_ENTER_FUNC(intercom_talk)
 {
+    remote_hangup_exit_home = false;
     power_amplifier_enable(true);
     standby_timer_close();
     backlight_enable(true);
@@ -387,6 +396,7 @@ static void LAYOUT_ENTER_FUNC(intercom_talk)
 
 static void LAYOUT_QUIT_FUNC(intercom_talk)
 {
+    remote_hangup_exit_home = false;
     hung_up_task = NULL;
     talking_task = NULL;
     standby_timer_restart(true);

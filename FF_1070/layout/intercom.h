@@ -265,6 +265,8 @@ void MsgCallRequest(unsigned char id);
 void MsgCallAccept(void);
 /*Send hang up request*/
 void MsgCallEnd(void);
+/*Send busy refuse when local UI cannot accept incoming intercom*/
+void MsgCallBusyRefuse(void);
 void OutDoorCallEnd(void);
 
 /*Get current call status*/

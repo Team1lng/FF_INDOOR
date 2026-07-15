@@ -168,6 +168,7 @@ void *gpio_det_task(void *arg)
 #define RING_VOL0_PIN 3
 #define RING_VOL1_PIN 4
 #define RING_VOL2_PIN 5
+#define INTERCOM_TALK_FIXED_VOL 2
 // 铃声音量设置
 void ring_volume_set(int vol)
 {
@@ -566,13 +567,13 @@ bool door_audio_talk(AUDIO_CH ch)
 		audio_to_outdoor1_pin_ctrl(false);
 		audio_to_outdoor2_pin_ctrl(false);
 		audio_to_inter_line_select_pin_ctrl(true);
-		ring_volume_set(user_data_get()->setting.inter_ring_volume);
+		ring_volume_set(INTERCOM_TALK_FIXED_VOL);
 		break;
 	case AUDIO_CH_GUARD:
 		audio_to_outdoor1_pin_ctrl(false);
 		audio_to_outdoor2_pin_ctrl(false);
 		audio_to_inter_line_select_pin_ctrl(true);
-		ring_volume_set(user_data_get()->setting.inter_ring_volume);
+		ring_volume_set(INTERCOM_TALK_FIXED_VOL);
 		break;
 	case AUDIO_CH_CLOSE:
 	default:

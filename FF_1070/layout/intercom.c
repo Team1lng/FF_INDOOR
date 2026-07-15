@@ -464,6 +464,23 @@ void MsgCallEnd(void)
     }
 }
 
+void MsgCallBusyRefuse(void)
+{
+    unsigned char target = CalledCaller ? CalledCaller : RemoteId;
+
+    printf("[intercom] MsgCallBusyRefuse: target=%u status=%d\n",
+           (unsigned)target, ConnectStatus);
+
+    Intercom.SwitchAudioCh(CH_OFF);
+    if (target != 0)
+    {
+        BusDelay();
+        MessageSend(NativeId, target, RP_BUSY_REFUSE, 0);
+    }
+    TempCallId = 0xff;
+    ParamInit();
+}
+
 void OutDoorCallEnd(void)
 {
     printf("[intercom] OutDoorCallEnd: Ending call, resetting state ConnectStatus:%d\n", ConnectStatus);

@@ -226,7 +226,8 @@ static void *video_record_task(void *arg)
 					ak_mem_free(audio_node[0]->data);
 					if (audio_node_total > 1)
 					{
-						memmove(&audio_node[0], &audio_node[1], audio_node_total - 1);
+						memmove(&audio_node[0], &audio_node[1],
+							   (audio_node_total - 1) * sizeof(audio_node[0]));
 					}
 					audio_node_total--;
 					audio_node[audio_node_total] = NULL;
@@ -237,7 +238,8 @@ static void *video_record_task(void *arg)
 					ak_mem_free(video_node[0]->data);
 					if (video_node_total > 1)
 					{
-						memmove(&video_node[0], &video_node[1], video_node_total - 1);
+						memmove(&video_node[0], &video_node[1],
+							   (video_node_total - 1) * sizeof(video_node[0]));
 					}
 					video_node_total--;
 					video_node[video_node_total] = NULL;
@@ -285,6 +287,7 @@ bool video_record_start(bool has_audio, void (*finish_callback)(const char *path
 		// audio_output_buffer_try_timeout(1500);
 		// printf("finish \n");
 		// audio_output_close(); // audio_output_open(AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_8000);
+		audio_input_capture_enable(true);
 		audio_input_open(0x01);
 	}
 	video_record_finish_func = finish_callback;

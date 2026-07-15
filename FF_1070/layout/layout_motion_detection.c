@@ -40,6 +40,9 @@ static bool is_recording = false;
 static cam_mode_t camera_mode = CAMERA_MODE_MONITOR;
 static int camera_record_video_count_down = 0; // 录像倒计时(秒)
 static bool is_photo_mode = false;             // 新增：标记是否为拍照模式
+static bool motion_intercom_transitioning = false;
+static lv_task_t *camera_auto_record_delayed_task_t = NULL;
+static lv_task_t *camera_ticker_task_t = NULL;
 
 static bool motion_intercom_pending(void)
 {
@@ -435,6 +438,12 @@ static void camera_auto_record(void)
 {
     printf("移动侦测：开始自动录制检查\n");
 
+    if (motion_intercom_transitioning || motion_intercom_pending())
+    {
+        printf("移动侦测：内线来电切换中，跳过自动录制\n");
+        return;
+    }
+
     if (is_recording)
     {
         printf("移动侦测：正在录制中，跳过\n");
@@ -498,6 +507,19 @@ static void camera_auto_record(void)
 // 延迟自动录制函数
 static void camera_auto_record_delayed(lv_task_t *task)
 {
+    if (motion_intercom_transitioning || motion_intercom_pending())
+    {
+        printf("移动侦测：内线来电切换中，取消延迟自动录制\n");
+        motion_intercom_transitioning = true;
+        motion_ticker_task_stop(MOTION_TASK_TOTAL);
+        if (task == camera_auto_record_delayed_task_t)
+        {
+            camera_auto_record_delayed_task_t = NULL;
+        }
+        lv_task_del(task);
+        return;
+    }
+
     if (motion_detection_check() == false)
     {
         return;
@@ -509,6 +531,10 @@ static void camera_auto_record_delayed(lv_task_t *task)
     camera_auto_record();
     if (task)
     {
+        if (task == camera_auto_record_delayed_task_t)
+        {
+            camera_auto_record_delayed_task_t = NULL;
+        }
         lv_task_del(task);
     }
 }
@@ -516,6 +542,19 @@ static void camera_auto_record_delayed(lv_task_t *task)
 // 主任务处理
 static void camera_ticker_task(lv_task_t *task_t)
 {
+    if (motion_intercom_transitioning || motion_intercom_pending())
+    {
+        printf("移动侦测：内线来电切换中，停止移动侦测刷新任务\n");
+        motion_intercom_transitioning = true;
+        motion_ticker_task_stop(MOTION_TASK_TOTAL);
+        if (task_t == camera_ticker_task_t)
+        {
+            camera_ticker_task_t = NULL;
+        }
+        lv_task_del(task_t);
+        return;
+    }
+
     // 处理所有使能的任务
     for (int i = 0; i < MOTION_TASK_TOTAL; i++)
     {
@@ -533,7 +572,12 @@ static void camera_ticker_task(lv_task_t *task_t)
 // 创建主任务
 static void camera_ticker_task_create(void)
 {
-    lv_layout_task_create(camera_ticker_task, 500, LV_TASK_PRIO_HIGH, NULL);
+    if (camera_ticker_task_t != NULL)
+    {
+        lv_task_del(camera_ticker_task_t);
+        camera_ticker_task_t = NULL;
+    }
+    camera_ticker_task_t = lv_layout_task_create(camera_ticker_task, 500, LV_TASK_PRIO_HIGH, NULL);
 }
 extern void delay_backlight_open_task(lv_task_t *task);
 static bool screen_clicked = false;
@@ -553,6 +597,29 @@ static void standby_bg_click_event_cb(lv_obj_t *obj)
     }
     goto_layout(pLAYOUT(home));
 }
+
+void layout_motion_detection_prepare_intercom_in(void)
+{
+    motion_intercom_transitioning = true;
+    motion_ticker_task_stop(MOTION_TASK_TOTAL);
+
+    if (camera_auto_record_delayed_task_t != NULL)
+    {
+        lv_task_del(camera_auto_record_delayed_task_t);
+        camera_auto_record_delayed_task_t = NULL;
+    }
+
+    if (camera_ticker_task_t != NULL)
+    {
+        lv_task_del(camera_ticker_task_t);
+        camera_ticker_task_t = NULL;
+    }
+
+    obj_click_event_listen(lv_scr_act(), NULL);
+    video_display_preview_enable(false);
+    lv_video_mode_enable(false);
+}
+
 // 进入移动侦测界面
 static void LAYOUT_ENTER_FUNC(motion_detection)
 {
@@ -566,6 +633,7 @@ static void LAYOUT_ENTER_FUNC(motion_detection)
     }
 
     printf("移动侦测：进入移动侦测界面\n");
+    motion_intercom_transitioning = false;
     layout_monitor_detection_refresh_1();
     
     backlight_enable(false);
@@ -588,7 +656,7 @@ static void LAYOUT_ENTER_FUNC(motion_detection)
 
     // 启动自动录制
     printf("移动侦测：等待设备初始化...\n");
-    lv_layout_task_create(camera_auto_record_delayed, 500, LV_TASK_PRIO_MID, NULL);
+    camera_auto_record_delayed_task_t = lv_layout_task_create(camera_auto_record_delayed, 500, LV_TASK_PRIO_MID, NULL);
     // 启动任务
     camera_ticker_task_create();
 }
@@ -613,6 +681,16 @@ static void LAYOUT_QUIT_FUNC(motion_detection)
     // Stop tasks/capture/encoders before closing VI to avoid teardown races.
     ringplay_play_stop();
     motion_ticker_task_stop(MOTION_TASK_TOTAL);
+    if (camera_auto_record_delayed_task_t != NULL)
+    {
+        lv_task_del(camera_auto_record_delayed_task_t);
+        camera_auto_record_delayed_task_t = NULL;
+    }
+    if (camera_ticker_task_t != NULL)
+    {
+        lv_task_del(camera_ticker_task_t);
+        camera_ticker_task_t = NULL;
+    }
     jpg_encode_capture_enable(false);
     audio_input_capture_enable(false);
     record_video_close();
