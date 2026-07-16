@@ -69,6 +69,8 @@ void layout_gate_open_default(void);
 ** 返回参数说明：
 ***/
 bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg);
+void layout_camera_hook_answer(void);
+void layout_camera_hook_hangup(void);
 
 
 void layout_intercom_out_default(unsigned int send_id, unsigned int cmd);

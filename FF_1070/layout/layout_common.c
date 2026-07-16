@@ -263,42 +263,11 @@ bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg)
 	{
 		if (cmd)
 		{
-			if (ringplay_ing_check() == true)
-			{
-				ringplay_play_stop();
-			}
-			// ringplay_play_stop();
-			MON_CH ch = monitor_channel_get();
-			if (ch == MON_CH_DOOR1)
-			{
-				printf("=========================>>>> door1 talking \n");
-				door_audio_talk(AUDIO_CH_DOOR1);
-				// if (call_record_answered(CALL_DOOR_STATION_1))
-				// {
-				// 	printf("Call answered for door station 1\n");
-				// }
-			}
-			else if (ch == MON_CH_DOOR2)
-			{
-				printf("=========================>>>> door2 talking \n");
-				// if (call_record_answered(CALL_DOOR_STATION_2))
-				// {
-				// 	printf("Call answered for door station 1\n");
-				// }
-				door_audio_talk(AUDIO_CH_DOOR2);
-			}
-			extern void camera_timeout_value_reset(void);
-			camera_timeout_value_reset();
-			monitor_enter_mask_set(MON_ENTER_TALK);
+			layout_camera_hook_answer();
 		}
 		else
 		{
-			printf("=============>>> hung up \n");
-			ringplay_play_stop();
-			MON_CH ch = monitor_channel_get();
-			call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
-			power_amplifier_enable(false);
-			goto_layout(pLAYOUT(standby));
+			layout_camera_hook_hangup();
 		}
 	}
 	else if (cur_layout_get() == pLAYOUT(intercom_in))

@@ -18,6 +18,9 @@
 #include "user_common.h"
 #include <math.h>
 #include "video_encode.h"
+
+#define VIDEO_INPUT_STARTUP_SKIP_FRAMES 3
+
 static void video_input_sub_display_frame_write(struct video_input_frame *frame);
 
 static sem_t video_input_sem;
@@ -311,7 +314,7 @@ static void *video_input_task(void *arg)
 				crop_pos_y = (unsigned int)(video_isp_info.main_crop_pos_y + pos_offset_y);
 
 				video_input_state = true;
-				video_input_skip_frame_count = 5;
+				video_input_skip_frame_count = VIDEO_INPUT_STARTUP_SKIP_FRAMES;
 			}
 		}
 		else
