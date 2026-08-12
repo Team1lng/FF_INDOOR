@@ -18,6 +18,10 @@ static int video_record_queue_head = -1;
 static void (*video_record_finish_func)(const char *path) = NULL;
 static avi_t *video_record_handle_id = NULL;
 unsigned long long avi_write_frame_duration = 0;
+static unsigned int video_record_audio_enqueue_count = 0;
+static unsigned int video_record_audio_avi_count = 0;
+static unsigned long long video_record_audio_enqueue_bytes = 0;
+static unsigned long long video_record_audio_avi_bytes = 0;
 
 #define VIDEO_TEMP_PATH SD_MEDIA_PATH "videotemp" VIDEO_DOT
 #define VIDEO_RECORD_MIN_SAVE_MS 3000
@@ -75,6 +79,12 @@ static bool video_record_device_close(unsigned long long duration, unsigned int 
 	video_record_handle_id->fps = 1000 * frame_total / (duration + 0.1);
 	double fps = video_record_handle_id->fps;
 	printf("\n\n\nEncode to AVI Finish. video frame:%0.2lffps drution:%2llus \n\n\n\n", fps, duration / 1000);
+	printf("[record_audio] has_audio=%d enqueue=%u/%llubytes avi=%u/%llubytes\n",
+		video_has_audio,
+		video_record_audio_enqueue_count,
+		video_record_audio_enqueue_bytes,
+		video_record_audio_avi_count,
+		video_record_audio_avi_bytes);
 	if ((fps < 15) || (duration < VIDEO_RECORD_MIN_SAVE_MS))
 	{
 		reslut = false;
@@ -151,6 +161,10 @@ static void *video_record_task(void *arg)
 			video_record_device_open();
 			avi_write_frame_count = 0;
 			avi_write_frame_duration = 0;
+			video_record_audio_enqueue_count = 0;
+			video_record_audio_avi_count = 0;
+			video_record_audio_enqueue_bytes = 0;
+			video_record_audio_avi_bytes = 0;
 		}
 		else if ((video_record_enable == false) && (video_record_handle_id != NULL))
 		{
@@ -225,6 +239,8 @@ static void *video_record_task(void *arg)
 				if ((audio_node[0].data != NULL) && (((video_node[0].data == NULL) || (video_node[0].timestamp > audio_node[0].timestamp))))
 				{
 					AVI_write_audio(video_record_handle_id, (char *)audio_node[0].data, audio_node[0].size);
+					video_record_audio_avi_count++;
+					video_record_audio_avi_bytes += audio_node[0].size;
 					ak_mem_free(audio_node[0].data);
 					if (audio_node_total > 1)
 					{
@@ -283,6 +299,7 @@ bool video_record_start(bool has_audio, void (*finish_callback)(const char *path
 		return false;
 	}
 	mjpeg_encode_open(NULL, 0x01);
+	printf("[record_audio] start has_audio=%d\n", has_audio);
 	if (has_audio == true)
 	{
 		// printf("audio output query wait ");
@@ -356,6 +373,8 @@ bool video_record_video_write(unsigned char *data, int size)
 ***/
 bool video_record_audio_write(unsigned char *data, int size)
 {
+	video_record_audio_enqueue_count++;
+	video_record_audio_enqueue_bytes += size;
 	return video_record_write(data, size, 0x00);
 }
 

@@ -129,6 +129,7 @@ bool record_video_start(REC_MODE mode)
 	monitor_record_pin_enable(true);
 	MON_CH ch = monitor_channel_get();
 	bool had_audo = ((ch == MON_CH_CCTV1) || (ch == MON_CH_CCTV2)) ? false : true;
+	printf("[record_audio] request mode=%d channel=%d has_audio=%d\n", mode, ch, had_audo);
 	if (video_record_start(had_audo, video_encode_callback) == true)
 	{
 		record_video_mode = mode;
