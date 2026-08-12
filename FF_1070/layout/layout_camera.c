@@ -1,10 +1,3 @@
-/*******************************************************************
- * @Descripttion   :
- * @version        : 1.0.0
- * @Author         : wxj
- * @Date           : 2022-11-11 11:50
- * @LastEditTime   : 2023-03-15 16:32
- *******************************************************************/
 #include "layout_define.h"
 
 #define CAMERA_AUTO_RECORD_ENABLE 0 // 开启自动连续拍照、录像，测试用
@@ -16,6 +9,13 @@
 #define CAMERA_VIDEO_MASK_Y 70
 #define CAMERA_VIDEO_MASK_W 1024
 #define CAMERA_VIDEO_MASK_H 400
+
+/* Call enter: auto-record first, settle, then door ring (ordered, not fixed 500ms page delay). */
+#define CAMERA_CALL_RECORD_WAIT_TIMEOUT_MS 3000
+#define CAMERA_CALL_SWITCH_RECORD_WAIT_TIMEOUT_MS 3000
+#define CAMERA_CALL_RING_AFTER_RECORD_SETTLE_MS 100
+#define CAMERA_CALL_SEQ_POLL_MS 50
+#define CAMERA_MANUAL_TALK_WAIT_POLL_MS 50
 
 enum
 {
@@ -207,6 +207,8 @@ static void camera_call_auto_record_start(void);
 static void camera_call_auto_record_task_cancel(void);
 static void camera_call_auto_record_task_create(void);
 static void camera_call_ring_start(void);
+static void camera_manual_talk_wait_create(void);
+static void camera_manual_talk_wait_cancel(void);
 static void camera_channel_switch_cancel(void);
 static void camera_channel_switch_request(MON_CH target_ch, camera_channel_switch_reason_t reason);
 void camera_timeout_value_reset(void);
@@ -231,6 +233,19 @@ static bool camera_display_delay_control_backlight = true;
 static int camera_record_video_count_down = 15;
 static lv_task_t *camera_display_delay_task_t = NULL;
 static lv_task_t *camera_call_auto_record_task_t = NULL;
+static lv_task_t *camera_manual_talk_wait_task_t = NULL;
+
+typedef enum
+{
+	CAMERA_CALL_SEQ_IDLE = 0,
+	CAMERA_CALL_SEQ_WAIT_RECORD,
+	CAMERA_CALL_SEQ_WAIT_SETTLE,
+} camera_call_seq_phase_t;
+
+static lv_task_t *camera_call_enter_seq_task_t = NULL;
+static camera_call_seq_phase_t camera_call_seq_phase = CAMERA_CALL_SEQ_IDLE;
+static unsigned long long camera_call_seq_record_deadline = 0;
+static unsigned long long camera_call_ring_not_before = 0;
 static camera_channel_switch_state_t camera_channel_switch_state = {
 	.task = NULL,
 	.target_ch = MON_CH_NONE,
@@ -250,6 +265,7 @@ static void camera_capture_prompt_img_create(lv_obj_t *parent)
 
 	lv_obj_set_pos(img, 422, 180);
 	lv_obj_set_size(img, 250, 250);
+	lv_obj_set_style_local_bg_opa(img, LV_IMG_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
 	lv_obj_set_hidden(img, true);
 
 	lv_img_set_zoom(img, LV_IMG_ZOOM_NONE);
@@ -334,11 +350,75 @@ static void camera_channel_ui_refresh(void)
 
 static bool camera_auto_record_ready(void)
 {
-	return video_input_state_get() == true && is_recording == false;
+	/* An incoming door call replaces an in-progress capture. The start path
+	 * closes that old capture before opening the new automatic recording. */
+	return video_input_state_get() == true;
+}
+
+static bool camera_video_frame_ready(void)
+{
+	unsigned long long timestamp = 0;
+
+	video_input_resident_buffer_get(&timestamp);
+	return video_input_state_get() == true && timestamp != 0;
+}
+
+static void camera_manual_talk_wait_cancel(void)
+{
+	if (camera_manual_talk_wait_task_t != NULL)
+	{
+		lv_task_del(camera_manual_talk_wait_task_t);
+		camera_manual_talk_wait_task_t = NULL;
+	}
+}
+
+static void camera_manual_talk_wait_task(lv_task_t *task)
+{
+	MON_CH ch = monitor_channel_get();
+
+	if (task != camera_manual_talk_wait_task_t ||
+		cur_layout_get() != pLAYOUT(camera) ||
+		hook_state_get() == false ||
+		monitor_enter_mask_get() == MON_ENTER_CALL ||
+		(ch != MON_CH_DOOR1 && ch != MON_CH_DOOR2))
+	{
+		if (task == camera_manual_talk_wait_task_t)
+		{
+			camera_manual_talk_wait_task_t = NULL;
+		}
+		lv_task_del(task);
+		return;
+	}
+
+	if (camera_video_frame_ready() == false)
+	{
+		return;
+	}
+
+	printf("[audio_trace] manual door talk after first frame ch=%d\n", ch);
+	layout_media_power_amplifier_hold();
+	door_audio_talk(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2);
+	monitor_enter_mask_set(MON_ENTER_TALK);
+	camera_in_talk_state = true;
+	camera_manual_talk_wait_task_t = NULL;
+	lv_task_del(task);
+}
+
+static void camera_manual_talk_wait_create(void)
+{
+	camera_manual_talk_wait_cancel();
+	camera_manual_talk_wait_task_t = lv_layout_task_create(camera_manual_talk_wait_task,
+			CAMERA_MANUAL_TALK_WAIT_POLL_MS, LV_TASK_PRIO_HIGH, NULL);
+	if (camera_manual_talk_wait_task_t != NULL)
+	{
+		camera_manual_talk_wait_task_t->clean_lock = false;
+		lv_task_ready(camera_manual_talk_wait_task_t);
+	}
 }
 
 static void camera_channel_transient_ui_reset(void)
 {
+	camera_manual_talk_wait_cancel();
 	camera_ticker_task_stop(CAMERA_TASK_RECORD_VIDEO);
 	camera_ticker_task_stop(CAMERA_TASK_RECORD_IMAGE);
 	camera_ticker_task_stop(CAMERA_TASK_UNLOCK);
@@ -348,6 +428,14 @@ static void camera_channel_transient_ui_reset(void)
 		lv_task_del(camera_call_auto_record_task_t);
 		camera_call_auto_record_task_t = NULL;
 	}
+	if (camera_call_enter_seq_task_t != NULL)
+	{
+		lv_task_del(camera_call_enter_seq_task_t);
+		camera_call_enter_seq_task_t = NULL;
+	}
+	camera_call_seq_phase = CAMERA_CALL_SEQ_IDLE;
+	camera_call_seq_record_deadline = 0;
+	camera_call_ring_not_before = 0;
 
 	camera_record_video_count_down = 15;
 	camera_setting_window_close_for_action();
@@ -472,11 +560,18 @@ static void camera_channel_switch_internal(MON_CH target_ch)
 	{
 		call_ring_to_outdoor_ctrl(current_ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
 	}
-	/* Clear the old door-talk route before selecting the next video channel. */
-	door_audio_talk(AUDIO_CH_CLOSE);
-	camera_in_talk_state = false;
+	/*
+	 * Only close talk audio if it is actually active. In plain monitor mode,
+	 * AUDIO_CH_CLOSE would hard-close PA and cut the channel-switch key tone.
+	 */
+	if (camera_in_talk_state == true ||
+		monitor_enter_mask_get() == MON_ENTER_TALK ||
+		hook_state_get() == true)
+	{
+		door_audio_talk(AUDIO_CH_CLOSE);
+		camera_in_talk_state = false;
+	}
 
-	// 停铃声
 	if (ringplay_ing_check() == true)
 	{
 		ringplay_play_stop();
@@ -490,7 +585,6 @@ static void camera_channel_switch_internal(MON_CH target_ch)
 
 	camera_timeout_value_reset();
 }
-
 
 static void camera_change_door1_btn_up(lv_obj_t *obj)
 {
@@ -666,41 +760,18 @@ static void camera_change_select_btn_create(lv_obj_t *parent)
 
 static bool camera_call_auto_record_start_if_ready(void)
 {
-	if (camera_call_auto_record_task_t == NULL || camera_auto_record_ready() == false)
+	/* Channel switch / video ready: advance ordered call sequence. */
+	if (camera_call_seq_phase == CAMERA_CALL_SEQ_WAIT_RECORD &&
+		camera_auto_record_ready() == true)
 	{
-		return false;
+		printf("[door_call] video ready, start auto-record then settle for ring\n");
+		camera_call_auto_record_start();
+		camera_timeout_value_reset();
+		camera_call_seq_phase = CAMERA_CALL_SEQ_WAIT_SETTLE;
+		camera_call_ring_not_before = user_timestamp_get() + CAMERA_CALL_RING_AFTER_RECORD_SETTLE_MS;
+		return true;
 	}
-
-	lv_task_t *task = camera_call_auto_record_task_t;
-	camera_call_auto_record_task_t = NULL;
-	lv_task_del(task);
-
-	camera_call_auto_record_start();
-	camera_timeout_value_reset();
-	return true;
-}
-
-static void door_call_auto_camere(lv_task_t *task)
-{
-	if (task != camera_call_auto_record_task_t)
-	{
-		lv_task_del(task);
-		return;
-	}
-	if (camera_call_auto_record_start_if_ready() == true)
-	{
-		return;
-	}
-
-	if (task->user_data != NULL)
-	{
-		int *retry_count = (int *)task->user_data;
-		if (--(*retry_count) <= 0)
-		{
-			camera_call_auto_record_task_t = NULL;
-			lv_task_del(task);
-		}
-	}
+	return false;
 }
 
 static bool camera_call_auto_record_enabled(void)
@@ -711,8 +782,12 @@ static bool camera_call_auto_record_enabled(void)
 
 static void camera_call_auto_record_start(void)
 {
+	printf("[auto_record] start mode=%d vi=%d recording=%d\n",
+		   user_data_get()->setting.record_mode,
+		   video_input_state_get(), is_recording);
 	if (camera_call_auto_record_enabled() == false)
 	{
+		printf("[auto_record] skip: mode disabled\n");
 		return;
 	}
 
@@ -740,18 +815,145 @@ static void camera_call_auto_record_task_cancel(void)
 	}
 }
 
-static void camera_call_auto_record_task_create(void)
+/* Call enter sequence (not page block):
+ * 1) wait VI ready and start auto photo/video first
+ * 2) settle ~100ms after record GPIO/AI open
+ * 3) then play door ring
+ * 4) if VI not ready for ~2s, cancel auto-record wait and play ring anyway
+ */
+
+static void camera_call_enter_seq_cancel(void)
 {
-	static int retry_count = 15;
-	if (camera_call_auto_record_enabled() == false)
+	if (camera_call_enter_seq_task_t != NULL)
 	{
+		lv_task_del(camera_call_enter_seq_task_t);
+		camera_call_enter_seq_task_t = NULL;
+	}
+	camera_call_seq_phase = CAMERA_CALL_SEQ_IDLE;
+	camera_call_seq_record_deadline = 0;
+	camera_call_ring_not_before = 0;
+	camera_call_auto_record_task_cancel();
+}
+
+static void camera_call_enter_seq_task(lv_task_t *task)
+{
+	if (task != camera_call_enter_seq_task_t)
+	{
+		lv_task_del(task);
 		return;
 	}
 
-	camera_call_auto_record_task_cancel();
+	if (cur_layout_get() != pLAYOUT(camera) ||
+		monitor_enter_mask_get() != MON_ENTER_CALL)
+	{
+		camera_call_enter_seq_task_t = NULL;
+		camera_call_seq_phase = CAMERA_CALL_SEQ_IDLE;
+		lv_task_del(task);
+		return;
+	}
 
-	retry_count = 15;
-	camera_call_auto_record_task_t = lv_layout_task_create(door_call_auto_camere, 200, LV_TASK_PRIO_MID, &retry_count);
+	unsigned long long now = user_timestamp_get();
+
+	if (camera_call_seq_phase == CAMERA_CALL_SEQ_WAIT_RECORD)
+	{
+		if (camera_call_auto_record_enabled() == false)
+		{
+			/* No capture path opens AI for us. Wait until page-enter AI is
+			 * actually open, then settle, so the ring does not stutter. */
+			if (video_input_state_get() == true && audio_input_device_is_idle() == false)
+			{
+				printf("[door_call] no auto-record: video/AI ready, settle for ring\n");
+				camera_call_seq_phase = CAMERA_CALL_SEQ_WAIT_SETTLE;
+				camera_call_ring_not_before = now + CAMERA_CALL_RING_AFTER_RECORD_SETTLE_MS;
+			}
+			else if (now >= camera_call_seq_record_deadline)
+			{
+				printf("[door_call] no auto-record: wait timeout, play ring\n");
+				camera_call_seq_phase = CAMERA_CALL_SEQ_WAIT_SETTLE;
+				camera_call_ring_not_before = now;
+			}
+			else
+			{
+				return;
+			}
+		}
+		else if (camera_auto_record_ready() == true)
+		{
+			printf("[door_call] auto-record ready, start record then settle for ring\n");
+			/* Keep task pointer valid for start_if_ready path compatibility:
+			 * start record directly here. */
+			camera_call_auto_record_task_cancel();
+			camera_call_auto_record_start();
+			camera_timeout_value_reset();
+			camera_call_seq_phase = CAMERA_CALL_SEQ_WAIT_SETTLE;
+			camera_call_ring_not_before = now + CAMERA_CALL_RING_AFTER_RECORD_SETTLE_MS;
+		}
+		else if (now >= camera_call_seq_record_deadline)
+		{
+			printf("[door_call] auto-record wait timeout, cancel and play ring\n");
+			camera_call_auto_record_task_cancel();
+			camera_call_seq_phase = CAMERA_CALL_SEQ_WAIT_SETTLE;
+			camera_call_ring_not_before = now;
+		}
+		else
+		{
+			return;
+		}
+	}
+
+	if (camera_call_seq_phase == CAMERA_CALL_SEQ_WAIT_SETTLE)
+	{
+		if (now < camera_call_ring_not_before)
+		{
+			return;
+		}
+		printf("[door_call] settle done, start door ring\n");
+		camera_call_enter_seq_task_t = NULL;
+		camera_call_seq_phase = CAMERA_CALL_SEQ_IDLE;
+		camera_call_ring_start();
+		lv_task_del(task);
+		return;
+	}
+}
+
+/* Arm ordered call sequence: record first (if enabled), then ring. */
+static void camera_call_enter_seq_create(bool channel_switch)
+{
+	camera_call_enter_seq_cancel();
+
+	unsigned long long now = user_timestamp_get();
+	printf("[door_call] auto-record arm: ch=%d switch=%d mode=%d enabled=%d vi=%d\n",
+		   monitor_channel_get(), channel_switch,
+		   user_data_get()->setting.record_mode,
+		   camera_call_auto_record_enabled(), video_input_state_get());
+	/* A door-to-door handover must close the old VI and detect the new CVBS
+	 * input. Give that path extra time without delaying a first door call. */
+	camera_call_seq_record_deadline = now + (channel_switch == true ?
+		CAMERA_CALL_SWITCH_RECORD_WAIT_TIMEOUT_MS : CAMERA_CALL_RECORD_WAIT_TIMEOUT_MS);
+	camera_call_ring_not_before = 0;
+
+	/*
+	 * Always wait for VI first, even when auto-record is off.
+	 * Otherwise the door ring starts while AI is still opening from page enter
+	 * (especially intercom -> door-call), and the ringtone dips once.
+	 * Auto-record path already waited for VI, so it did not show this stutter.
+	 */
+	camera_call_seq_phase = CAMERA_CALL_SEQ_WAIT_RECORD;
+
+	camera_call_enter_seq_task_t = lv_layout_task_create(camera_call_enter_seq_task,
+														 CAMERA_CALL_SEQ_POLL_MS,
+														 LV_TASK_PRIO_MID, NULL);
+	if (camera_call_enter_seq_task_t != NULL)
+	{
+		camera_call_enter_seq_task_t->clean_lock = false;
+		lv_task_ready(camera_call_enter_seq_task_t);
+	}
+}
+
+/* Backward-compatible name used by older call sites. */
+static void camera_call_auto_record_task_create(void)
+{
+	camera_call_enter_seq_create(false);
 }
 
 static int camera_call_ring_time_get(void)
@@ -765,7 +967,7 @@ static void camera_call_ring_play(int index)
 	camera_call_ring_active = true;
 	camera_call_ring_answered = false;
 	camera_call_ring_deadline = user_timestamp_get() + (unsigned long long)camera_call_ring_time_get() * 1000;
-	ringplay_play_form_index(index, 100, ringplay_doorcall_start_default_func, layout_camera_callring_finish_default_func, false);
+	ring_play(index, 100, ringplay_doorcall_start_default_func, layout_camera_callring_finish_default_func, false);
 }
 
 static void camera_call_ring_start(void)
@@ -790,6 +992,14 @@ static void camera_call_ring_start(void)
 
 static void camera_channel_switch_complete(MON_CH target_ch, camera_channel_switch_reason_t reason)
 {
+	printf("[auto_record] channel ready target=%d reason=%d phase=%d vi=%d recording=%d\n",
+		   target_ch, reason, camera_call_seq_phase,
+		   video_input_state_get(), is_recording);
+	/*
+	 * The switch task only reaches complete after the first displayable frame
+	 * exists, or after timeout. Either way enable preview and remove the
+	 * middle black mask so no permanent black box remains.
+	 */
 	video_display_preview_enable(true);
 	camera_channel_switch_video_mask_hide();
 
@@ -827,6 +1037,14 @@ static void camera_channel_switch_task(lv_task_t *task)
 	{
 		MON_CH target_ch = camera_channel_switch_state.target_ch;
 		camera_channel_switch_reason_t reason = camera_channel_switch_state.reason;
+		/* Keep polling until the first displayable frame exists so the middle
+		 * black mask is not removed over a cleared video buffer. */
+		if (camera_video_frame_ready() == false &&
+			camera_channel_switch_state.elapsed_ms < CAMERA_CHANNEL_SWITCH_TIMEOUT_MS)
+		{
+			camera_channel_switch_state.elapsed_ms += CAMERA_CHANNEL_SWITCH_POLL_MS;
+			return;
+		}
 		camera_channel_switch_state.task = NULL;
 		camera_channel_switch_state.target_ch = MON_CH_NONE;
 		camera_channel_switch_complete(target_ch, reason);
@@ -883,8 +1101,7 @@ static void camera_channel_switch_request(MON_CH target_ch, camera_channel_switc
 
 	if (reason == CAMERA_CHANNEL_SWITCH_CALL)
 	{
-		camera_call_auto_record_task_create();
-		camera_call_ring_start();
+		camera_call_enter_seq_create(true);
 	}
 
 	camera_channel_switch_state.task = lv_layout_task_create(camera_channel_switch_task,
@@ -901,6 +1118,7 @@ static bool camera_call_ring_should_replay(void)
 
 static void camera_call_ring_cancel(void)
 {
+	camera_call_enter_seq_cancel();
 	camera_call_ring_active = false;
 	camera_call_ring_answered = true;
 	camera_call_ring_ignore_finish_count = 0;
@@ -913,7 +1131,7 @@ static void camera_call_ring_finish_cleanup(void)
 	camera_call_ring_active = false;
 	camera_call_ring_answered = false;
 	camera_call_ring_ignore_finish_count = 0;
-	power_amplifier_enable(false);
+	/* Keep PA stable between door calls; hard-off here causes a pop at ring end. */
 	MON_CH ch = monitor_channel_get();
 	if (video_record_status_get() == true && (ch == MON_CH_DOOR1 || ch == MON_CH_DOOR2))
 	{
@@ -932,6 +1150,8 @@ void layout_camera_hook_answer(void)
 		return;
 	}
 
+	camera_call_enter_seq_cancel();
+	camera_manual_talk_wait_cancel();
 	camera_call_ring_active = false;
 	camera_call_ring_answered = true;
 	camera_call_ring_ignore_finish_count = 0;
@@ -957,6 +1177,7 @@ void layout_camera_hook_hangup(void)
 	}
 
 	camera_channel_switch_cancel();
+	camera_manual_talk_wait_cancel();
 	camera_call_auto_record_task_cancel();
 	camera_call_ring_cancel();
 	if (ringplay_ing_check() == true)
@@ -1006,8 +1227,7 @@ static void camera_door_call_switch(MON_CH target_ch)
 	}
 	else
 	{
-		camera_call_auto_record_task_create();
-		camera_call_ring_start();
+		camera_call_enter_seq_create(false);
 		if (hook_state_get() == true)
 		{
 			door_audio_talk(target_ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2);
@@ -1803,6 +2023,7 @@ lv_obj_t *camera_img_btn_create(lv_obj_t *parent, custom_area btn_area, const ch
 static void camera_home_btn_up(lv_obj_t *obj)
 {
 	camera_channel_switch_cancel();
+	camera_manual_talk_wait_cancel();
 	camera_call_ring_cancel();
 	goto_layout(pLAYOUT(home));
 }
@@ -2013,8 +2234,17 @@ static void camera_record_photo_video(REC_MODE mode)
 		return;
 	}
     
-    // The color window has already been hidden before showing the prompt.
-	layout_monitor_refresh_2();
+	/* gui_refresh_area() defines the persistent GUI/video composition regions,
+	 * not a one-shot redraw. Keep all fixed monitor controls in the composite
+	 * list while avoiding the middle video area used by refresh_2(). */
+	if (mode == REC_MODE_AUTO && user_data_get()->setting.record_mode == RECORD_MODE_VIDEO)
+	{
+		layout_monitor_refresh_1();
+	}
+	else
+	{
+		layout_monitor_refresh_2();
+	}
     
     // ========== 抓拍模式 (或无SD卡) ==========
 	if (user_data_get()->setting.record_mode == RECORD_MODE_IMAGE || media_sdcard_insert_check() == false)
@@ -2422,18 +2652,18 @@ static void LAYOUT_ENTER_FUNC(camera)
 	layout_monitor_refresh_1();
 	MON_CH ch = monitor_channel_get();
 
-	if (ch == MON_CH_DOOR1 || ch == MON_CH_DOOR2)
-	{
-		if (user_data_get()->setting.inter_ring_volume == 0)
-		{
-			power_amplifier_enable(false);
-		}
-	}
+	/*
+	 * Do not hard-close PA on page enter. Home->Monitor key tone may still
+	 * be draining; its finish callback will release PA through the shared
+	 * delayed path. Real audio opens PA later when ring/talk starts.
+	 */
 
 	// camera_enter_zoom = false;
+	/* Keep the preview path active for a door call. The display mask below
+	 * hides stale content while VI starts, but must not block frame delivery. */
 	monitor_open(true, 0x03);
 	printf("==============[%d]:[%s]\n", __LINE__, __func__);
-	audio_input_capture_enable(true); // 延时打开ai，ai打开的同时，铃声开始播放，会有顿一下
+	audio_input_capture_enable(true); // AI may still be opening; door ring waits for settle
 	jpg_encode_capture_enable(true);
 
 	standby_timer_close();
@@ -2442,11 +2672,13 @@ static void LAYOUT_ENTER_FUNC(camera)
 
 	lv_obj_t *parent = lv_scr_act();
 	lv_obj_set_style_local_pattern_image(parent, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, NULL);
+	/* Clear the previous page before creating Camera widgets.  Auto-record
+	 * refreshes only its countdown area, so clearing after widget creation
+	 * would leave every other Camera control erased. */
+	fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
 	camera_timeout_value_reset();
 	camera_goto_monitor_mode(parent);
 	// camera_screen_adjust_enable(user_data_get()->setting.window_display_enable);
-	/* 主界面插卡的时候进入监控，有ui残留 */
-	fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
 
 	/*注册回调*/
 	layout_door1_call_callback_register(layout_camera_door1_call_func);
@@ -2468,49 +2700,53 @@ static void LAYOUT_ENTER_FUNC(camera)
 		// 	printf("Call record created for door station 1\n");
 		// }
 		printf("user_data_get()->setting.inter_ring_volume = %d\n", user_data_get()->setting.inter_ring_volume);
-		camera_call_auto_record_task_create();
-		camera_call_ring_start();
+		/* Record first (if enabled), settle, then door ring. Page shows immediately. */
+		camera_call_enter_seq_create(false);
 	}
-	if (hook_state_get() == true)
+	/*
+	 * Hook talk: do not open PA immediately on page enter.
+	 * Wait until door video channel is ready, same idea as channel switch.
+	 * Call-ring path opens PA later in camera_call_enter_seq / ring start.
+	 */
+	if (hook_state_get() == true &&
+		(ch == MON_CH_DOOR1 || ch == MON_CH_DOOR2))
 	{
-		if (ch == MON_CH_DOOR1)
+		if (ringplay_ing_check() == true)
 		{
-			printf("=========================>>>> door1 talking \n");
-			if (ringplay_ing_check() == true)
-			{
-				ringplay_play_stop();
-			}
-			// if (call_record_answered(CALL_DOOR_STATION_1))
-			// {
-			// 	printf("Call answered for door station 1\n");
-			// }
-			door_audio_talk(AUDIO_CH_DOOR1);
+			ringplay_play_stop();
 		}
-		else if (ch == MON_CH_DOOR2)
+
+		if (camera_video_frame_ready() == true)
 		{
-			if (ringplay_ing_check() == true)
+			printf("=========================>>>> door talking after video ready\n");
+			layout_media_power_amplifier_hold();
+			door_audio_talk(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2);
+			if (monitor_enter_mask_get() != MON_ENTER_CALL)
 			{
-				ringplay_play_stop();
+				monitor_enter_mask_set(MON_ENTER_TALK);
 			}
-			printf("=========================>>>> door2 talking \n");
-			// if (call_record_answered(CALL_DOOR_STATION_2))
-			// {
-			// 	printf("Call answered for door station 1\n");
-			// }
-			door_audio_talk(AUDIO_CH_DOOR2);
+			camera_in_talk_state = true;
 		}
-		if (monitor_enter_mask_get() != MON_ENTER_CALL)
+		else
 		{
-			monitor_enter_mask_set(MON_ENTER_TALK);
+			/* A manual entry may already have the handset raised. Wait for the
+			 * first Door frame before connecting its audio route. */
+			camera_in_talk_state = false;
+			camera_manual_talk_wait_create();
+			printf("=========================>>>> defer door talk until first frame\n");
 		}
 	}
-
-	camera_in_talk_state = hook_state_get();
+	else
+	{
+		camera_in_talk_state = false;
+	}
 
 	// lv_layout_task_create(camera_bell_detaction_task, 10, LV_TASK_PRIO_HIGH, NULL);
 }
 static void LAYOUT_QUIT_FUNC(camera)
 {
+	printf("[audio_trace] %llu camera quit talk=%d ch=%d\n",
+		   user_timestamp_get(), camera_in_talk_state, monitor_channel_get());
 	{
 		lv_obj_t *ch_obj = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_HEAD_CH_LABEL_ID);
 		if (ch_obj != NULL) lv_obj_set_hidden(ch_obj, true);
@@ -2533,7 +2769,18 @@ static void LAYOUT_QUIT_FUNC(camera)
 
 	layout_sd_state_callback_register(layout_sdcard_state_change_default);
 
-	door_audio_talk(AUDIO_CH_CLOSE);
+	if (camera_in_talk_state)
+	{
+		/* A real door talk session owns PA shutdown on exit. */
+		door_audio_talk(AUDIO_CH_CLOSE);
+	}
+	else
+	{
+		/* Ordinary monitor exit only needs to disconnect door audio routing. */
+		audio_to_outdoor1_pin_ctrl(false);
+		audio_to_outdoor2_pin_ctrl(false);
+		audio_to_inter_line_select_pin_ctrl(false);
+	}
 	call_ring_to_outdoor_ctrl(AUDIO_CH_DOOR1, false);
 	call_ring_to_outdoor_ctrl(AUDIO_CH_DOOR2, false);
 	monitor_close();
@@ -2568,7 +2815,7 @@ static void layout_camera_click_down_func(lv_obj_t *obj)
 {
 	//  if(hook_state_get() == true)
 	//  {
-	//  	return;
+	//      return;
 	//  }
 	//  MON_CH ch = monitor_channel_get();
 	//  call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
@@ -2602,7 +2849,7 @@ static void layout_camera_callring_finish_default_func(int index)
 
 	if (camera_call_ring_should_replay() == true)
 	{
-		ringplay_play_form_index(index, 100, ringplay_doorcall_start_default_func, layout_camera_callring_finish_default_func, false);
+		ring_play(index, 100, ringplay_doorcall_start_default_func, layout_camera_callring_finish_default_func, false);
 		return;
 	}
 
@@ -2627,6 +2874,7 @@ static void camera_display_delay_task(lv_task_t *task_t)
 	if (--camera_display_delay < 0 ||
 		(camera_display_delay_wait_video_ready == true && video_input_state_get()))
 	{
+		video_display_preview_enable(true);
 		lv_obj_t *obj = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_DISPLAY_DELAY_MASK_OBJ_ID);
 		if (obj != NULL)
 		{
@@ -2640,6 +2888,7 @@ static void camera_display_delay_task(lv_task_t *task_t)
 			backlight_enable(true);
 		}
 		camera_display_delay_control_backlight = true;
+
 	}
 }
 

@@ -124,6 +124,15 @@ echo "Current status:"
 git status --short
 echo
 
+if [ "$stage_all" = false ] && ! git diff --cached --quiet; then
+    echo "Error: existing staged changes detected."
+    echo "The safe daily mode refuses to mix old staged files into this commit."
+    echo "Review them with: git diff --cached --name-status"
+    echo "If they should not be committed now, unstage them with: git restore --staged ."
+    echo "Then rerun this script."
+    exit 1
+fi
+
 if [ "$stage_all" = true ]; then
     echo "Stage mode: all changes"
     if [ "$dry_run" = false ]; then
@@ -166,7 +175,7 @@ fi
 
 echo
 echo "Staged diff:"
-git diff --cached --stat
+git --no-pager diff --cached --stat
 
 if git diff --cached --quiet; then
     echo "No staged changes. Nothing to commit."

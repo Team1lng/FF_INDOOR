@@ -8,6 +8,8 @@
 #include "stdlib.h"
 
 #define USER_DATA_PATH "/app/data/user_data.cfg"
+#define MOTION_CAMERA_CCTV1 2
+#define MOTION_CAMERA_CCTV2 3
 
 static user_data_info user_data;
 
@@ -31,7 +33,7 @@ static const user_data_info user_data_default = {
 
 	.motion = {
 		.enable = false,
-		.select_camera = 0,
+		.select_camera = MOTION_CAMERA_CCTV1,
 		.saving_fmt = 0,
 		.sensivity = 1,
 		.timer_en = false,
@@ -142,6 +144,16 @@ bool user_data_save(void)
 
 #define user_data_alarm_check_range_out(x, min, max) user_data_check_range_out(alarm.x, min, max)
 
+static void user_data_motion_normalize(void)
+{
+	if (user_data.motion.select_camera != MOTION_CAMERA_CCTV1 &&
+		user_data.motion.select_camera != MOTION_CAMERA_CCTV2)
+	{
+		printf("motion select camera invalid: %d, fallback to CCTV1\n",
+			   user_data.motion.select_camera);
+		user_data.motion.select_camera = MOTION_CAMERA_CCTV1;
+	}
+}
 
 bool user_data_init(void)
 {
@@ -155,6 +167,7 @@ bool user_data_init(void)
 	read(fd, &user_data, sizeof(user_data_info));
 
 	close(fd);
+	user_data_motion_normalize();
 	return true;
 }
 
@@ -165,7 +178,11 @@ user_data_info *user_data_get(void)
 
 void user_data_reset(void)
 {
+	unsigned char device_id[2] = {user_data.device_id[0], user_data.device_id[1]};
+
 	user_data = user_data_default;
+	user_data.device_id[0] = device_id[0];
+	user_data.device_id[1] = device_id[1];
 	user_data_save();
 	system("sync");
 }

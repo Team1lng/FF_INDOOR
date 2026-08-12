@@ -1,5 +1,6 @@
 #include "layout_define.h"
 #include "ringplay.h"
+#include "audio_output.h"
 
 #define HOME_TOP_TIME_DATE_ID 0x1001
 
@@ -33,12 +34,15 @@ static void layout_prepare_intercom_in_black_transition(void)
 ***/
 void ringplay_keysound_finish_default_func(int index)
 {
-	/***** 关闭功放 *****/
-	// if (cur_layout_get() != pLAYOUT(memory_video) && cur_layout_get() != pLAYOUT(door_ring))
-	// 	power_amplifier_enable(false);
+	(void)index;
+	/* Touch tone finish must not toggle PA; layout exit/talk state owns PA off. */
 }
 void ringplay_keysound_start_default_func(int index)
 {
+	(void)index;
+	printf("[audio_trace] %llu touch-tone start\n", user_timestamp_get());
+	/* Cancel a pending PA-off from the previous click before opening PA. */
+	layout_media_power_amplifier_hold();
 	ring_volume_set(TOUCH_TONE_VOL);
 }
 /***
@@ -90,6 +94,8 @@ void ringplay_doorcall_finish_default_func(int index)
 ** 函数作用：door1 call 默认处理函数
 ** 返回参数说明：
 ***/
+/* Door-call while on intercom: stop intercom audio first, then enter camera.
+ * Camera side delays door ring (like 20260715) to avoid AI-open ring dip. */
 static void layout_interrupt_intercom_for_door_call(void)
 {
 	const layout *cur = cur_layout_get();
@@ -115,11 +121,17 @@ void layout_door1_call_default(void)
 	monitor_valid_channel_set(MON_CH_DOOR1, true);
 	if (cur_layout_get() != pLAYOUT(camera) /* && cur_layout_get() != pLAYOUT(intercom_talk) */)
 	{
+		if (cur_layout_get() == pLAYOUT(motion_detection))
+		{
+			layout_motion_detection_prepare_camera_in();
+		}
 
 		layout_interrupt_intercom_for_door_call();
 		intercom_state_set(IDLE_WAITING);  /* 修改：替换为IDLE_WAITING */
 		monitor_channel_set(MON_CH_DOOR1);
 		monitor_enter_mask_set(MON_ENTER_CALL);
+		printf("[motion_to_call] door1 call armed: record_mode=%d enter=%d\n",
+			   user_data_get()->setting.record_mode, monitor_enter_mask_get());
 		goto_layout(pLAYOUT(camera));
 		// if (hook_state_get() == false)
 		// {
@@ -139,10 +151,16 @@ void layout_door2_call_default(void)
 	monitor_valid_channel_set(MON_CH_DOOR2, true);
 	if (cur_layout_get() != pLAYOUT(camera) /* && cur_layout_get() != pLAYOUT(intercom_talk) */)
 	{
+		if (cur_layout_get() == pLAYOUT(motion_detection))
+		{
+			layout_motion_detection_prepare_camera_in();
+		}
 		layout_interrupt_intercom_for_door_call();
 		intercom_state_set(IDLE_WAITING);  /* 修改：替换为IDLE_WAITING */
 		monitor_channel_set(MON_CH_DOOR2);
 		monitor_enter_mask_set(MON_ENTER_CALL);
+		printf("[motion_to_call] door2 call armed: record_mode=%d enter=%d\n",
+			   user_data_get()->setting.record_mode, monitor_enter_mask_get());
 		goto_layout(pLAYOUT(camera));
 		// if (hook_state_get() == false)
 		// {
@@ -244,7 +262,12 @@ bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg)
 	}
 	else if (cur_layout_get() == pLAYOUT(standby))
 	{
-		printf("=============>>> standby hook change ignored: %d\n", cmd);
+		if (cmd == true)
+		{
+			/* Do not swallow the handset event while the screen is idle. */
+			printf("=============>>> standby hook pickup, enter home\n");
+			goto_layout(pLAYOUT(home));
+		}
 		return true;
 	}
 	else if (cur_layout_get() == pLAYOUT(photo_list) ||
@@ -568,6 +591,8 @@ void ring_play(int index, int volume, ringplay_callback start, ringplay_callback
 						   cur != pLAYOUT(intercom_out) &&
 						   cur != pLAYOUT(intercom_talk);
 
+	layout_media_power_amplifier_hold();
+
 	if (user_data_get()->setting.inter_ring_volume == 0)
 	{
 		power_amplifier_enable(false);
@@ -583,20 +608,149 @@ void ring_play(int index, int volume, ringplay_callback start, ringplay_callback
 	ringplay_play_form_index(index, volume, start, finish, loop);
 }
 
+static lv_task_t *media_pa_release_task = NULL;
+/* Extra settle ticks after key-tone/AO drain before hard PA-off (100ms task). */
+static int media_pa_release_settle_count = 0;
+#define MEDIA_PA_RELEASE_SETTLE_TICKS 4
+
+static bool layout_media_keep_power_amplifier(void)
+{
+	const layout *cur = cur_layout_get();
+
+	/* Only pages that intentionally keep PA warm. Camera is NOT included:
+	 * manual monitor must not force PA on just by entering. */
+	return cur == pLAYOUT(photo_list) ||
+		   cur == pLAYOUT(memory_video) ||
+		   cur == pLAYOUT(memory_photo) ||
+		   cur == pLAYOUT(calling) ||
+		   cur == pLAYOUT(intercom_in) ||
+		   cur == pLAYOUT(intercom_out) ||
+		   cur == pLAYOUT(intercom_talk);
+}
+
+static void layout_media_pa_release_task_stop(void)
+{
+	if (media_pa_release_task == NULL)
+	{
+		media_pa_release_settle_count = 0;
+		return;
+	}
+
+	lv_task_del(media_pa_release_task);
+	media_pa_release_task = NULL;
+	media_pa_release_settle_count = 0;
+}
+
+static void layout_media_power_amplifier_release_task(lv_task_t *task)
+{
+	if (media_pa_release_task != task)
+	{
+		lv_task_del(task);
+		return;
+	}
+
+	/* Re-entered media/intercom: keep PA and drop the pending off. */
+	if (layout_media_keep_power_amplifier())
+	{
+		layout_media_pa_release_task_stop();
+		return;
+	}
+
+	/* Wait until key tone finishes. */
+	if (ringplay_ing_check())
+	{
+		media_pa_release_settle_count = 0;
+		return;
+	}
+
+	/*
+	 * Wait AO residual empty before hard GPIO off.
+	 * Closing PA while DAC still has samples causes the audible "啪".
+	 * buffer_query < 0 means AO already closed -> treat as empty.
+	 */
+	{
+		int remain = audio_output_buffer_query();
+		if (remain > 0)
+		{
+			media_pa_release_settle_count = 0;
+			return;
+		}
+	}
+
+	/* Settle window after buffer reports empty (~400ms). */
+	if (media_pa_release_settle_count < MEDIA_PA_RELEASE_SETTLE_TICKS)
+	{
+		media_pa_release_settle_count++;
+		return;
+	}
+
+	power_amplifier_enable(false);
+	printf("[audio_trace] %llu media PA release complete\n", user_timestamp_get());
+	layout_media_pa_release_task_stop();
+}
+
+void layout_media_power_amplifier_hold(void)
+{
+	/* Cancel pending Media leave PA-off without forcing PA on. */
+	layout_media_pa_release_task_stop();
+}
+
+void layout_media_keytone_prepare(void)
+{
+	/*
+	 * UI click path must not restart AO: ringplay may already be playing or
+	 * queued, and ak_ao_cancel()/restart can make the touch tone double/cut.
+	 */
+	layout_media_pa_release_task_stop();
+	power_amplifier_enable(true);
+	ring_volume_set(TOUCH_TONE_VOL);
+}
+
+void layout_media_audio_prepare(void)
+{
+	/* Cancel any pending PA-off from previous leave-media/home transition. */
+	layout_media_pa_release_task_stop();
+
+	/*
+	 * Media pages keep PA on for key-tone stability.
+	 * Order: open/flush AO first (PA may still be off), then enable PA.
+	 * power_amplifier_enable() is idempotent: no re-toggle if already on.
+	 */
+	audio_output_open(AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000);
+	audio_output_device_restart();
+	power_amplifier_enable(true);
+	ring_volume_set(TOUCH_TONE_VOL);
+}
+
 void layout_media_power_amplifier_release(void)
 {
-	const layout *next = cur_layout_get();
-	bool keep_enabled = next == pLAYOUT(photo_list) ||
-						next == pLAYOUT(memory_video) ||
-						next == pLAYOUT(camera) ||
-						next == pLAYOUT(calling) ||
-						next == pLAYOUT(intercom_in) ||
-						next == pLAYOUT(intercom_out) ||
-						next == pLAYOUT(intercom_talk);
-
-	if (keep_enabled == false)
+	if (layout_media_keep_power_amplifier())
 	{
-		power_amplifier_enable(false);
+		layout_media_pa_release_task_stop();
+		return;
+	}
+
+	/*
+	 * Leaving Media: do NOT close PA immediately.
+	 * Key tone may still be playing; wait AO drain + settle, then soft off.
+	 *
+	 * NOTE: clean_lock semantics are inverted in this codebase:
+	 *   clean_lock == true  -> deleted by goto_layout()/lv_task_clean()
+	 *   clean_lock == false -> survives layout switch
+	 */
+	if (media_pa_release_task != NULL)
+	{
+		return;
+	}
+
+	media_pa_release_settle_count = 0;
+	media_pa_release_task = lv_layout_task_create(layout_media_power_amplifier_release_task,
+												  100,
+												  LV_TASK_PRIO_LOW,
+												  NULL);
+	if (media_pa_release_task != NULL)
+	{
+		media_pa_release_task->clean_lock = false;
 	}
 }
 

@@ -8,6 +8,8 @@
 #define LAYOUT_SETTING_MOTION_OBJ_CONT 0x10
 #define HOME_BACK_OBJ_ID 0x11
 #define HOME_GEAR_OBJ_ID 0x12
+#define MOTION_CAMERA_CCTV1 2
+#define MOTION_CAMERA_CCTV2 3
 
 // 全局变量用于存储当前显示文本
 static char camera_select_text[32] = {0};
@@ -15,6 +17,16 @@ static char storage_mode_text[32] = {0};
 static char sensitivity_text[32] = {0};
 static char record_duration_text[32] = {0};
 static char bright_screen_text[32] = {0};
+
+static void motion_select_camera_normalize(void)
+{
+    if (user_data_get()->motion.select_camera != MOTION_CAMERA_CCTV1 &&
+        user_data_get()->motion.select_camera != MOTION_CAMERA_CCTV2)
+    {
+        user_data_get()->motion.select_camera = MOTION_CAMERA_CCTV1;
+        user_data_save();
+    }
+}
 
 static void back_btn_up(lv_obj_t *obj)
 {
@@ -107,6 +119,8 @@ static lv_obj_t *setting_motion_cont_create(void)
 // 更新摄像头选择显示文本
 static void update_camera_select_display(void)
 {
+    motion_select_camera_normalize();
+
     lv_obj_t *cont = lv_obj_get_child_form_id(lv_scr_act(), LAYOUT_SETTING_MOTION_OBJ_CONT);
     if (cont == NULL)
     {
@@ -115,20 +129,14 @@ static void update_camera_select_display(void)
     }
     switch (user_data_get()->motion.select_camera)
     {
-    case 0:
-        sprintf(camera_select_text, "%s", str_get(LAYOUT_HOME_LANG_DOOR1_ID));
-        break;
-    case 1:
-        sprintf(camera_select_text, "%s", str_get(LAYOUT_HOME_LANG_DOOR2_ID));
-        break;
-    case 2:
+    case MOTION_CAMERA_CCTV1:
         sprintf(camera_select_text, "%s", str_get(LAYOUT_HOME_LANG_CCTV1_ID));
         break;
-    case 3:
+    case MOTION_CAMERA_CCTV2:
         sprintf(camera_select_text, "%s", str_get(LAYOUT_HOME_LANG_CCTV2_ID));
         break;
     default:
-        sprintf(camera_select_text, "%s", str_get(LAYOUT_HOME_LANG_DOOR1_ID));
+        sprintf(camera_select_text, "%s", str_get(LAYOUT_HOME_LANG_CCTV1_ID));
         break;
     }
 
@@ -145,16 +153,19 @@ static void update_camera_select_display(void)
 // 按钮点击回调函数 - 摄像头选择
 static void setting_detectiong_camera_select_btn_up(lv_obj_t *obj)
 {
-    // 循环切换摄像头选择：0->1->2->3->0
-    user_data_get()->motion.select_camera = (user_data_get()->motion.select_camera + 1) % 4;
+    // 移动侦测只允许 CCTV1/CCTV2，door 通道不参与移动侦测。
+    motion_select_camera_normalize();
+    user_data_get()->motion.select_camera =
+        (user_data_get()->motion.select_camera == MOTION_CAMERA_CCTV1) ? MOTION_CAMERA_CCTV2 : MOTION_CAMERA_CCTV1;
     user_data_save();
     update_camera_select_display();
 }
 
 static void setting_detectiong_camera_select_left_btn_up(lv_obj_t *obj)
 {
-    // 向左切换摄像头选择
-    user_data_get()->motion.select_camera = (user_data_get()->motion.select_camera - 1 + 4) % 4;
+    motion_select_camera_normalize();
+    user_data_get()->motion.select_camera =
+        (user_data_get()->motion.select_camera == MOTION_CAMERA_CCTV1) ? MOTION_CAMERA_CCTV2 : MOTION_CAMERA_CCTV1;
     user_data_save();
     update_camera_select_display();
 }
@@ -525,6 +536,8 @@ static bool setting_detectiong_bright_screen_btn_create(lv_obj_t *parent)
 
 static void LAYOUT_ENTER_FUNC(setting_motion_detection)
 {
+    motion_select_camera_normalize();
+
     lv_obj_t *parent = common_bg_display(lv_scr_act());
     back_btn_create(parent);
     setting_icon_create(parent);

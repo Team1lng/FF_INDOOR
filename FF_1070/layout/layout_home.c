@@ -16,6 +16,7 @@ typedef enum
 #define HOME_BACKLIGHT_DELAY_MS 300
 
 static lv_task_t *home_backlight_task = NULL;
+static lv_obj_t *home_media_btn = NULL;
 
 static custom_area home_btn_area[HOME_TOTAL_BTN] =
 	{
@@ -98,6 +99,19 @@ static void setting_icon_create(lv_obj_t *parent)
 }
 
 
+static void home_click_down_func(lv_obj_t *obj)
+{
+	/* Media entry key tone: keep PA warm without restarting AO on click. */
+	if (obj == home_media_btn)
+	{
+		layout_media_keytone_prepare();
+		layout_obj_click_down_func(obj);
+		return;
+	}
+
+	layout_obj_click_down_func(obj);
+}
+
 static void home_time_btn_up(lv_obj_t *obj)
 {
 	if (home_backlight_task != NULL)
@@ -174,7 +188,7 @@ static void home_media_btn_create(lv_obj_t *parent)
 {
 	static obj_click_data btn_data = obj_click_data_up_create(home_media_btn_up);
 	static rom_bin_info info = rom_bin_info_get(ROM_UI_HOME_MEDIA_PNG);
-	common_img_btn_create(parent, home_btn_area[HOME_MEDIA_OBJ_ID], str_get(COMMON_LANG_HOME_MEDIA), &btn_data, &info);
+	home_media_btn = common_img_btn_create(parent, home_btn_area[HOME_MEDIA_OBJ_ID], str_get(COMMON_LANG_HOME_MEDIA), &btn_data, &info);
 }
 
 static void home_intercom_btn_create(lv_obj_t *parent)
@@ -249,6 +263,7 @@ static void LAYOUT_ENTER_FUNC(home)
 	home_standby_btn_create(parent);
 	setting_icon_create(parent);
 	top_time_date_text_create(parent);
+	lv_obj_click_down_callback_register(home_click_down_func);
 	home_backlight_task_create();
 }
 
@@ -259,19 +274,14 @@ static void LAYOUT_QUIT_FUNC(home)
 		lv_task_del(home_backlight_task);
 		home_backlight_task = NULL;
 	}
+	lv_obj_click_down_callback_register(layout_obj_click_down_func);
+	home_media_btn = NULL;
 	
 	layout_sd_state_callback_register(layout_sdcard_state_change_default);
 	user_data_save();
 }
 
 CREATE_LAYOUT(home);
-
-
-
-
-
-
-
 
 
 

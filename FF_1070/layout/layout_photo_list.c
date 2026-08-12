@@ -976,10 +976,19 @@ static void setting_icon_create(lv_obj_t *parent)
 	lv_obj_align(setting_icon_obj, Setting_label, LV_ALIGN_OUT_LEFT_MID, -5, 0);
 }
 /************************** 布局入口/退出函数**************************/
+static void photo_list_click_down_func(lv_obj_t *obj)
+{
+	(void)obj;
+	/* Keep PA ready for key tone without restarting AO on every click. */
+	layout_media_keytone_prepare();
+	layout_obj_click_down_func(obj);
+}
+
 static void LAYOUT_ENTER_FUNC(photo_list)
 {
     // printf("============================enter_photo_list\n");
-    power_amplifier_enable(true);
+    layout_media_audio_prepare();
+    lv_obj_click_down_callback_register(photo_list_click_down_func);
     media_list_sdcard_removing = false;
     file_type_photo=FILE_TYPE_FLASH_PHOTO;
     user_data_get()->new_photo_file_flag = false;
@@ -1054,6 +1063,7 @@ static void LAYOUT_ENTER_FUNC(photo_list)
 
 static void LAYOUT_QUIT_FUNC(photo_list)
 {
+    lv_obj_click_down_callback_register(layout_obj_click_down_func);
     const layout *cur_layout = cur_layout_get();
     if ((cur_layout != pLAYOUT(memory_photo)) && (cur_layout != pLAYOUT(memory_video)))
     {

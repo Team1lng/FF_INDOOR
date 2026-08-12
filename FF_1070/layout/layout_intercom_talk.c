@@ -398,6 +398,9 @@ static void LAYOUT_QUIT_FUNC(intercom_talk)
 {
     remote_hangup_exit_home = false;
     hung_up_task = NULL;
+    if (talking_task != NULL) {
+        lv_task_del(talking_task);
+    }
     talking_task = NULL;
     standby_timer_restart(true);
     door_audio_talk(AUDIO_CH_CLOSE); /* 关闭音频通道 */

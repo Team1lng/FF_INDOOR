@@ -41,6 +41,7 @@ static cam_mode_t camera_mode = CAMERA_MODE_MONITOR;
 static int camera_record_video_count_down = 0; // 录像倒计时(秒)
 static bool is_photo_mode = false;             // 新增：标记是否为拍照模式
 static bool motion_intercom_transitioning = false;
+static bool motion_camera_transitioning = false;
 static lv_task_t *camera_auto_record_delayed_task_t = NULL;
 static lv_task_t *camera_ticker_task_t = NULL;
 
@@ -50,6 +51,69 @@ static bool motion_intercom_pending(void)
     return intercom_state_get() != INTERCOM_STATE_IDLE ||
            tag == OCR ||
            tag == ACR;
+}
+
+static bool motion_detection_door_talk_active(void)
+{
+    MON_CH ch = monitor_channel_get();
+    return hook_state_get() == true &&
+           (ch == MON_CH_DOOR1 || ch == MON_CH_DOOR2);
+}
+
+void layout_motion_detection_prepare_camera_in(void)
+{
+	if (cur_layout_get() != pLAYOUT(motion_detection))
+	{
+		return;
+	}
+
+	printf("[motion_to_call] prepare: record_mode=%d motion_fmt=%d vi=%d video_rec=%d jpeg_rec=%d\n",
+		   user_data_get()->setting.record_mode,
+		   user_data_get()->motion.saving_fmt,
+		   video_input_state_get(),
+		   video_record_status_get(),
+		   mjpeg_encode_status_get());
+
+	motion_camera_transitioning = true;
+    motion_intercom_transitioning = true;
+    motion_ticker_task_stop(MOTION_TASK_TOTAL);
+
+    if (camera_auto_record_delayed_task_t != NULL)
+    {
+        lv_task_del(camera_auto_record_delayed_task_t);
+        camera_auto_record_delayed_task_t = NULL;
+    }
+
+    if (camera_ticker_task_t != NULL)
+    {
+        lv_task_del(camera_ticker_task_t);
+        camera_ticker_task_t = NULL;
+    }
+
+    obj_click_event_listen(lv_scr_act(), NULL);
+    backlight_enable(false);
+    video_display_preview_enable(false);
+    lv_video_mode_enable(false);
+    fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
+    lv_obj_clean(lv_scr_act());
+    {
+        refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
+        gui_refresh_area(&area, 1);
+    }
+
+    ringplay_play_stop();
+    jpg_encode_capture_enable(false);
+    audio_input_capture_enable(false);
+    record_video_close();
+    record_jpeg_close();
+
+    monitor_close();
+
+    {
+        int timeout = 100;
+        while (!audio_input_device_is_idle() && timeout-- > 0)
+            usleep(10 * 1000);
+    }
 }
 
 // UI组件ID定义
@@ -133,7 +197,7 @@ static void camera_sdcard_display_task(void)
 // 拍照结束任务 - 不再立即退出，而是等待倒计时
 static void camera_record_image_end_task(void)
 {
-    printf("移动侦测：拍照完成，等待倒计时结束\n");
+    // printf("移动侦测：拍照完成，等待倒计时结束\n");
 
     // 拍照完成后立即设置标志，但不退出
     user_data_get()->new_photo_file_flag = true;
@@ -163,7 +227,7 @@ static void camera_photo_countdown_task(void)
 
     if (--camera_record_video_count_down < 0)
     {
-        printf("移动侦测：拍照倒计时结束，跳转到待机界面\n");
+        // printf("移动侦测：拍照倒计时结束，跳转到待机界面\n");
         is_recording = false;
         motion_ticker_task_stop(MOTION_TASK_PHOTO_COUNTDOWN);
         goto_layout(pLAYOUT(standby));
@@ -204,7 +268,7 @@ static void camera_record_video_count_down_task(void)
         motion_ticker_task_stop(MOTION_TASK_RECORD_VIDEO);
 
         // 跳转到待机界面
-        printf("移动侦测：录像完成，跳转到待机界面\n");
+        // printf("移动侦测：录像完成，跳转到待机界面\n");
         goto_layout(pLAYOUT(standby));
         return;
     }
@@ -436,22 +500,22 @@ static void camera_goto_monitor_mode(lv_obj_t *parent)
 // 自动拍照/录像处理
 static void camera_auto_record(void)
 {
-    printf("移动侦测：开始自动录制检查\n");
+    // printf("移动侦测：开始自动录制检查\n");
 
     if (motion_intercom_transitioning || motion_intercom_pending())
     {
-        printf("移动侦测：内线来电切换中，跳过自动录制\n");
+        // printf("移动侦测：内线来电切换中，跳过自动录制\n");
         return;
     }
 
     if (is_recording)
     {
-        printf("移动侦测：正在录制中，跳过\n");
+        // printf("移动侦测：正在录制中，跳过\n");
         return;
     }
     if (!video_input_state_get())
     {
-        printf("移动侦测：视频输入状态无效，跳过\n");
+        // printf("移动侦测：视频输入状态无效，跳过\n");
         return;
     }
 
@@ -460,10 +524,10 @@ static void camera_auto_record(void)
     // 直接使用user_data中的motion配置
     if (user_data_get()->motion.saving_fmt == 0 || (!media_sdcard_insert_check()))
     { // 拍照模式
-        printf("移动侦测：尝试自动拍照...\n");
+        // printf("移动侦测：尝试自动拍照...\n");
         if (record_jpeg_start(REC_MODE_MOTION))
         {
-            printf("移动侦测：自动拍照启动成功\n");
+            // printf("移动侦测：自动拍照启动成功\n");
             is_recording = true;
             is_photo_mode = true;
             motion_detection_photo_icon_flash();
@@ -479,15 +543,15 @@ static void camera_auto_record(void)
         }
         else
         {
-            printf("移动侦测：自动拍照启动失败\n");
+            // printf("移动侦测：自动拍照启动失败\n");
         }
     }
     else
     { // 录像模式
-        printf("移动侦测：尝试自动录像...\n");
+        // printf("移动侦测：尝试自动录像...\n");
         if (record_video_start(REC_MODE_MOTION))
         {
-            printf("移动侦测：自动录像启动成功\n");
+            // printf("移动侦测：自动录像启动成功\n");
             is_recording = true;
             is_photo_mode = false;
 
@@ -499,7 +563,7 @@ static void camera_auto_record(void)
         }
         else
         {
-            printf("移动侦测：自动录像启动失败\n");
+            // printf("移动侦测：自动录像启动失败\n");
         }
     }
 }
@@ -509,7 +573,7 @@ static void camera_auto_record_delayed(lv_task_t *task)
 {
     if (motion_intercom_transitioning || motion_intercom_pending())
     {
-        printf("移动侦测：内线来电切换中，取消延迟自动录制\n");
+        // printf("移动侦测：内线来电切换中，取消延迟自动录制\n");
         motion_intercom_transitioning = true;
         motion_ticker_task_stop(MOTION_TASK_TOTAL);
         if (task == camera_auto_record_delayed_task_t)
@@ -527,7 +591,7 @@ static void camera_auto_record_delayed(lv_task_t *task)
     // 根据LCD使能控制屏幕
     backlight_enable(user_data_get()->motion.lcd_en);
     motion_detection_stop();
-    printf("移动侦测：延迟自动录制检查\n");
+    // printf("移动侦测：延迟自动录制检查\n");
     camera_auto_record();
     if (task)
     {
@@ -544,7 +608,7 @@ static void camera_ticker_task(lv_task_t *task_t)
 {
     if (motion_intercom_transitioning || motion_intercom_pending())
     {
-        printf("移动侦测：内线来电切换中，停止移动侦测刷新任务\n");
+        // printf("移动侦测：内线来电切换中，停止移动侦测刷新任务\n");
         motion_intercom_transitioning = true;
         motion_ticker_task_stop(MOTION_TASK_TOTAL);
         if (task_t == camera_ticker_task_t)
@@ -583,7 +647,13 @@ extern void delay_backlight_open_task(lv_task_t *task);
 static bool screen_clicked = false;
 static void standby_bg_click_event_cb(lv_obj_t *obj)
 {   
-    printf("待机背景被点击，返回主界面\n");
+    if (motion_detection_door_talk_active())
+    {
+        // printf("移动侦测：门口机对讲中，先关闭音频通路再退出\n");
+        door_audio_talk(AUDIO_CH_CLOSE);
+    }
+
+    // printf("待机背景被点击，返回主界面\n");
     screen_clicked = true;
     obj_click_event_listen(lv_scr_act(), NULL);
     backlight_enable(false);
@@ -596,6 +666,21 @@ static void standby_bg_click_event_cb(lv_obj_t *obj)
         gui_refresh_area(&area, 1);
     }
     goto_layout(pLAYOUT(home));
+}
+
+static void motion_detection_click_down_func(lv_obj_t *obj)
+{
+    /*
+     * Off-hook door talk keeps the audio route to the outdoor station open.
+     * Do not play the local key tone here, otherwise it is sent to the door
+     * station as a pop/click through the talk path.
+     */
+    if (motion_detection_door_talk_active())
+    {
+        return;
+    }
+
+    layout_obj_click_down_func(obj);
 }
 
 void layout_motion_detection_prepare_intercom_in(void)
@@ -616,13 +701,21 @@ void layout_motion_detection_prepare_intercom_in(void)
     }
 
     obj_click_event_listen(lv_scr_act(), NULL);
+    backlight_enable(false);
     video_display_preview_enable(false);
     lv_video_mode_enable(false);
+    fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
+    lv_obj_clean(lv_scr_act());
+    {
+        refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
+        gui_refresh_area(&area, 1);
+    }
 }
 
 // 进入移动侦测界面
 static void LAYOUT_ENTER_FUNC(motion_detection)
 {
+    motion_camera_transitioning = false;
     if (motion_intercom_pending())
     {
         printf("移动侦测：检测到内线来电，跳过移动侦测界面\n");
@@ -640,6 +733,7 @@ static void LAYOUT_ENTER_FUNC(motion_detection)
     // 创建背景点击事件
     static obj_click_data bg_btn_data = obj_click_data_up_create(standby_bg_click_event_cb);
     obj_click_event_listen(lv_scr_act(), &bg_btn_data);
+    lv_obj_click_down_callback_register(motion_detection_click_down_func);
     // 初始化监控
     monitor_open(true, 0x03);
     audio_input_capture_enable(true);
@@ -667,51 +761,60 @@ static void LAYOUT_QUIT_FUNC(motion_detection)
     printf("移动侦测：退出移动侦测界面\n");
     screen_clicked = false;
 
-    // 先隐藏当前画面，再做耗时的 VI/AI/VENC 释放，避免内线来电亮屏时露出移动侦测旧 UI。
-    backlight_enable(false);
-    video_display_preview_enable(false);
-    lv_video_mode_enable(false);
-    fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
-    lv_obj_clean(lv_scr_act());
+    if (!motion_camera_transitioning)
     {
-        refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
-        gui_refresh_area(&area, 1);
-    }
+        // 先隐藏当前画面，再做耗时的 VI/AI/VENC 释放，避免内线来电亮屏时露出移动侦测旧 UI。
+        backlight_enable(false);
+        video_display_preview_enable(false);
+        lv_video_mode_enable(false);
+        fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
+        lv_obj_clean(lv_scr_act());
+        {
+            refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
+            gui_refresh_area(&area, 1);
+        }
 
-    // Stop tasks/capture/encoders before closing VI to avoid teardown races.
-    ringplay_play_stop();
-    motion_ticker_task_stop(MOTION_TASK_TOTAL);
-    if (camera_auto_record_delayed_task_t != NULL)
-    {
-        lv_task_del(camera_auto_record_delayed_task_t);
-        camera_auto_record_delayed_task_t = NULL;
+        // Stop tasks/capture/encoders before closing VI to avoid teardown races.
+        ringplay_play_stop();
+        motion_ticker_task_stop(MOTION_TASK_TOTAL);
+        if (camera_auto_record_delayed_task_t != NULL)
+        {
+            lv_task_del(camera_auto_record_delayed_task_t);
+            camera_auto_record_delayed_task_t = NULL;
+        }
+        if (camera_ticker_task_t != NULL)
+        {
+            lv_task_del(camera_ticker_task_t);
+            camera_ticker_task_t = NULL;
+        }
+        jpg_encode_capture_enable(false);
+        audio_input_capture_enable(false);
+        record_video_close();
+        record_jpeg_close();
+        monitor_close();
     }
-    if (camera_ticker_task_t != NULL)
-    {
-        lv_task_del(camera_ticker_task_t);
-        camera_ticker_task_t = NULL;
-    }
-    jpg_encode_capture_enable(false);
-    audio_input_capture_enable(false);
-    record_video_close();
-    record_jpeg_close();
-    monitor_close();
 
     // 同步等待 VI/AI/VENC 设备彻底关闭，避免 quit 返回后 enter 并发操作资源
+    if (!motion_camera_transitioning)
     {
-        int timeout = 100;
-        while (video_input_state_get() == true && timeout-- > 0)
-            usleep(10 * 1000);
-    }
-    {
-        int timeout = 100;
-        while (!audio_input_device_is_idle() && timeout-- > 0)
-            usleep(10 * 1000);
+        {
+            int timeout = 100;
+            while (video_input_state_get() == true && timeout-- > 0)
+                usleep(10 * 1000);
+        }
+        {
+            int timeout = 100;
+            while (!audio_input_device_is_idle() && timeout-- > 0)
+                usleep(10 * 1000);
+        }
     }
 
     layout_sd_state_callback_register(layout_sdcard_state_change_default);
     motion_detection_destory();
     obj_click_event_listen(lv_scr_act(), NULL);
+    lv_obj_click_down_callback_register(layout_obj_click_down_func);
+    motion_camera_transitioning = false;
+    motion_intercom_transitioning = false;
     user_data_save();
     standby_timer_restart(true);
 }

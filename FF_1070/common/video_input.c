@@ -285,6 +285,8 @@ void video_input_resident_bzero(void)
 	// 加锁防止与 video_display_task 写入、显示刷帧 TDE 读取并发导致半屏黑
 	video_main_display_lock();
 	memset(video_input_resident_buffer, 0x00, LV_HOR_RES_MAX * LV_VER_RES_MAX * 3);
+	/* A zero timestamp marks the cleared buffer as not displayable yet. */
+	video_input_resident_timestmap = 0;
 	video_main_display_unlock();
 }
 

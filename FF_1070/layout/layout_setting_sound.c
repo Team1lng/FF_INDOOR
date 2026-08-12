@@ -92,12 +92,15 @@ static void inter_ring_volume_set(int vol)
 
 static void door_ring_play_start_cb(int index)
 {
+	printf("[audio_trace] %llu ringtone-preview start index=%d\n", user_timestamp_get(), index);
+	layout_media_power_amplifier_hold();
     ring_volume_set(user_data_get()->setting.inter_ring_volume);
 }
 
 static void door_ring_play_finish_cb(int index)
 {
-    // 播放完成处理
+	printf("[audio_trace] %llu ringtone-preview finish index=%d\n", user_timestamp_get(), index);
+	/* Keep PA state unchanged after a preview to avoid a GPIO9 off-edge pop. */
 }
 
 // 铃声音量调节回调（右箭头 - 音量加）

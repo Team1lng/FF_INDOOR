@@ -23,6 +23,7 @@ GPIO_LEVEL_HIGH = 0x02
 ** 返回参数说明：
 ***/
 bool gpio_direction_set(const int pin, GPIO_DIR dir);
+bool gpio_direction_output_level_set(const int pin, GPIO_LEVEL level);
 
 /***
 ** 日期: 2022-04-28 10:02 

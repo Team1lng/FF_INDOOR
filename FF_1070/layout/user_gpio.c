@@ -172,6 +172,7 @@ void *gpio_det_task(void *arg)
 // 铃声音量设置
 void ring_volume_set(int vol)
 {
+	printf("[audio_trace] %llu ring_volume_set=%d\n", user_timestamp_get(), vol);
 	switch (vol)
 	{
 	case 0:
@@ -263,7 +264,22 @@ void guard_talking_pin_ctrl(bool en)
 #define POWER_AMPLIFIER_PIN 9
 bool power_amplifier_enable(bool en)
 {
-	return gpio_level_set(POWER_AMPLIFIER_PIN, en ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
+	static int pa_level = -1; /* -1 unknown, 0 off, 1 on */
+
+	int want = en ? 1 : 0;
+	if (pa_level == want)
+	{
+		return true;
+	}
+
+	printf("[audio_trace] %llu PA GPIO9 %d->%d\n",
+		   user_timestamp_get(), pa_level, want);
+	bool ok = gpio_level_set(POWER_AMPLIFIER_PIN, en ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
+	if (ok)
+	{
+		pa_level = want;
+	}
+	return ok;
 }
 
 /***
@@ -443,7 +459,8 @@ void cctv2_power_pin_ctrl(bool en)
 void layout_gpio_init(void)
 {
 	/***** 功放IO初始化 *****/
-	gpio_direction_set(POWER_AMPLIFIER_PIN, GPIO_DIR_OUT);
+	/* Atomically make PA_EN an output low; do not expose its old latch level. */
+	gpio_direction_output_level_set(POWER_AMPLIFIER_PIN, GPIO_LEVEL_LOW);
 	gpio_pull_enable(POWER_AMPLIFIER_PIN, true);
 	power_amplifier_enable(false);
 
@@ -553,6 +570,7 @@ void layout_gpio_init(void)
 ***/
 bool door_audio_talk(AUDIO_CH ch)
 {
+	printf("[audio_trace] %llu door_audio_talk=%d\n", user_timestamp_get(), ch);
 	switch (ch)
 	{
 	case AUDIO_CH_DOOR1:

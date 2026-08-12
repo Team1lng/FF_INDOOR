@@ -7,7 +7,7 @@
 typedef struct
 {
 	bool enable;
-	/***** 0:door1 ,1:door2 --- 3:cctv2 *****/
+	/***** 2:cctv1, 3:cctv2. door通道不参与移动侦测 *****/
 	char select_camera;
 	/***** 0:photo 1:video *****/
 	char saving_fmt;

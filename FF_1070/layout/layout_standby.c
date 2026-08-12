@@ -14,6 +14,9 @@ static bool motion_detection_inited = false;
 static bool motion_detection_started = false;
 static bool standby_entering_motion_detection = false;
 static bool standby_wakeup_in_progress = false;
+
+#define MOTION_CAMERA_CCTV1 2
+#define MOTION_CAMERA_CCTV2 3
 /***移动侦测相关函数***/
 static void standby_resource_release_sfunc(bool motion)
 {
@@ -58,43 +61,23 @@ static bool standby_intercom_busy(void)
 		   tag == OCR ||
 		   tag == ACR;
 }
-// static void motion_sel_dvr(void)
-// {
-// 	standby_resource_release_sfunc(true);
-// 	if (user_data_get()->motion.select_camera == 0)
-// 	{
-// 		monitor_channel_set(MON_CH_DOOR1);
-// 		monitor_valid_channel_set(MON_CH_DOOR1, true);
-// 	}
-// 	else if (user_data_get()->motion.select_camera == 1)
-// 	{
-// 		monitor_channel_set(MON_CH_DOOR2);
-// 		monitor_valid_channel_set(MON_CH_DOOR2, true);
-// 	}
-// 	goto_layout(pLAYOUT(camera));
-// }
+static MON_CH standby_motion_monitor_channel_get(void)
+{
+	if (user_data_get()->motion.select_camera != MOTION_CAMERA_CCTV1 &&
+		user_data_get()->motion.select_camera != MOTION_CAMERA_CCTV2)
+	{
+		printf("motion select camera invalid for new board: %d, fallback to CCTV1\n",
+			   user_data_get()->motion.select_camera);
+		user_data_get()->motion.select_camera = MOTION_CAMERA_CCTV1;
+		user_data_save();
+	}
+
+	return user_data_get()->motion.select_camera == MOTION_CAMERA_CCTV2 ? MON_CH_CCTV2 : MON_CH_CCTV1;
+}
+
 static void layout_motion_monitor_open(void)
 {
-	if (user_data_get()->motion.select_camera == 0)
-	{
-		monitor_channel_set(MON_CH_DOOR1);
-	}
-	else if (user_data_get()->motion.select_camera == 1)
-	{
-		monitor_channel_set(MON_CH_DOOR2);
-	}
-	else if (user_data_get()->motion.select_camera == 2)
-	{
-		monitor_channel_set(MON_CH_CCTV1);
-	}
-	else if (user_data_get()->motion.select_camera == 3)
-	{
-		monitor_channel_set(MON_CH_CCTV2);
-	}
-	else
-	{
-		printf("####### motion_dvr_ch error: %d ############################\n", user_data_get()->motion.select_camera);
-	}
+	monitor_channel_set(standby_motion_monitor_channel_get());
 }
 
 // 移动侦测检查任务
@@ -128,26 +111,9 @@ static void motion_move_check_task(lv_task_t *task)
 
 	// 移动侦测触发后的处理
 	printf("Motion detected! Taking action...\n");
-	if (user_data_get()->motion.select_camera == 0)
-	{
-		monitor_channel_set(MON_CH_DOOR1);
-		monitor_valid_channel_set(MON_CH_DOOR1, true);
-	}
-	else if (user_data_get()->motion.select_camera == 1)
-	{
-		monitor_channel_set(MON_CH_DOOR2);
-		monitor_valid_channel_set(MON_CH_DOOR2, true);
-	}
-	else if (user_data_get()->motion.select_camera == 2)
-	{
-		monitor_channel_set(MON_CH_CCTV1);
-		monitor_valid_channel_set(MON_CH_CCTV1, true);
-	}
-	else if (user_data_get()->motion.select_camera == 3)
-	{
-		monitor_channel_set(MON_CH_CCTV2);
-		monitor_valid_channel_set(MON_CH_CCTV2, true);
-	}
+	MON_CH motion_ch = standby_motion_monitor_channel_get();
+	monitor_channel_set(motion_ch);
+	monitor_valid_channel_set(motion_ch, true);
 	monitor_enter_mask_set(MON_ENTER_NONE);
 	// door_audio_select_pin_ctrl();
 	lv_task_del(task);
@@ -303,6 +269,8 @@ static void LAYOUT_ENTER_FUNC(standby)
 	// 创建背景点击事件
 	static obj_click_data bg_btn_data = obj_click_data_create(standby_bg_click_event_cb, NULL);
 	obj_click_event_listen(lv_scr_act(), &bg_btn_data);
+	/* Standby wakes on press, so do not queue a key tone during the layout switch. */
+	lv_obj_click_down_callback_register(NULL);
 
 	// 如果移动侦测启用，延时启动
 	if (user_data_get()->motion.enable)
@@ -338,6 +306,7 @@ static void LAYOUT_QUIT_FUNC(standby)
 	standby_entering_motion_detection = false;
 
 	obj_click_event_listen(lv_scr_act(), NULL);
+	lv_obj_click_down_callback_register(layout_obj_click_down_func);
 	standby_timer_restart(true);
 }
 

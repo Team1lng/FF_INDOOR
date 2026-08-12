@@ -137,8 +137,10 @@ static void *video_record_task(void *arg)
 
 	unsigned int avi_write_frame_count = 0;
 
-	common_data *audio_node[10] = {NULL};
-	common_data *video_node[10] = {NULL};
+	/* Keep a copy of each queued frame.  The message receiver reuses `node`
+	 * on every iteration, so storing &node.msg would overwrite queued frames. */
+	common_data audio_node[10] = {0};
+	common_data video_node[10] = {0};
 	int audio_node_total = 0;
 	int video_node_total = 0;
 	printf("***** video record task create sccess ! *****\n");
@@ -158,17 +160,19 @@ static void *video_record_task(void *arg)
 			}
 			for (int i = 0; i < 10; i++)
 			{
-				if ((audio_node[i] != NULL) && (audio_node[i]->data != NULL))
+				if (audio_node[i].data != NULL)
 				{
-					ak_mem_free(audio_node[i]->data);
-					audio_node[i] = NULL;
+					ak_mem_free(audio_node[i].data);
+					audio_node[i].data = NULL;
 				}
-				if ((video_node[i] != NULL) && (video_node[i]->data != NULL))
+				if (video_node[i].data != NULL)
 				{
-					ak_mem_free(video_node[i]->data);
-					video_node[i] = NULL;
+					ak_mem_free(video_node[i].data);
+					video_node[i].data = NULL;
 				}
 			}
+			audio_node_total = 0;
+			video_node_total = 0;
 		}
 
 		if ((msgrcv(video_record_queue_head, (void *)&node, sizeof(common_data), sizeof(common_data), IPC_NOWAIT) > 0))
@@ -191,58 +195,56 @@ static void *video_record_task(void *arg)
 			{
 				if (node.msg.type == 0)
 				{
-					if (audio_node[audio_node_total] == NULL)
+					if (audio_node_total < 9)
 					{
-						if (audio_node_total < 9)
-						{
-							audio_node[audio_node_total] = &(node.msg);
-							audio_node_total++;
-						}
-						else
-						{
-							printf("record audio data full \n");
-						}
+						audio_node[audio_node_total] = node.msg;
+						audio_node_total++;
+					}
+					else
+					{
+						printf("record audio data full \n");
+						ak_mem_free(node.msg.data);
+						node.msg.data = NULL;
 					}
 				}
 				else if (node.msg.type == 1)
 				{
-					if (video_node[video_node_total] == NULL)
+					if (video_node_total < 9)
 					{
-						if (video_node_total < 9)
-						{
-							video_node[video_node_total] = &(node.msg);
-							video_node_total++;
-						}
-						else
-						{
-							printf("record video data full \n");
-						}
+						video_node[video_node_total] = node.msg;
+						video_node_total++;
+					}
+					else
+					{
+						printf("record video data full \n");
+						ak_mem_free(node.msg.data);
+						node.msg.data = NULL;
 					}
 				}
 
-				if ((audio_node[0] != NULL) && (((video_node[0] == NULL) || (video_node[0]->timestamp > audio_node[0]->timestamp))))
+				if ((audio_node[0].data != NULL) && (((video_node[0].data == NULL) || (video_node[0].timestamp > audio_node[0].timestamp))))
 				{
-					AVI_write_audio(video_record_handle_id, (char *)audio_node[0]->data, audio_node[0]->size);
-					ak_mem_free(audio_node[0]->data);
+					AVI_write_audio(video_record_handle_id, (char *)audio_node[0].data, audio_node[0].size);
+					ak_mem_free(audio_node[0].data);
 					if (audio_node_total > 1)
 					{
 						memmove(&audio_node[0], &audio_node[1],
 							   (audio_node_total - 1) * sizeof(audio_node[0]));
 					}
 					audio_node_total--;
-					audio_node[audio_node_total] = NULL;
+					memset(&audio_node[audio_node_total], 0, sizeof(audio_node[0]));
 				}
-				else if ((video_node[0] != NULL) && ((audio_node[0] == NULL) || (video_node[0]->timestamp <= audio_node[0]->timestamp)))
+				else if ((video_node[0].data != NULL) && ((audio_node[0].data == NULL) || (video_node[0].timestamp <= audio_node[0].timestamp)))
 				{
-					AVI_write_frame(video_record_handle_id, (char *)video_node[0]->data, video_node[0]->size, is_h264_keyframe(video_node[0]->data[4]));
-					ak_mem_free(video_node[0]->data);
+					AVI_write_frame(video_record_handle_id, (char *)video_node[0].data, video_node[0].size, is_h264_keyframe(video_node[0].data[4]));
+					ak_mem_free(video_node[0].data);
 					if (video_node_total > 1)
 					{
 						memmove(&video_node[0], &video_node[1],
 							   (video_node_total - 1) * sizeof(video_node[0]));
 					}
 					video_node_total--;
-					video_node[video_node_total] = NULL;
+					memset(&video_node[video_node_total], 0, sizeof(video_node[0]));
 
 					avi_write_frame_count++;
 				}

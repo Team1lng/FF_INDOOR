@@ -107,6 +107,33 @@ bool gpio_direction_set(const int pin, GPIO_DIR dir)
 	return true;
 }
 
+bool gpio_direction_output_level_set(const int pin, GPIO_LEVEL level)
+{
+	if (gpio_export(pin) == false)
+	{
+		printf("export gpio%d faild \n", pin);
+		return false;
+	}
+
+	char direction_buf[128] = {0};
+	sprintf(direction_buf, "/sys/class/gpio/gpio%d/direction", pin);
+	int direction_fd = open(direction_buf, O_WRONLY);
+	if (direction_fd < 0)
+	{
+		printf("gpio%d direction setting failed \n", pin);
+		return false;
+	}
+
+	const char *value = level == GPIO_LEVEL_LOW ? "low" : "high";
+	bool ok = write(direction_fd, value, strlen(value)) == (ssize_t)strlen(value);
+	if (ok == false)
+	{
+		printf("direction write gpio%d %s faild \n", pin, value);
+	}
+	close(direction_fd);
+	return ok;
+}
+
 /***
 ** 日期: 2022-04-28 10:02
 ** 作者: leo.liu

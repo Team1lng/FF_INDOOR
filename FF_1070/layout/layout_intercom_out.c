@@ -336,12 +336,10 @@ static void intercom_ring_play_start_fun(int index)
 
 static void intercom_ring_play_finish_fun(int index)
 {
-    if (cur_layout_get() == pLAYOUT(intercom_out) &&
-        intercom_state_get() == INTERCOM_STATE_CALL_OUT)
-    {
-        power_amplifier_enable(false);
-    }
+    /* Keep PA on for the whole outgoing wait to avoid PA toggle pop between rings. */
+    (void)index;
 }
+
 
 /* ---------------------------------------------------------------
  * 呼出等待周期任务（每 1 秒）
@@ -449,10 +447,19 @@ static void LAYOUT_ENTER_FUNC(intercom_out)
 static void LAYOUT_QUIT_FUNC(intercom_out)
 {
     hung_up_task = NULL;
+    if (calling_task != NULL) {
+        lv_task_del(calling_task);
+    }
     calling_task = NULL;
     standby_timer_restart(true);
     user_data_save();
     ringplay_play_stop();
+    /* Leaving wait page: if not going to talk/camera, release PA. */
+    if (cur_layout_get() != pLAYOUT(intercom_talk) &&
+        cur_layout_get() != pLAYOUT(camera))
+    {
+        power_amplifier_enable(false);
+    }
 }
 
 CREATE_LAYOUT(intercom_out);

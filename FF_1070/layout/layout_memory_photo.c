@@ -850,6 +850,7 @@ static void memory_photo_sdcard_state_change_event_cb(void)
 
 static void LAYOUT_ENTER_FUNC(memory_photo)
 {
+	layout_media_audio_prepare();
 	printf("come in memory_photo\n");
 	memory_photo_sdcard_removing = false;
 	// standby_timer_close();
@@ -915,6 +916,13 @@ static void LAYOUT_QUIT_FUNC(memory_photo)
 
 		photo_index_set(0);
 	}
-	thumb_media_close();
+	const layout *cur_layout = cur_layout_get();
+	if (cur_layout != pLAYOUT(photo_list) &&
+		cur_layout != pLAYOUT(memory_photo) &&
+		cur_layout != pLAYOUT(memory_video))
+	{
+		thumb_media_close();
+	}
+	layout_media_power_amplifier_release();
 }
 CREATE_LAYOUT(memory_photo);

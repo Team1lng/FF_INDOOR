@@ -14,11 +14,14 @@
 
 static void calling_play_start_cb(int index)
 {
+	layout_media_power_amplifier_hold();
     ring_volume_set(user_data_get()->setting.door_ring_volume);
 }
 
 static void calling_play_finish_cb(int index)
 {
+	(void)index;
+	layout_media_power_amplifier_release();
 }
 
 // static void calling_task_cb(lv_task_t *task)
@@ -135,6 +138,7 @@ static void LAYOUT_ENTER_FUNC(calling)
 static void LAYOUT_QUIT_FUNC(calling)
 {
     ringplay_play_stop();
+    layout_media_power_amplifier_release();
     standby_timer_restart(true);
     // if(g_calling_task != NULL)
     // {

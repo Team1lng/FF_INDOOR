@@ -39,6 +39,7 @@ auto_record_body=$(extract_func "static void door_call_auto_camere")
 auto_record_ready_body=$(extract_func "static bool camera_call_auto_record_start_if_ready")
 switch_complete_body=$(extract_func "static void camera_channel_switch_complete")
 ring_start_body=$(extract_func "static void camera_call_ring_start")
+ring_play_body=$(extract_func "static void camera_call_ring_play")
 ring_replay_body=$(extract_func "static bool camera_call_ring_should_replay")
 ring_finish_body=$(extract_func "static void layout_camera_callring_finish_default_func")
 unlock_ring_finish_body=$(extract_func "static void camera_unlock_ring_finish_func")
@@ -80,8 +81,18 @@ if printf '%s\n' "$ring_start_body" | grep -q "camera_call_auto_record_task_t"; 
 	exit 1
 fi
 printf '%s\n' "$ring_start_body" | grep -q "camera_call_ring_play"
+if printf '%s\n' "$ring_play_body" | grep -q "ringplay_play_form_index"; then
+	echo "initial door-call ringtone bypasses the indoor volume guard" >&2
+	exit 1
+fi
+printf '%s\n' "$ring_play_body" | grep -q "ring_play(index, 100"
 printf '%s\n' "$call_body" | grep -q "camera_call_ring_start"
 printf '%s\n' "$ring_finish_body" | grep -q "camera_call_ring_should_replay"
+if printf '%s\n' "$ring_finish_body" | grep -q "ringplay_play_form_index"; then
+	echo "door-call ringtone replay bypasses the indoor volume guard" >&2
+	exit 1
+fi
+printf '%s\n' "$ring_finish_body" | grep -q "ring_play(index, 100"
 if printf '%s\n' "$unlock_ring_finish_body" | grep -q "camera_call_ring_should_replay"; then
 	echo "door-call ringtone replay leaked into the unlock-tone callback" >&2
 	exit 1

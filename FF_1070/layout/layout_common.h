@@ -47,6 +47,7 @@ void layout_door2_call_default(void);
 ***/
 void layout_incoming_intercom_call_default(void);
 void layout_motion_detection_prepare_intercom_in(void);
+void layout_motion_detection_prepare_camera_in(void);
 void layout_call_camera_default(void);
 /***
 ** 日期: 2022-05-12 10:27
@@ -192,6 +193,9 @@ lv_obj_t *memory_delete_box_create(lv_obj_t *parent, obj_click_data *yes_btn_dat
 // lv_obj_t *setting_left_icon_create(lv_obj_t *parent,layout_lang_id id);
 
 void ring_play(int index, int volume, ringplay_callback start, ringplay_callback finish, bool loop);
+void layout_media_keytone_prepare(void);
+void layout_media_audio_prepare(void);
+void layout_media_power_amplifier_hold(void);
 void layout_media_power_amplifier_release(void);
 void get_curr_relesse_date(int *day, int *month, int *year);
 

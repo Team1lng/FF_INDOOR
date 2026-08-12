@@ -347,12 +347,11 @@ static void intercom_ring_play_start_fun(int index)
 
 static void intercom_ring_play_finish_fun(int index)
 {
-    if (cur_layout_get() == pLAYOUT(intercom_in) &&
-        intercom_state_get() == INTERCOM_STATE_CALLING_IN)
-    {
-        power_amplifier_enable(false);
-    }
+    /* Keep PA on for the whole incoming wait.
+     * Turning PA off after every ring segment, then on again every 3s, causes a pop. */
+    (void)index;
 }
+
 
 /* ---------------------------------------------------------------
  * 来电等待周期任务（每 1 秒）
@@ -452,11 +451,20 @@ static void LAYOUT_QUIT_FUNC(intercom_in)
         backlight_task = NULL;
     }
     hung_up_task = NULL;
+    if (calling_task != NULL) {
+        lv_task_del(calling_task);
+    }
     calling_task = NULL;
     standby_timer_restart(true);
     lv_obj_click_down_callback_register(layout_obj_click_down_func);
     user_data_save();
     ringplay_play_stop();
+    /* Leaving wait page: if not going to talk, release PA. */
+    if (cur_layout_get() != pLAYOUT(intercom_talk) &&
+        cur_layout_get() != pLAYOUT(camera))
+    {
+        power_amplifier_enable(false);
+    }
 }
 
 CREATE_LAYOUT(intercom_in);

@@ -386,3 +386,25 @@ make clean
    问题：门口机 Call 后拿起话筒接听，原流程会先调用 `ringplay_play_stop()`，但 Call 铃声状态仍标记为活动，铃声结束回调会判断呼叫尚未结束并重新播放，导致接听后室内机或门口机仍继续响铃；挂下听筒时也需要立即停止铃声并关闭通话音频、视频预览和自动录像等待，不能继续停留在监控或通话状态。
    涉及文件：`FF_1070/layout/layout_camera.c`、`FF_1070/layout/layout_common.c`、`FF_1070/layout/layout_common.h`、`FF_1070/tests/check_camera_async_switch.sh`
    修改内容：新增统一的 `layout_camera_hook_answer()` 接听入口，在停止播放前先将 Call 铃声设置为已接听并清除重播截止时间，随后关闭 Door1、Door2 的门口机铃声输出、同步停止室内机铃声，再建立当前门口机通话路由；接听后如果门口机再次 Call，会重新建立新的 Call 状态并重新播放铃声。新增 `layout_camera_hook_hangup()` 挂机入口，统一取消通道切换和自动录像等待任务、取消并同步停止铃声、关闭门口机音频路由和音频采集、禁用视频预览并返回待机，由监控退出流程继续关闭 VI、录像和拍照资源；物理话筒事件与监控界面挂断按钮统一调用这两个入口，并移除监控定时任务中重复的 500ms 话筒状态轮询处理，避免接听和挂机逻辑重复执行或状态不同步。
+
+### 20260718
+
+1. Home 监控和 camera 通道切换触摸音/功放时序回退
+   问题：前面为处理触摸音和功放时序，把 Home 监控图标和 camera 通道切换按钮接入了新的按键音/功放等待逻辑，导致点击 Home 监控图标、监控界面切换 Door/CCTV 通道时触摸音异常，并且通道切换响应被额外任务影响。
+   涉及文件：`FF_1070/layout/layout_home.c`、`FF_1070/layout/layout_camera.c`
+   修改内容：删除 Home 监控按钮的延后进入任务，恢复为点击后直接设置 `MON_CH_DOOR1`、`MON_ENTER_MANUAL_DOOR` 并进入 `camera`；移除 camera 通道切换的延后任务和取消逻辑，Door1、Door2、CCTV1、CCTV2 按钮恢复为直接调用 `camera_channel_switch_internal()`；监控界面的 `layout_camera_click_down_func()` 恢复为空实现，不再让通道切换按钮走新的触摸音/功放时序；保留媒体页相关按键音优化，不影响 Home 进入媒体的处理。
+
+2. 视频播放界面返回视频文件列表响应速度优化
+   问题：进入视频播放界面后点击返回视频文件列表，界面响应明显变慢；原因是 `memory_video` 退出时无条件调用 `thumb_media_close()`，会关闭 JPEG/缩略图解码资源，而返回 `photo_list` 属于媒体模块内部跳转，不需要立即关闭该资源。
+   涉及文件：`FF_1070/layout/layout_memory_video.c`
+   修改内容：调整 `LAYOUT_QUIT_FUNC(memory_video)` 的缩略图资源释放条件，只有真正离开媒体模块时才调用 `thumb_media_close()`；当目标页面是 `photo_list`、`memory_photo` 或 `memory_video` 时保留缩略图资源，减少关闭解码器导致的阻塞；保留 SD 卡拔出路径中的播放停止和资源清理，避免拔卡后继续访问无效媒体文件。
+
+3. Flash 图片和 SD 图片播放界面返回列表响应速度补齐
+   问题：视频播放页返回列表已经变快，但 Flash 图片界面和 SD 图片界面返回媒体列表仍然较慢；原因是 `memory_photo` 退出时仍无条件关闭 `thumb_media`，图片播放页没有按视频播放页同样的媒体内部跳转规则处理。
+   涉及文件：`FF_1070/layout/layout_memory_photo.c`
+   修改内容：将 `LAYOUT_QUIT_FUNC(memory_photo)` 中的 `thumb_media_close()` 改为条件执行；返回 `photo_list`、`memory_photo` 或 `memory_video` 时不关闭缩略图解码资源，只有真正离开媒体模块时才关闭；SD 卡拔出处理路径继续保留强制 `thumb_media_close()`，防止循环播放或图片加载任务继续读取已拔出的 SD 卡。
+
+4. 触摸音异常和触摸音后跟随“啪”声处理
+   问题：媒体相关页面为解决按键音异常，引入了页面常开功放、延迟关功放和点击前预处理，但点击路径里调用 `audio_output_device_restart()` 会和 ringplay 触摸音播放线程抢 AO，导致触摸音双响、变调或被截断；随后触摸音结束回调又触发延迟关功放任务，GPIO9 关闭功放时会在触摸音后跟随一声“啪”。
+   涉及文件：`FF_1070/layout/layout_common.c`、`FF_1070/layout/layout_common.h`、`FF_1070/layout/layout_home.c`、`FF_1070/layout/layout_photo_list.c`
+   修改内容：新增 `layout_media_keytone_prepare()`，用于 UI 点击前只取消待执行的功放关闭任务、打开功放并设置触摸音音量，不再重启 AO；Home 进入 Media 的点击预处理和媒体列表点击预处理改用该轻量函数，避免每次点击都执行 `ak_ao_cancel()`/`ak_ao_restart()`；保留 `layout_media_audio_prepare()` 在媒体页面进入时初始化 AO，不影响媒体播放页的音频准备；将 `ringplay_keysound_finish_default_func()` 改为不再调用 `layout_media_power_amplifier_release()`，触摸音播放完成不再主动关闭功放，避免每次触摸音后产生功放关闭“啪”声；功放关闭仍由媒体页退出、通话结束、铃声结束等状态边界负责。

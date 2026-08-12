@@ -45,6 +45,7 @@ static bool video_play_has_audio = false;
 static unsigned long long video_play_clock_base = 0;
 /***** 暂停恢复时的视频帧位置 *****/
 static int video_play_resume_video_index = 0;
+static volatile bool video_play_stop_request = false;
 extern void ring_volume_set(int vol);
 
 static int video_play_audio_frame_index_from_video(void)
@@ -76,6 +77,48 @@ static void video_play_device_close(void)
 {
 	AVI_close(avi_handle_id);
 	avi_handle_id = NULL;
+}
+
+static void video_play_ui_cleanup(void)
+{
+	if (old_decode_finish_func != NULL)
+	{
+		jpg_decode_read_frame_func_register(old_decode_finish_func);
+		old_decode_finish_func = NULL;
+	}
+	if (p_scr_act_img != NULL)
+	{
+		lv_obj_set_style_local_pattern_image(lv_scr_act(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, p_scr_act_img);
+		p_scr_act_img = NULL;
+	}
+	lv_video_mode_enable(false);
+	video_display_preview_enable(false);
+}
+
+static void video_play_backend_cleanup_locked(bool wait_audio_empty)
+{
+	bool had_audio = video_play_has_audio;
+	video_play_status = VIDEO_PLAY_STATE_IDLE;
+	video_play_resume_video_index = 0;
+	video_play_eof_flg = false;
+	if (had_audio == true)
+	{
+		audio_output_device_restart();
+		if (wait_audio_empty == true)
+		{
+			int wait_ms = 80;
+			while (wait_ms-- > 0 && audio_output_buffer_query() > 0)
+			{
+				usleep(1000);
+			}
+		}
+	}
+	video_play_has_audio = false;
+	if (avi_handle_id != NULL)
+	{
+		video_play_device_close();
+	}
+	jpg_decode_buffer_clear();
 }
 /***
 **   日期:2022-05-24 15:17:10
@@ -147,6 +190,15 @@ static void *video_play_task(void *arg)
 	while (1)
 	{
 		pthread_mutex_lock(&video_play_mutex);
+		if (video_play_stop_request == true)
+		{
+			video_play_backend_cleanup_locked(false);
+			video_play_stop_request = false;
+			pthread_mutex_unlock(&video_play_mutex);
+			usleep(1 * 1000);
+			continue;
+		}
+
 		if ((video_play_status == VIDEO_PLAY_STATE_IDLE) && (avi_handle_id != NULL))
 		{
 			video_play_device_close();
@@ -317,6 +369,11 @@ bool video_play_start(const char *file)
 {
 	printf("===========>>>[%s]<<<===========\n", __func__);
 	pthread_mutex_lock(&video_play_mutex);
+	if (video_play_stop_request == true)
+	{
+		video_play_backend_cleanup_locked(false);
+		video_play_stop_request = false;
+	}
 	ring_volume_set(2);
 	if (video_play_status != VIDEO_PLAY_STATE_IDLE)
 	{
@@ -351,35 +408,17 @@ bool video_play_start(const char *file)
 bool video_play_stop(void)
 {
 	printf("===========>>>[%s]<<<===========\n", __func__);
-	pthread_mutex_lock(&video_play_mutex);
+	if (pthread_mutex_trylock(&video_play_mutex) != 0)
+	{
+		video_play_stop_request = true;
+		video_play_ui_cleanup();
+		return true;
+	}
+
 	bool was_active = (video_play_status != VIDEO_PLAY_STATE_IDLE);
-	bool had_audio = video_play_has_audio;
-	video_play_status = VIDEO_PLAY_STATE_IDLE;
-	video_play_resume_video_index = 0;
-	video_play_eof_flg = false;
-	if (had_audio == true)
-	{
-		audio_output_device_restart();
-		audio_output_close();
-	}
-	video_play_has_audio = false;
-	if (avi_handle_id != NULL)
-	{
-		video_play_device_close();
-	}
-	jpg_decode_buffer_clear();
-	if (old_decode_finish_func != NULL)
-	{
-		jpg_decode_read_frame_func_register(old_decode_finish_func);
-		old_decode_finish_func = NULL;
-	}
-	if (p_scr_act_img != NULL)
-	{
-		lv_obj_set_style_local_pattern_image(lv_scr_act(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, p_scr_act_img);
-		p_scr_act_img = NULL;
-	}
-	lv_video_mode_enable(false);
-	video_display_preview_enable(false);
+	video_play_backend_cleanup_locked(true);
+	video_play_stop_request = false;
+	video_play_ui_cleanup();
 
 	pthread_mutex_unlock(&video_play_mutex);
 	return was_active;

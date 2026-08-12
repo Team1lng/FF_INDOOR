@@ -66,20 +66,23 @@ static void thumb_media_thume_decode_func(struct ak_vdec_frame *frame)
 ***/
 bool thumb_media_open(void)
 {
-	if (thumb_media_buffer != NULL)
-	{
-		return false;
-	}
-	thumb_media_decode_finish = true;
-	if (jpg_decode_open(thumb_media_thume_decode_func) == false)
-	{
-		return false;
-	}
-	// h264_decode_open(thumb_media_thume_decode_func);
 	thumb_media_buffer = video_input_resident_buffer_get(NULL);
 	static rom_bin_info img = rom_bin_raw_get();
 	rom_bin_raw_init(img, thumb_media_buffer, LV_HOR_RES_MAX, LV_VER_RES_MAX);
 	lv_obj_set_style_local_pattern_image(lv_scr_act(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &img);
+
+	/*
+	 * Re-entering memory pages keeps the thumbnail buffer allocated, but the
+	 * active LVGL screen changes. Always rebind the current screen to the same
+	 * resident buffer so the preview is visible again.
+	 */
+	if (jpg_decode_open(thumb_media_thume_decode_func) == false)
+	{
+		thumb_media_decode_finish = true;
+		return true;
+	}
+
+	thumb_media_decode_finish = true;
 	return true;
 }
 /***
