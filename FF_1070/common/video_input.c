@@ -214,7 +214,14 @@ static void *video_display_task(void *arg)
 						video_input_sub_display_frame_write(&frame);
 					}
 
-					video_input_resident_buffer_write(frame.vi_frame.data, video_isp_info.main_width, video_isp_info.main_hgith, crop_pos_x, crop_pos_y, crop_width, crop_hight, GP_FORMAT_YUV420P);
+                    /* A page transition can disable preview while this
+                     * worker still owns a captured frame. Do not publish
+                     * that stale frame into the display buffer after the
+                     * transition has cleared it. */
+                    if (lv_fb_video_display_preview_get() == true)
+                    {
+                        video_input_resident_buffer_write(frame.vi_frame.data, video_isp_info.main_width, video_isp_info.main_hgith, crop_pos_x, crop_pos_y, crop_width, crop_hight, GP_FORMAT_YUV420P);
+                    }
 					//	printf("===========================================video_input[%llu]==========[%d]\n",user_timestamp_get() - prev,video_input_skip_frame_count);
 					//	prev = user_timestamp_get();
 					video_main_display_unlock();

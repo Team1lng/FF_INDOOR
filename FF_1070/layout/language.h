@@ -281,7 +281,7 @@ typedef enum
 
 	// layout calling
 	LAYOUT_LANG_calling_ID,
-	
+	COMMON_LANG_APARTMENT_DOOR_ID,
 	LANG_STR_ID_TOTAL,
 } layout_lang_id;
 

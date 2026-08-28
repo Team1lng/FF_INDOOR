@@ -56,10 +56,16 @@ static custom_area intercom_out_btn_area[INTERCOM_OUT_TOTAL_BTN] =
 #define INTERCOM_OUT_GUARD_IMG_ID            14
 #define INTERCOM_OUT_STATUS_LABEL_ID         15  /* 呼叫状态提示文字 */
 #define LAYOUT_INTERCOM_LANG_BUSY_ID         16  /* 忙线提示文字 */
+#define INTERCOM_COUNTDOWN_TOTAL_S           30
+#define INTERCOM_COUNTDOWN_TASK_PERIOD_MS    100
 
 static lv_task_t *hung_up_task = NULL;
 static lv_task_t *calling_task = NULL;
-static int count = 30;
+static int count = INTERCOM_COUNTDOWN_TOTAL_S;
+static uint32_t countdown_start_tick = 0;
+static uint32_t countdown_last_display_tick = 0;
+static uint32_t countdown_last_task_tick = 0;
+static int countdown_last_ring_elapsed = -1;
 static bool vol_slider_visible = false;
 
 static void intercom_out_hung_up_task_create(void);
@@ -342,11 +348,22 @@ static void intercom_ring_play_finish_fun(int index)
 
 
 /* ---------------------------------------------------------------
- * 呼出等待周期任务（每 1 秒）
+ * 呼出等待周期任务（100ms 调度，显示每次最多减 1 秒）
  * --------------------------------------------------------------- */
 static void intercom_out_calling_time_out_task(lv_task_t *task_t)
 {
     lv_obj_t *status_lbl = lv_obj_get_child_form_id(lv_scr_act(), INTERCOM_OUT_STATUS_LABEL_ID);
+    uint32_t task_tick = lv_tick_get();
+    uint32_t elapsed_ms = lv_tick_elaps(countdown_start_tick);
+    int elapsed_s = (int)(elapsed_ms / 1000);
+
+    if (countdown_last_task_tick != 0 &&
+        lv_tick_elaps(countdown_last_task_tick) > 300)
+    {
+        printf("[intercom_countdown] out delayed task=%p gap=%u count=%d\n",
+               task_t, lv_tick_elaps(countdown_last_task_tick), count);
+    }
+    countdown_last_task_tick = task_tick;
 
     /* ① 对端已接听 → 跳转通话界面 */
     if (intercom_remote_ack_get_and_clear()) {
@@ -383,17 +400,28 @@ static void intercom_out_calling_time_out_task(lv_task_t *task_t)
         return;
     }
 
-    /* ⑤ 更新倒计时显示 */
-    lv_obj_t *lbl = lv_obj_get_child_form_id(lv_scr_act(), INTERCOM_OUT_COUNTDOWN_LABEL_ID);
-    if (lbl) lv_label_set_text_fmt(lbl, "%02dS", count);
+    /* 每次显示减少一秒至少间隔一秒，避免调度恢复后连续追赶跳秒。 */
+    if (count > 0 && lv_tick_elaps(countdown_last_display_tick) >= 1000)
+    {
+        int old_count = count;
+        count--;
+        countdown_last_display_tick = lv_tick_get();
+        lv_obj_t *lbl = lv_obj_get_child_form_id(lv_scr_act(), INTERCOM_OUT_COUNTDOWN_LABEL_ID);
+        if (lbl) lv_label_set_text_fmt(lbl, "%02dS", count);
+        printf("[intercom_countdown] out task=%p display=%02dS->%02dS elapsed=%d\n",
+               task_t, old_count, count, elapsed_s);
+    }
 
-    /* ⑥ 每 3 秒播放回铃音 */
-    if (count % 3 == 0 && user_data_get()->setting.inter_ring_volume > 0) {
-        ringplay_play_form_index(9, 100, intercom_ring_play_start_fun, intercom_ring_play_finish_fun, false);
+    /* ⑥ 按显示值每 3 秒播放一次，且同一秒只入队一次。 */
+    if (count < INTERCOM_COUNTDOWN_TOTAL_S && count > 0 && count % 3 == 0 &&
+        count != countdown_last_ring_elapsed &&
+        user_data_get()->setting.inter_ring_volume > 0) {
+        countdown_last_ring_elapsed = count;
+        ringplay_play_form_index(22, 100, intercom_ring_play_start_fun, intercom_ring_play_finish_fun, false);
     }
 
     /* ⑦ 倒计时到 0，主动挂断 */
-    if (--count < 0) {
+    if (elapsed_s >= INTERCOM_COUNTDOWN_TOTAL_S) {
         printf("[intercom_out] timeout\n");
         if (calling_task != NULL) { lv_task_del(calling_task); calling_task = NULL; }
         MsgCallEnd();
@@ -404,8 +432,23 @@ static void intercom_out_calling_time_out_task(lv_task_t *task_t)
 
 static void intercom_out_calling_time_out_task_create(void)
 {
-    count = 30;
-    calling_task = lv_layout_task_create(intercom_out_calling_time_out_task, 1000, LV_TASK_PRIO_HIGH, NULL);
+    if (calling_task != NULL)
+    {
+        printf("[intercom_countdown] out duplicate task=%p, replacing\n", calling_task);
+        lv_task_del(calling_task);
+        calling_task = NULL;
+    }
+    count = INTERCOM_COUNTDOWN_TOTAL_S;
+    countdown_start_tick = lv_tick_get();
+    countdown_last_display_tick = countdown_start_tick;
+    countdown_last_task_tick = 0;
+    countdown_last_ring_elapsed = -1;
+    calling_task = lv_layout_task_create(intercom_out_calling_time_out_task,
+                                         INTERCOM_COUNTDOWN_TASK_PERIOD_MS,
+                                         LV_TASK_PRIO_HIGH, NULL);
+    printf("[intercom_countdown] out create task=%p tick=%u count=%d period=%d\n",
+           calling_task, countdown_start_tick, count,
+           INTERCOM_COUNTDOWN_TASK_PERIOD_MS);
 }
 
 /* ---------------------------------------------------------------
@@ -452,9 +495,9 @@ static void LAYOUT_QUIT_FUNC(intercom_out)
     }
     calling_task = NULL;
     standby_timer_restart(true);
-    user_data_save();
-    ringplay_play_stop();
-    /* Leaving wait page: if not going to talk/camera, release PA. */
+	/* A layout quit runs in the LVGL thread. Never wait for AO/ring drain
+	 * here, regardless of the destination page. */
+	ringplay_play_stop_async();
     if (cur_layout_get() != pLAYOUT(intercom_talk) &&
         cur_layout_get() != pLAYOUT(camera))
     {

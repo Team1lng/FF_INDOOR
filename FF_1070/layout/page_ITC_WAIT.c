@@ -92,6 +92,12 @@ void IntercomAD4Audio(void)
 
 void IntercomColseAudio(void)
 {
+	if (intercom_door_call_audio_hold_get())
+	{
+		printf("[intercom_audio] CH OFF ignored: door call owns audio\n");
+		return;
+	}
+
     printf("[intercom_audio] CH OFF\n");
     door_audio_talk(AUDIO_CH_CLOSE);
 }
@@ -123,6 +129,8 @@ void Out_ACKFun(void)
     {
         return;
     }
+
+    intercom_door_call_audio_hold_set(false);
 
     /*
      * 告知底层"UI 页面已就绪"
@@ -202,7 +210,6 @@ void In_HandupFun(void)
     /* 置位挂断事件标志，各 layout 的周期任务检测后执行页面跳转 */
     intercom_hangup_flag_set();
 
-    /* 关闭音频 */
     IntercomColseAudio();
 }
 
@@ -273,6 +280,8 @@ void IDLE_ACKFun(void)
     {
         return;
     }
+
+    intercom_door_call_audio_hold_set(false);
 
     intercom_number_set((unsigned int)GetCalledCallerNumber());
     intercom_state_set(INTERCOM_STATE_CALLING_IN);

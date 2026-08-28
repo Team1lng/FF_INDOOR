@@ -170,7 +170,7 @@ static const char *lang_str[LANG_STR_ID_TOTAL][LANG_TOTAL] =
 		{"Password is too simple", "رمز عبور نمی تواند ساده باشد"},
 		{"Password Error", "كلمة المرور غير متطابقة"},
 		{"Password Reset", "تنظیم رمز عبور"},
-		{"Please enter the new password:"},
+		{"Please enter the new password:", "لطفا رمز عبور جدید را وارد کنید:"},
 		{"Confirm Password", "تایید رمز عبور"},
 		{"Apply", "تایید"},
 		// layout setting detection
@@ -254,7 +254,7 @@ static const char *lang_str[LANG_STR_ID_TOTAL][LANG_TOTAL] =
 		{"Memory", "حافظه"},
 		//calling
 		{"calling...","در حال تماس..."},
-
+		{"Apartment Door","درب آپارتمان"},
 };
 
 const char *str_get(layout_lang_id id)

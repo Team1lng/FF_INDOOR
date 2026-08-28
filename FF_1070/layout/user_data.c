@@ -4,6 +4,8 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+#include <stddef.h>
+#include <sys/stat.h>
 #include "stdio.h"
 #include "stdlib.h"
 
@@ -25,6 +27,7 @@ static const user_data_info user_data_default = {
 	.setting.record_mode = 0,
 	.setting.door1_tone = 1,
 	.setting.door2_tone = 1,
+	.setting.apartment_door_tone = 1,
 	.setting.door_ring_volume = 2,
 	// .setting.door2_ring_volume = 2,lynn 26.3.13
 	.setting.key_tone_enable = true,
@@ -158,15 +161,51 @@ static void user_data_motion_normalize(void)
 bool user_data_init(void)
 {
 	int fd = open(USER_DATA_PATH, O_RDONLY);
+	struct stat data_stat;
+	unsigned char legacy_data[sizeof(user_data_info)];
+	ssize_t data_size;
 	if (fd < 0)
 	{
 		printf("read open %s fail \n", USER_DATA_PATH);
 		user_data = user_data_default;
 		return false;
 	}
-	read(fd, &user_data, sizeof(user_data_info));
+	if (fstat(fd, &data_stat) == 0 &&
+		data_stat.st_size == (off_t)(sizeof(user_data_info) - sizeof(int)))
+	{
+		data_size = read(fd, legacy_data, sizeof(legacy_data));
+		if (data_size == (ssize_t)(sizeof(user_data_info) - sizeof(int)))
+		{
+			size_t apartment_offset = offsetof(user_data_info, setting) +
+				offsetof(user_setting_info, apartment_door_tone);
+			user_data = user_data_default;
+			memcpy((unsigned char *)&user_data,
+				   legacy_data,
+				   apartment_offset);
+			memcpy((unsigned char *)&user_data + apartment_offset + sizeof(int),
+				   legacy_data + apartment_offset,
+				   sizeof(user_data_info) - apartment_offset - sizeof(int));
+			user_data_save();
+		}
+	}
+	else
+	{
+		read(fd, &user_data, sizeof(user_data_info));
+	}
 
 	close(fd);
+	if (user_data.setting.door1_tone < 1 || user_data.setting.door1_tone > 20)
+	{
+		user_data.setting.door1_tone = user_data_default.setting.door1_tone;
+	}
+	if (user_data.setting.door2_tone < 1 || user_data.setting.door2_tone > 20)
+	{
+		user_data.setting.door2_tone = user_data_default.setting.door2_tone;
+	}
+	if (user_data.setting.apartment_door_tone < 1 || user_data.setting.apartment_door_tone > 20)
+	{
+		user_data.setting.apartment_door_tone = user_data_default.setting.apartment_door_tone;
+	}
 	user_data_motion_normalize();
 	return true;
 }

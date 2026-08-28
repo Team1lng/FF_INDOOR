@@ -86,4 +86,8 @@ bool intercom_remote_ack_get_and_clear(void);
 void intercom_hangup_flag_set(void);
 bool intercom_hangup_flag_get_and_clear(void);
 
+/* Door calls preempt intercom; stale intercom CH_OFF must not stop the ring. */
+void intercom_door_call_audio_hold_set(bool hold);
+bool intercom_door_call_audio_hold_get(void);
+
 #endif /* USER_INTERCOM_H_ */

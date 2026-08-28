@@ -48,6 +48,6 @@
         "initializer_list": "c",
         "lvgl.h": "c"
     },
-    "cmake.sourceDirectory": "/home/blueen/samba/FF_Indoor/FF_1070/build",
+    "cmake.sourceDirectory": "/home/leo/workspace/FF_Indoor/FF_1070/build",
     "C_Cpp.dimInactiveRegions": false
 }

@@ -1,5 +1,6 @@
 #include "layout_define.h"
 #include "layout_common.h"
+#include "audio_output.h"
 typedef enum
 {
 	HOME_TIME_OBJ_ID,
@@ -174,6 +175,8 @@ static void home_standby_btn_up(lv_obj_t *obj)
 	{
 		return;
 	}
+	printf("[ui_audio_trace] %llu home standby_btn_up -> goto standby ao_remain=%d\n",
+		   user_timestamp_get(), audio_output_buffer_query());
 	goto_layout(pLAYOUT(standby));
 }
 
@@ -230,6 +233,7 @@ static void home_backlight_task_cb(lv_task_t *task)
 {
 	home_backlight_task = NULL;
 	backlight_enable(true);
+	printf("[ui_audio_trace] %llu home backlight on\n", user_timestamp_get());
 	lv_task_del(task);
 }
 
@@ -250,6 +254,7 @@ static void home_backlight_task_create(void)
 
 static void LAYOUT_ENTER_FUNC(home)
 {
+	printf("[ui_audio_trace] %llu home enter\n", user_timestamp_get());
 	printf("Entering home layout.\n");
 	
 	// power_amplifier_enable(true);   lynn 26.3.10
@@ -278,11 +283,9 @@ static void LAYOUT_QUIT_FUNC(home)
 	home_media_btn = NULL;
 	
 	layout_sd_state_callback_register(layout_sdcard_state_change_default);
-	user_data_save();
 }
 
 CREATE_LAYOUT(home);
-
 
 
 

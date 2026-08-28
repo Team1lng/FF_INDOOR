@@ -59,6 +59,7 @@ typedef struct
 
 	int door1_tone;
 	int door2_tone;
+	int apartment_door_tone;
 	// min:0 max:4
 	int door_ring_volume;
 	bool key_tone_enable;

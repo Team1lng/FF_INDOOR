@@ -60,5 +60,8 @@ int audio_output_buffer_query(void);
 ***/
 bool audio_output_buffer_try_timeout(int ms);
 
+/* Drive a short zero-level PCM tail before a hands-free PA is switched off. */
+bool audio_output_silence_drain(int bytes, int timeout_ms);
+
 bool audio_output_device_restart(void);
 #endif

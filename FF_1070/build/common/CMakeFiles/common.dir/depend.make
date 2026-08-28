@@ -26,6 +26,7 @@ common/CMakeFiles/common.dir/audio_output.c.o: ../include/anyka37d/ak_mem.h
 common/CMakeFiles/common.dir/audio_output.c.o: ../include/common/audio_config.h
 common/CMakeFiles/common.dir/audio_output.c.o: ../include/common/audio_output.h
 common/CMakeFiles/common.dir/audio_output.c.o: ../include/common/user_common.h
+common/CMakeFiles/common.dir/audio_output.c.o: ../include/common/user_time.h
 common/CMakeFiles/common.dir/audio_output.c.o: /home/leo/workspace/FF_Indoor/FF_1070/common/audio_output.c
 
 common/CMakeFiles/common.dir/avilib.c.o: ../include/anyka37d/ak_common.h
@@ -372,6 +373,7 @@ common/CMakeFiles/common.dir/ringplay.c.o: ../include/common/audio_input.h
 common/CMakeFiles/common.dir/ringplay.c.o: ../include/common/audio_output.h
 common/CMakeFiles/common.dir/ringplay.c.o: ../include/common/ringplay.h
 common/CMakeFiles/common.dir/ringplay.c.o: ../include/common/user_common.h
+common/CMakeFiles/common.dir/ringplay.c.o: ../include/common/user_time.h
 common/CMakeFiles/common.dir/ringplay.c.o: ../share/include/lvgl/lv_anim.h
 common/CMakeFiles/common.dir/ringplay.c.o: ../share/include/lvgl/lv_area.h
 common/CMakeFiles/common.dir/ringplay.c.o: ../share/include/lvgl/lv_bidi.h

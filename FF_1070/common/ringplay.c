@@ -1,6 +1,7 @@
 #include "ringplay.h"
 #include "user_common.h"
 #include "audio_output.h"
+#include "user_time.h"
 #include <pthread.h>
 #include "user_common.h"
 #include <unistd.h>
@@ -41,8 +42,10 @@ typedef struct
 	int index;
 	int volume;
 	bool loop;
+	bool restart_output;
 	ringplay_callback start_func;
 	ringplay_callback finish_func;
+	unsigned int generation;
 } ringplay_queue_info;
 
 typedef struct
@@ -55,6 +58,7 @@ typedef struct
 {
 	/***** 源类型：0：file,1:ram *****/
 	char type;
+	bool is_touch_sound;
 	union
 	{
 		int fd;
@@ -78,10 +82,9 @@ typedef struct
 ** 返回参数说明：
 ***/
 static rom_bin_info touch_sound_info;
-//= rom_bin_info_get(ROM_UI_KEY_SOUND_PCM);
 static const ring_info rings_info[] =
 	{
-		{&touch_sound_info, 0, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 1},
+		{"0.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
 		{"1.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
 		{"2.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
 		{"3.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
@@ -90,10 +93,21 @@ static const ring_info rings_info[] =
 		{"6.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
 		{"7.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
 		{"8.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
+		{"9.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
 		{"10.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
-		{"11_e.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
-		{"12_c.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
-};
+		{"11.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
+		{"12.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
+		{"13.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
+		{"14.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
+		{"15.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
+		{"16.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
+		{"17.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
+		{"18.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
+		{"19.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
+		{"20.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
+		{"21.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
+		{"22.mp3", 1, AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000, 0},
+	};
 
 /***** 强制铃声禁止输出 *****/
 static bool is_ringplay_force_mute = false;
@@ -122,6 +136,34 @@ static pthread_mutex_t ringplay_mutex;
 ** 返回参数说明：
 ***/
 static int ringplay_queue_head = -1;
+
+/* A stop must also cancel messages already taken by the worker. */
+static unsigned int ringplay_request_generation = 0;
+
+static void ringplay_queue_clear_locked(void)
+{
+	ringplay_queue queued;
+
+	if (ringplay_queue_head < 0)
+	{
+		return;
+	}
+	while (msgrcv(ringplay_queue_head, (void *)&queued,
+				  sizeof(ringplay_queue_info), sizeof(ringplay_queue_info),
+				  IPC_NOWAIT) > 0)
+	{
+	}
+}
+
+static bool ringplay_generation_is_current(unsigned int generation)
+{
+	bool current;
+
+	pthread_mutex_lock(&ringplay_mutex);
+	current = generation == ringplay_request_generation;
+	pthread_mutex_unlock(&ringplay_mutex);
+	return current;
+}
 
 /***
 ** 日期: 2022-04-27 15:33
@@ -182,7 +224,14 @@ static bool ringplay_decode_pcm_from_ram(ringplay_queue_info *info)
 {
 	extern const unsigned char *get_rom_bin_base(void);
 
-	rom_bin_info *rom_info = (rom_bin_info *)rings_info[info->index].file;
+	/* The key tone (index 0) is not described by rings_info[]; its PCM is
+	 * registered separately into touch_sound_info via touch_sound_rom_info_register().
+	 * rings_info[0].file is just a placeholder string, so using it here would read
+	 * a garbage ROM address and stay silent. Route index 0 to touch_sound_info. */
+	rom_bin_info *rom_info = (info->index == 0) ? &touch_sound_info
+												: (rom_bin_info *)rings_info[info->index].file;
+	printf("[ui_audio_trace] %llu pcm_from_ram index=%d off=0x%x size=%d\n",
+		   user_timestamp_get(), info->index, rom_info->offset, rom_info->size);
 	const unsigned char *addr = get_rom_bin_base() + rom_info->offset;
 	int play_count = 0;
 	int play_size = rom_info->size;
@@ -308,6 +357,14 @@ static inline signed int mp3_scale(mad_fixed_t sample)
 	return sample >> (MAD_F_FRACBITS + 1 - 16);
 }
 
+/* MP3 decoding shares the single CPU with LVGL.  Yield after each AO write so
+ * ringtone decoding cannot postpone input and countdown refresh tasks. */
+static void ringplay_audio_write(const unsigned char *data, int size)
+{
+	audio_output_write(data, size);
+	usleep(1000);
+}
+
 /***
 ** 日期: 2022-04-29 10:52
 ** 作者: leo.liu
@@ -316,6 +373,7 @@ static inline signed int mp3_scale(mad_fixed_t sample)
 ***/
 static enum mad_flow mp3_output(void *data, struct mad_header const *header, struct mad_pcm *pcm)
 {
+	mp3_mad *mp3_info = (mp3_mad *)data;
 	unsigned int nchannels, nsamples;
 	mad_fixed_t const *left_ch, *right_ch;
 
@@ -364,11 +422,15 @@ static enum mad_flow mp3_output(void *data, struct mad_header const *header, str
 	{
 		static unsigned char pcm_cache_data[4096] = {0};
 		static int pcm_cache_size = 0;
-		if (ringplay_mp3_frame_num > 5)
+		if (mp3_info->is_touch_sound)
+		{
+			ringplay_audio_write(sample_buffer, sample_read_size);
+		}
+		else if (ringplay_mp3_frame_num > 5)
 		{
 			if ((pcm_cache_size + sample_read_size) > 4096)
 			{
-				audio_output_write((unsigned char *)pcm_cache_data, pcm_cache_size);
+				ringplay_audio_write(pcm_cache_data, pcm_cache_size);
 				pcm_cache_size = 0;
 			}
 			memcpy(&pcm_cache_data[pcm_cache_size], sample_buffer, sample_read_size);
@@ -394,6 +456,7 @@ static bool ringplay_decodec_mp3(ringplay_queue_info *info)
 	bool reslut = false;
 	ringplay_mp3_frame_num = 0;
 	mp3_mad mp3_info;
+	mp3_info.is_touch_sound = info->index == 0;
 	struct mad_decoder decoder;
 	mp3_info.read_pos = 0;
 	mp3_info.read_length = 0;
@@ -497,20 +560,59 @@ static void *ringplay_task(void *arg)
 			/***** 标记铃声播放开始 *****/
 
 			is_ringplay_playing = true;
+			printf("[ui_audio_trace] %llu ringplay start index=%d\n",
+				   user_timestamp_get(), play_data.msg.index);
 
 		} /***** 开始解码最后一个音频消息 *****/
 		else if (is_ringplay_valid == true)
 		{
 			is_ringplay_valid = false;
+			unsigned int play_generation = play_data.msg.generation;
+			bool canceled;
 			pthread_mutex_lock(&ringplay_mutex);
-			is_ringplay_play_stop = false;
+			canceled = play_generation != ringplay_request_generation;
+			if (canceled == false)
+			{
+				is_ringplay_play_stop = false;
+			}
 			pthread_mutex_unlock(&ringplay_mutex);
+			if (canceled == true)
+			{
+				is_ringplay_playing = false;
+				continue;
+			}
+			if (play_data.msg.restart_output == true)
+			{
+				printf("[ui_audio_trace] %llu ringplay worker restart ao index=%d\n",
+					   user_timestamp_get(), play_data.msg.index);
+				audio_output_device_restart();
+				if (ringplay_generation_is_current(play_generation) == false)
+				{
+					is_ringplay_playing = false;
+					continue;
+				}
+			}
+			bool is_touch_sound = play_data.msg.index == 0;
+
+			/* The hands-free PA must settle before the DAC starts sending the
+			 * short key-tone PCM, otherwise its enable transient is audible. */
+			if (is_touch_sound && play_data.msg.start_func != NULL)
+			{
+				play_data.msg.start_func(play_data.msg.index);
+				usleep(30 * 1000);
+			}
 			/***** 打开音频设备 *****/
 			audio_output_open(rings_info[play_data.msg.index].ch, rings_info[play_data.msg.index].rate);
 			audido_output_volume_set(play_data.msg.volume);
+			if (ringplay_generation_is_current(play_generation) == false)
+			{
+				is_ringplay_playing = false;
+				audio_output_device_restart();
+				continue;
+			}
 			/***** 执行用户回调函数 *****/
 			// power_amplifier_enable(true);
-			if (play_data.msg.start_func != NULL)
+			if (!is_touch_sound && play_data.msg.start_func != NULL)
 			{
 				play_data.msg.start_func(play_data.msg.index);
 			}
@@ -526,8 +628,11 @@ static void *ringplay_task(void *arg)
 			}
 
 			/***** 执行用户回调函数 *****/
-			if (play_data.msg.finish_func != NULL)
+			if (play_data.msg.finish_func != NULL &&
+				ringplay_generation_is_current(play_generation) == true)
 			{
+				printf("[ui_audio_trace] %llu ringplay finish index=%d\n",
+					   user_timestamp_get(), play_data.msg.index);
 				play_data.msg.finish_func(play_data.msg.index);
 			}
 		} /***** 播放完成，开始空闲计时 *****/
@@ -541,6 +646,8 @@ static void *ringplay_task(void *arg)
 		} /***** 空闲超过10s关闭声卡 *****/
 		else if (((is_ringplay_idle_start == true) && (ringplay_idle_count++) == 100))
 		{
+			printf("[ui_audio_trace] %llu ringplay idle count=%lu\n",
+				   user_timestamp_get(), ringplay_idle_count);
 			is_ringplay_idle_start = false;
 			ringplay_idle_count = 0;
 		}
@@ -587,6 +694,10 @@ static bool ringplay_playbase(int index, int volume, ringplay_callback start, ri
 	}
 	int reslut = 0;
 	ringplay_queue info;
+	if (index < 0 || index >= (int)(sizeof(rings_info) / sizeof(ring_info)))
+	{
+		return false;
+	}
 	info.type = sizeof(ringplay_queue_info);
 	info.msg.index = index;
 	info.msg.volume = volume;
@@ -595,12 +706,19 @@ static bool ringplay_playbase(int index, int volume, ringplay_callback start, ri
 	info.msg.loop = loop;
 
 	pthread_mutex_lock(&ringplay_mutex);
+	int remain = audio_output_buffer_query();
+	printf("[ui_audio_trace] %llu ringplay queue index=%d vol=%d ao_remain=%d\n",
+		   user_timestamp_get(), index, volume, remain);
+	ringplay_request_generation++;
+	info.msg.generation = ringplay_request_generation;
 	is_ringplay_play_stop = true;
-	pthread_mutex_unlock(&ringplay_mutex);
+	ringplay_queue_clear_locked();
+	info.msg.restart_output = is_ringplay_playing;
 	if ((reslut = msgsnd(ringplay_queue_head, &info, info.type, 0)) < 0)
 	{
 		printf("send ringplay queue fail (%d) send size:%d --- %s\n", reslut, sizeof(info), strerror(errno));
 	}
+	pthread_mutex_unlock(&ringplay_mutex);
 	return true;
 }
 
@@ -713,14 +831,27 @@ static bool ringplay_timeout_wait(void)
 ***/
 void ringplay_play_stop(void)
 {
+	ringplay_play_stop_async();
 	ringplay_timeout_wait();
 }
 
 void ringplay_play_stop_async(void)
 {
+	bool restart_output;
+
 	pthread_mutex_lock(&ringplay_mutex);
+	ringplay_request_generation++;
 	is_ringplay_play_stop = true;
+	ringplay_queue_clear_locked();
+	restart_output = is_ringplay_playing;
+	is_ringplay_playing = false;
 	pthread_mutex_unlock(&ringplay_mutex);
+	if (restart_output == true)
+	{
+		printf("[ui_audio_trace] %llu ringplay stop flush ao_remain=%d\n",
+			   user_timestamp_get(), audio_output_buffer_query());
+		audio_output_device_restart();
+	}
 }
 
 /***

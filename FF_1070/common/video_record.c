@@ -329,13 +329,8 @@ bool video_record_stop(void)
 	mjpeg_encode_close(0x01);
 	audio_input_close(0x01);
 	video_record_enable = false;
-
-	// 同步等待录制线程关闭 AVI 句柄，避免下一轮录像开始时旧句柄仍存在
-	int timeout = 100;
-	while (video_record_handle_id != NULL && timeout-- > 0)
-	{
-		usleep(10 * 1000);
-	}
+	/* The record worker closes the AVI asynchronously. Waiting here blocks
+	 * the LVGL page transition for up to one second. */
 	return true;
 }
 

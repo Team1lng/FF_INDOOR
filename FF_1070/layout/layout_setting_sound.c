@@ -36,11 +36,13 @@ static custom_area setting_btn_area[SETTING_TOTAL_BTN] =
 #define SETTING_VOLUME_ID 0x12
 #define SETTING_CAM1_ID 0x13
 #define SETTING_CAM2_ID 0X14
+#define SETTING_APPARTMENT_DOOR_ID 0x15
 
 
 static char volume_str[3] = {0};
 static char ring_cctv1_str[3] = {0};
 static char ring_cctv2_str[3] = {0};
+static char ring_appartment_door_str[3] = {0};
 
 static void back_btn_up(lv_obj_t *obj)
 {
@@ -115,7 +117,7 @@ static void setting_sound_ring_volume_btn_right_btn_up(lv_obj_t *obj)
     ring_volume_set(inter_ring_volume_get());
     // 先格式化字符串，再更新显示
     sprintf(volume_str, "%02d", bell_volume);
-    
+
     lv_obj_t *center_container = lv_obj_get_child_form_id(lv_scr_act(), 100);
     lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_VOLUME_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, volume_str);
     lv_obj_invalidate(center_container);
@@ -158,9 +160,9 @@ static void setting_cam1_sound_song_right_btn_up(lv_obj_t *obj)
 {
     // 直接读取和设置 door1_tone
     int index = user_data_get()->setting.door1_tone;
-    if (index >= 1 && index <= 6)
+    if (index >= 1 && index <= 20)
     {
-        index = (index >= 6) ? 1 : index + 1;
+        index = (index >= 20) ? 1 : index + 1;
         user_data_get()->setting.door1_tone = index;
 
         // 先格式化字符串
@@ -182,9 +184,9 @@ static void setting_cam1_sound_song_left_btn_up(lv_obj_t *obj)
 {
     // 直接读取和设置 door1_tone
     int index = user_data_get()->setting.door1_tone;
-    if (index >= 1 && index <= 6)
+    if (index >= 1 && index <= 20)
     {
-        index = (index <= 1) ? 6 : index - 1;
+        index = (index <= 1) ? 20 : index - 1;
         user_data_get()->setting.door1_tone = index;
 
         // 先格式化字符串
@@ -206,7 +208,7 @@ static void setting_cam2_sound_song_right_btn_up(lv_obj_t *obj)
 {
     // 直接读取和设置 door2_tone
     int index = user_data_get()->setting.door2_tone;
-    index = (index >= 6) ? 1 : index + 1;
+    index = (index >= 20) ? 1 : index + 1;
     user_data_get()->setting.door2_tone = index;
 
     // 先格式化字符串
@@ -228,9 +230,9 @@ static void setting_cam2_sound_song_left_btn_up(lv_obj_t *obj)
 {
     // 直接读取和设置 door2_tone
     int index = user_data_get()->setting.door2_tone;
-    if (index >= 1 && index <= 6)
+    if (index >= 1 && index <= 20)
     {
-        index = (index <= 1) ? 6 : index - 1;
+        index = (index <= 1) ? 20 : index - 1;
         user_data_get()->setting.door2_tone = index;
 
         // 先格式化字符串
@@ -238,6 +240,48 @@ static void setting_cam2_sound_song_left_btn_up(lv_obj_t *obj)
 
         lv_obj_t *center_container = lv_obj_get_child_form_id(lv_scr_act(), 100);
         lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_CAM2_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, ring_cctv2_str);
+        lv_obj_invalidate(center_container);
+
+        if (inter_ring_volume_get() > 0)
+        {
+            ringplay_play_form_index(index, 100, door_ring_play_start_cb, door_ring_play_finish_cb, false);
+        }
+    }
+}
+
+static void setting_appartment_door_right_btn_up(lv_obj_t *obj)
+{
+	int index = user_data_get()->setting.apartment_door_tone;
+	index = (index >= 20) ? 1 : index + 1;
+	user_data_get()->setting.apartment_door_tone = index;
+
+    // 先格式化字符串
+    sprintf(ring_appartment_door_str, "%02d", index);
+
+    // 更新显示
+    lv_obj_t *obj_door2_tone = lv_obj_get_child_form_id(lv_scr_act(), 100);
+    lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(obj_door2_tone, SETTING_APPARTMENT_DOOR_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, ring_appartment_door_str);
+    lv_obj_invalidate(obj_door2_tone);
+
+    if (inter_ring_volume_get() > 0)
+    {
+        ringplay_play_form_index(index, 100, door_ring_play_start_cb, door_ring_play_finish_cb, false);
+    }
+}
+
+static void setting_appartment_door_left_btn_up(lv_obj_t *obj)
+{
+	int index = user_data_get()->setting.apartment_door_tone;
+	if (index >= 1 && index <= 20)
+	{
+		index = (index <= 1) ? 20 : index - 1;
+		user_data_get()->setting.apartment_door_tone = index;
+
+        // 先格式化字符串
+        sprintf(ring_appartment_door_str, "%02d", index);
+
+        lv_obj_t *center_container = lv_obj_get_child_form_id(lv_scr_act(), 100);
+        lv_obj_set_style_local_value_str(lv_obj_get_child_form_id(center_container, SETTING_APPARTMENT_DOOR_ID), LV_CONT_PART_MAIN, LV_STATE_DEFAULT, ring_appartment_door_str);
         lv_obj_invalidate(center_container);
 
         if (inter_ring_volume_get() > 0)
@@ -303,7 +347,7 @@ static bool setting_sound_ring_volume_btn_create(lv_obj_t *center_cont)
 
     int ring_volume = user_data_get()->setting.inter_ring_volume;
     sprintf(volume_str, "%02d", ring_volume);
-    setting_double_arrow_btn_create(center_cont, 230, 70 + (75* 0), 415, 32,
+    setting_double_arrow_btn_create(center_cont, 230, 45 + (75* 0), 415, 32,
                                     str_get(COMMON_LANG_SETTING_VOLUME_ID),
                                     volume_str,
                                     &click_data,
@@ -319,7 +363,7 @@ static bool setting_cam1_melody_btn_create(lv_obj_t *center_cont)
 
     int ring_index  = user_data_get()->setting.door1_tone;
     sprintf(ring_cctv1_str, "%02d", ring_index );
-    setting_double_arrow_btn_create(center_cont, 230, 70 + (75 * 1), 415, 32,
+    setting_double_arrow_btn_create(center_cont, 230, 45 + (75 * 1), 415, 32,
                                     str_get(COMMON_LANG_CAM1_MELODY_ID),
                                     ring_cctv1_str,
                                     &click_data,
@@ -333,15 +377,32 @@ static bool setting_cam2_melody_btn_create(lv_obj_t *center_cont)
     static obj_click_data click_data = obj_click_data_up_create(setting_cam2_sound_song_right_btn_up);
     static obj_click_data left_click_data = obj_click_data_up_create(setting_cam2_sound_song_left_btn_up);
 
-    int ring_index = user_data_get()->setting.door2_tone;
+	int ring_index = user_data_get()->setting.door2_tone;
     sprintf(ring_cctv2_str, "%02d", ring_index);
-    
-    setting_double_arrow_btn_create(center_cont, 230, 70 + (75 * 2), 415, 32,
+
+    setting_double_arrow_btn_create(center_cont, 230, 45 + (75 * 2), 415, 32,
                                     str_get(COMMON_LANG_CAM2_MELODY_ID),
                                     ring_cctv2_str, 
                                     &click_data,
                                     &left_click_data,
                                     SETTING_CAM2_ID);
+    return true;
+}
+
+static bool setting_appartment_door_btn_create(lv_obj_t *center_cont)
+{
+    static obj_click_data click_data = obj_click_data_up_create(setting_appartment_door_right_btn_up);
+    static obj_click_data left_click_data = obj_click_data_up_create(setting_appartment_door_left_btn_up);
+
+    int ring_index = user_data_get()->setting.apartment_door_tone;
+    sprintf(ring_appartment_door_str, "%02d", ring_index);
+    
+    setting_double_arrow_btn_create(center_cont, 230, 45 + (75 * 3), 415, 32,
+                                    str_get(COMMON_LANG_APARTMENT_DOOR_ID),
+                                    ring_appartment_door_str,
+                                    &click_data,
+                                    &left_click_data,
+                                    SETTING_APPARTMENT_DOOR_ID);
     return true;
 }
 
@@ -380,6 +441,7 @@ static void LAYOUT_ENTER_FUNC(setting_sound)
     setting_sound_ring_volume_btn_create(center_cont);
     setting_cam1_melody_btn_create(center_cont);
     setting_cam2_melody_btn_create(center_cont);
+    setting_appartment_door_btn_create(center_cont);
 }
 
 static void LAYOUT_QUIT_FUNC(setting_sound)

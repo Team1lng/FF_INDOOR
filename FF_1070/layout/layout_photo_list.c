@@ -297,6 +297,8 @@ static void photo_list_sd_photo_btn_up(lv_obj_t *obj)
 
 static void photo_list_home_btn_up(lv_obj_t *obj)
 {
+	printf("[media_audio_trace] %llu media list back to home pressed\n",
+		   user_timestamp_get());
     goto_layout(pLAYOUT(home));
 }
 

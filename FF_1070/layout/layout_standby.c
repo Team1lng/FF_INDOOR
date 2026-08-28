@@ -251,20 +251,25 @@ static void standby_bg_click_event_cb(lv_obj_t *obj)
 	standby_wakeup_in_progress = true;
 	obj_click_event_listen(lv_scr_act(), NULL);
 	printf("Standby background clicked, returning to home layout.\n");
+	printf("[ui_audio_trace] %llu standby wake click -> goto home\n", user_timestamp_get());
 	goto_layout(pLAYOUT(home));
 }
 
 static void LAYOUT_ENTER_FUNC(standby)
 {
+	printf("[ui_audio_trace] %llu standby enter\n", user_timestamp_get());
 	printf("Entering standby layout.\n");
 	standby_wakeup_in_progress = false;
 	standby_timer_close();
 	backlight_enable(false);
+	printf("[ui_audio_trace] %llu standby enter backlight off\n", user_timestamp_get());
 	video_display_preview_enable(false);
+	printf("[ui_audio_trace] %llu standby enter video preview off\n", user_timestamp_get());
 	lv_video_mode_enable(false);
 	fb_gui_layer_rect_fill(0x00, 0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX);
 	refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
 	gui_refresh_area(&area, 1);
+	printf("[ui_audio_trace] %llu standby enter fill black + refresh\n", user_timestamp_get());
 
 	// 创建背景点击事件
 	static obj_click_data bg_btn_data = obj_click_data_create(standby_bg_click_event_cb, NULL);
@@ -290,6 +295,7 @@ void delay_backlight_open_task(lv_task_t *task)
 
 static void LAYOUT_QUIT_FUNC(standby)
 {
+	printf("[ui_audio_trace] %llu standby quit\n", user_timestamp_get());
 	printf("Exiting standby layout.\n");
 	// 清理移动侦测资源
 	standby_resource_release_sfunc(true);
@@ -307,6 +313,7 @@ static void LAYOUT_QUIT_FUNC(standby)
 
 	obj_click_event_listen(lv_scr_act(), NULL);
 	lv_obj_click_down_callback_register(layout_obj_click_down_func);
+	printf("[ui_audio_trace] %llu standby quit restore click cb\n", user_timestamp_get());
 	standby_timer_restart(true);
 }
 

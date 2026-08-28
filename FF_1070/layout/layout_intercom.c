@@ -538,7 +538,6 @@ static void LAYOUT_ENTER_FUNC(intercom)
 static void LAYOUT_QUIT_FUNC(intercom)
 {
     user_data_get()->room_no_flag = false;
-    user_data_save();
 
     if (wait_hook_on_task != NULL) {
         const layout *next = cur_layout_get();

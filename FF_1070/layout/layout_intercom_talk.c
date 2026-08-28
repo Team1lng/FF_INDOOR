@@ -404,7 +404,6 @@ static void LAYOUT_QUIT_FUNC(intercom_talk)
     talking_task = NULL;
     standby_timer_restart(true);
     door_audio_talk(AUDIO_CH_CLOSE); /* 关闭音频通道 */
-    user_data_save();
 }
 
 CREATE_LAYOUT(intercom_talk);

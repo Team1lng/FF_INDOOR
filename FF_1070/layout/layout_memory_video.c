@@ -284,7 +284,9 @@ static void video_progress_bar_update(int play_time, int play_total)
 
 static void video_home_btn_up(lv_obj_t *obj)
 {
-    memory_video_user_activity_reset();
+	printf("[media_audio_trace] %llu video page back pressed: state=%d\n",
+		   user_timestamp_get(), video_play_status_get());
+	memory_video_user_activity_reset();
     photo_list_page_set(video_index);
     goto_layout(pLAYOUT(photo_list));
 }

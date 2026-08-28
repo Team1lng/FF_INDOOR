@@ -169,6 +169,7 @@ static void language_english_btn_up(lv_obj_t *obj)
     }
 
     user_data_get()->setting.language = LANG_ENGLISH;
+    user_data_get()->setting.calendar = 1; // 中文对应公历
     lv_ft_font_set_type(user_data_get()->setting.language);
     lv_font_afresh_init();
     user_data_save();
@@ -196,6 +197,7 @@ static void language_persian_btn_up(lv_obj_t *obj)
     }
 
         user_data_get()->setting.language = LANG_PERSIAN;
+        user_data_get()->setting.calendar = 0; // 波斯语对应波斯历(Shamsi)
         lv_ft_font_set_type(user_data_get()->setting.language);
         lv_font_afresh_init();
         user_data_save();

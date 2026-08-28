@@ -31,6 +31,7 @@ typedef enum
 	CAMERA_COLOR_BTN_ID,
 	CAMERA_CAPTURE_BTN_ID,
 	CAMERA_RECORD_BTN_ID,
+	CAMERA_GATE_BTN_ID,
 	CAMERA_OPEN_BTN_ID,
 	// CAMERA_ANSWER_BTN_ID,
 	CAMERA_HANG_UP_BTN_ID,
@@ -106,12 +107,13 @@ static void layout_monitor_refresh_5(void)
 static custom_area camera_btn_area[CAMERA_TOTAL_BTN] =
 	{
 		{920, 25, 50, 37},	  // 返回主页按钮
-		{127, 450, 120, 120}, // 通道切换按钮
-		{257, 450, 120, 120}, // 画面调节按钮
-		{387, 450, 120, 120}, // 抓拍按钮
-		{517, 450, 120, 120}, // 录像按钮
-		{647, 450, 120, 120}, // 开锁按钮
-		{777, 450, 120, 120}, // 挂断/对讲按钮
+		{62, 450, 120, 120},  // 通道切换按钮
+		{192, 450, 120, 120}, // 画面调节按钮
+		{322, 450, 120, 120}, // 抓拍按钮
+		{452, 450, 120, 120}, // 录像按钮
+		{582, 450, 120, 120}, // 大门开锁按钮
+		{712, 450, 120, 120}, // 门口机开锁按钮
+		{842, 450, 120, 120}, // 挂断/对讲按钮
 		{942, 12, 54, 54},
 };
 
@@ -551,6 +553,9 @@ static void camera_channel_switch_ui_prepare(MON_CH target_ch)
 static void camera_channel_switch_internal(MON_CH target_ch)
 {
 	MON_CH current_ch = monitor_channel_get();
+	printf("[monitor_audio_trace] %llu switch request: from=%d to=%d hook=%d talk=%d enter=%d ao_remain=%d\n",
+		   user_timestamp_get(), current_ch, target_ch, hook_state_get(),
+		   camera_in_talk_state, monitor_enter_mask_get(), audio_output_buffer_query());
 	if (current_ch == target_ch)
 	{
 		return;
@@ -574,7 +579,8 @@ static void camera_channel_switch_internal(MON_CH target_ch)
 
 	if (ringplay_ing_check() == true)
 	{
-		ringplay_play_stop();
+		/* Never wait for the old ringtone in the LVGL event thread. */
+		ringplay_play_stop_async();
 	}
 
 	camera_channel_switch_request(target_ch, CAMERA_CHANNEL_SWITCH_MANUAL);
@@ -992,6 +998,9 @@ static void camera_call_ring_start(void)
 
 static void camera_channel_switch_complete(MON_CH target_ch, camera_channel_switch_reason_t reason)
 {
+	printf("[monitor_audio_trace] %llu switch complete: target=%d reason=%d hook=%d talk=%d ao_remain=%d\n",
+		   user_timestamp_get(), target_ch, reason, hook_state_get(),
+		   camera_in_talk_state, audio_output_buffer_query());
 	printf("[auto_record] channel ready target=%d reason=%d phase=%d vi=%d recording=%d\n",
 		   target_ch, reason, camera_call_seq_phase,
 		   video_input_state_get(), is_recording);
@@ -1016,7 +1025,7 @@ static void camera_channel_switch_complete(MON_CH target_ch, camera_channel_swit
 	}
 	else if (reason == CAMERA_CHANNEL_SWITCH_MANUAL)
 	{
-		door_audio_talk(AUDIO_CH_CLOSE);
+		/* Handset is down: no talk route exists, so never close PA here. */
 		camera_in_talk_state = false;
 	}
 	if (reason == CAMERA_CHANNEL_SWITCH_CALL)
@@ -1088,6 +1097,9 @@ static void camera_channel_switch_cancel(void)
 
 static void camera_channel_switch_request(MON_CH target_ch, camera_channel_switch_reason_t reason)
 {
+	printf("[monitor_audio_trace] %llu switch prepare: target=%d reason=%d hook=%d ao_remain=%d\n",
+		   user_timestamp_get(), target_ch, reason, hook_state_get(),
+		   audio_output_buffer_query());
 	camera_channel_switch_cancel();
 	camera_channel_transient_ui_reset();
 	camera_channel_switch_ui_prepare(target_ch);
@@ -1160,7 +1172,8 @@ void layout_camera_hook_answer(void)
 	call_ring_to_outdoor_ctrl(AUDIO_CH_DOOR2, false);
 	if (ringplay_ing_check() == true)
 	{
-		ringplay_play_stop();
+		/* The page transition must not wait for the AO buffer to drain. */
+		ringplay_play_stop_async();
 	}
 
 	door_audio_talk(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2);
@@ -1182,9 +1195,19 @@ void layout_camera_hook_hangup(void)
 	camera_call_ring_cancel();
 	if (ringplay_ing_check() == true)
 	{
-		ringplay_play_stop();
+		ringplay_play_stop_async();
 	}
-	door_audio_talk(AUDIO_CH_CLOSE);
+	if (camera_in_talk_state)
+	{
+		door_audio_talk(AUDIO_CH_CLOSE);
+	}
+	else
+	{
+		/* Manual monitor has no talk route; avoid GPIO9-off pop on exit. */
+		audio_to_outdoor1_pin_ctrl(false);
+		audio_to_outdoor2_pin_ctrl(false);
+		audio_to_inter_line_select_pin_ctrl(false);
+	}
 	call_ring_to_outdoor_ctrl(AUDIO_CH_DOOR1, false);
 	call_ring_to_outdoor_ctrl(AUDIO_CH_DOOR2, false);
 	audio_input_capture_enable(false);
@@ -1209,7 +1232,8 @@ static void camera_door_call_switch(MON_CH target_ch)
 	if (ringplay_ing_check() == true)
 	{
 		camera_call_ring_ignore_finish_count++;
-		ringplay_play_stop();
+		/* Do not block the door-call callback on the old ring/AO buffer. */
+		ringplay_play_stop_async();
 	}
 
 	camera_timeout_value_reset();
@@ -1262,7 +1286,7 @@ static void camera_unlock_ring_finish_func(int index)
 		return;
 	}
 
-	power_amplifier_enable(false);
+	/* Keep PA_EN stable after the unlock tone; GPIO9-off causes an audible pop. */
 	if (video_record_status_get() == true && (ch == MON_CH_DOOR1 || ch == MON_CH_DOOR2))
 	{
 		monitor_record_pin_enable(true);
@@ -2131,7 +2155,7 @@ static void camera_switch_btn_create_display(void)
 	{
 		static rom_bin_info info = rom_bin_info_get(ROM_UI_CAMERA_SWTICH_PNG);
 		lv_obj_set_style_local_pattern_image(obj, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &info);
-		lv_obj_set_pos(obj, 127, 450);
+		lv_obj_set_pos(obj, 62, 450);
 	}
 	lv_obj_invalidate(obj);
 }
@@ -2202,7 +2226,7 @@ static void camera_record_btn_create_display(void)
 	}
 	else
 	{
-		lv_obj_set_pos(obj, 517, 450);
+		lv_obj_set_pos(obj, 452, 450);
 	}
 	lv_obj_invalidate(obj);
 }
@@ -2361,7 +2385,7 @@ static void camera_zoom_btn_create_display(void)
 	}
 	else
 	{
-		lv_obj_set_pos(obj, 387, 450);
+		lv_obj_set_pos(obj, 322, 450);
 	}
 	lv_obj_invalidate(obj);
 }
@@ -2499,8 +2523,39 @@ static void camera_open_btn_up(lv_obj_t *obj)
 	}
 	call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, true);
 	monitor_unlock_open(0, ch);
-	ringplay_play_form_index(7, 100, camera_unlock_ring_start_func, camera_unlock_ring_finish_func, false);
+	ringplay_play_form_index(21, 100, camera_unlock_ring_start_func, camera_unlock_ring_finish_func, false);
 }
+
+static void camera_gate_btn_up(lv_obj_t *obj)
+{
+	MON_CH ch = monitor_channel_get();
+	if (ch == MON_CH_CCTV1 || ch == MON_CH_CCTV2 || video_input_state_get() == false)
+		return;
+	camera_setting_window_close_for_action();
+	layout_monitor_refresh_2();
+
+	// 弹出"室内机开锁"图片提示(复用开锁提示图片层,CAMERA_UNLOCK_PROMPT_IMG_ID)
+	lv_obj_t *unlock_img = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_UNLOCK_PROMPT_IMG_ID);
+	if (unlock_img != NULL)
+	{
+		static rom_bin_info unlock_img_info = rom_bin_info_get(ROM_UI_CAMERA_OPEN_GATE_PNG);
+		lv_obj_set_style_local_pattern_image(unlock_img, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &unlock_img_info);
+		lv_obj_set_hidden(unlock_img, false);
+	}
+
+	layout_gate_open_default();
+	camera_btn_and_win_hidden_task_restart();
+	camera_ticker_task_restart(CAMERA_TASK_UNLOCK); // 启动提示图片自动隐藏计时
+}
+
+static void camera_gate_btn_create(lv_obj_t *parent)
+{
+	static obj_click_data btn_data = obj_click_data_up_create(camera_gate_btn_up);
+	static rom_bin_info info = rom_bin_info_get(ROM_UI_CAMERA_GATE_PNG);
+	lv_obj_t *btn = camera_img_btn_create(parent, camera_btn_area[CAMERA_GATE_BTN_ID], NULL, &btn_data, &info);
+	lv_obj_set_id(btn, CAMERA_GATE_BTN_ID);
+}
+
 // 创建open按钮
 static void camera_open_btn_create(lv_obj_t *parent)
 {
@@ -2531,7 +2586,7 @@ static void camera_func_btn_diaplay_enable(bool en)
 	// if (obj == NULL)
 	// 	return;
 	// lv_obj_set_hidden(obj, !en);
-	for (int i = 1; i < 7; i++)
+	for (int i = 1; i < 8; i++)
 	{
 		lv_obj_set_hidden(lv_obj_get_child_form_id(lv_scr_act(), i), !en);
 	}
@@ -2542,6 +2597,7 @@ static void camera_func_btn_diaplay_enable(bool en)
 		lv_obj_set_hidden(lv_obj_get_child_form_id(lv_scr_act(), 2), true);
 		lv_obj_set_hidden(lv_obj_get_child_form_id(lv_scr_act(), 5), true);
 		lv_obj_set_hidden(lv_obj_get_child_form_id(lv_scr_act(), 6), true);
+		lv_obj_set_hidden(lv_obj_get_child_form_id(lv_scr_act(), 7), true);
 	}
 }
 
@@ -2597,6 +2653,7 @@ static void camera_goto_monitor_mode(lv_obj_t *parent)
 	camera_switch_btn_create(parent);  /*创建切换通道的按钮*/
 	camera_capture_btn_create(parent); /*创建抓拍的按钮*/
 	camera_record_btn_create(parent);  /*创建录像的按钮*/
+	camera_gate_btn_create(parent);    /*创建大门开锁按钮*/
 	camera_open_btn_create(parent);	   /*创建开锁的按钮*/
 	// camera_answer_btn_create(parent);		/*创建的通话按钮*/
 	camera_hang_up_btn_create(parent); /*创建挂断的按钮*/
@@ -2648,6 +2705,9 @@ static void camera_door_call_ring_play_timer(lv_task_t *pt)
 static void LAYOUT_ENTER_FUNC(camera)
 {
 	/*清状态*/
+	printf("[monitor_audio_trace] %llu camera enter: ch=%d enter=%d hook=%d ao_remain=%d\n",
+		   user_timestamp_get(), monitor_channel_get(), monitor_enter_mask_get(),
+		   hook_state_get(), audio_output_buffer_query());
 	backlight_enable(false);
 	layout_monitor_refresh_1();
 	MON_CH ch = monitor_channel_get();
@@ -2659,10 +2719,6 @@ static void LAYOUT_ENTER_FUNC(camera)
 	 */
 
 	// camera_enter_zoom = false;
-	/* Keep the preview path active for a door call. The display mask below
-	 * hides stale content while VI starts, but must not block frame delivery. */
-	monitor_open(true, 0x03);
-	printf("==============[%d]:[%s]\n", __LINE__, __func__);
 	audio_input_capture_enable(true); // AI may still be opening; door ring waits for settle
 	jpg_encode_capture_enable(true);
 
@@ -2690,6 +2746,11 @@ static void LAYOUT_ENTER_FUNC(camera)
 	/*启动定时任务*/
 	camera_ticker_task_create();
 	camera_display_delay_start();
+	/* Install the full-screen black transition mask before enabling preview.
+	 * Otherwise the previous motion-detection frame can be presented for one
+	 * refresh while the new Camera page is being built. */
+	monitor_open(true, 0x03);
+	printf("==============[%d]:[%s]\n", __LINE__, __func__);
 
 	if ((monitor_enter_mask_get() == MON_ENTER_CALL))
 	{
@@ -2713,7 +2774,7 @@ static void LAYOUT_ENTER_FUNC(camera)
 	{
 		if (ringplay_ing_check() == true)
 		{
-			ringplay_play_stop();
+			ringplay_play_stop_async();
 		}
 
 		if (camera_video_frame_ready() == true)
@@ -2745,8 +2806,13 @@ static void LAYOUT_ENTER_FUNC(camera)
 }
 static void LAYOUT_QUIT_FUNC(camera)
 {
+	/* The door-call page owns the hold lifetime; permit normal shutdown now. */
+	intercom_door_call_audio_hold_set(false);
 	printf("[audio_trace] %llu camera quit talk=%d ch=%d\n",
 		   user_timestamp_get(), camera_in_talk_state, monitor_channel_get());
+	printf("[monitor_audio_trace] %llu camera quit: hook=%d talk=%d ch=%d ao_remain=%d\n",
+		   user_timestamp_get(), hook_state_get(), camera_in_talk_state,
+		   monitor_channel_get(), audio_output_buffer_query());
 	{
 		lv_obj_t *ch_obj = lv_obj_get_child_form_id(lv_scr_act(), CAMERA_HEAD_CH_LABEL_ID);
 		if (ch_obj != NULL) lv_obj_set_hidden(ch_obj, true);
@@ -2776,6 +2842,8 @@ static void LAYOUT_QUIT_FUNC(camera)
 	}
 	else
 	{
+		printf("[monitor_audio_trace] %llu camera quit plain-monitor route off\n",
+			   user_timestamp_get());
 		/* Ordinary monitor exit only needs to disconnect door audio routing. */
 		audio_to_outdoor1_pin_ctrl(false);
 		audio_to_outdoor2_pin_ctrl(false);
@@ -2783,27 +2851,21 @@ static void LAYOUT_QUIT_FUNC(camera)
 	}
 	call_ring_to_outdoor_ctrl(AUDIO_CH_DOOR1, false);
 	call_ring_to_outdoor_ctrl(AUDIO_CH_DOOR2, false);
+	printf("[monitor_audio_trace] %llu camera quit monitor_close begin\n",
+		   user_timestamp_get());
 	monitor_close();
+	printf("[monitor_audio_trace] %llu camera quit monitor_close done\n",
+		   user_timestamp_get());
 	record_video_close();
 	record_jpeg_close();
-
-		// 同步等待 VI/AI/VENC 设备彻底关闭，避免 quit 返回后 enter 并发操作资源
-		{
-			int timeout = 100;
-			while (video_input_state_get() == true && timeout-- > 0)
-				usleep(10 * 1000);
-		}
-		{
-			int timeout = 100;
-			while (!audio_input_device_is_idle() && timeout-- > 0)
-				usleep(10 * 1000);
-		}
+	/* VI/AI teardown continues in their worker threads. Waiting here blocks
+	 * goto_layout() before the standby/home page can be drawn. */
 
 	call_record_end(CALL_DOOR_STATION_1);
 	call_record_end(CALL_DOOR_STATION_2);
 
-	// audio_to_outdoor_pin_ctrl(false);
-	user_data_save();
+	// Camera exit is on the LVGL thread; persistence is not needed here.
+	// A storage flush can freeze the screen for seconds.
 	standby_timer_restart(true);
 	monitor_unlcok_close();
 	camera_display_delay_task_t = NULL;
@@ -2813,13 +2875,10 @@ static void LAYOUT_QUIT_FUNC(camera)
 // 监控界面点击按键音处理函数
 static void layout_camera_click_down_func(lv_obj_t *obj)
 {
-	//  if(hook_state_get() == true)
-	//  {
-	//      return;
-	//  }
-	//  MON_CH ch = monitor_channel_get();
-	//  call_ring_to_outdoor_ctrl(ch == MON_CH_DOOR1 ? AUDIO_CH_DOOR1 : AUDIO_CH_DOOR2, false);
-	//  touch_sound_play(NULL, NULL);
+	/* Monitor controls are silent.  During a door call the outdoor route may
+	 * still be active, so a local key tone would be sent to the door station. */
+	(void)obj;
+	return;
 }
 
 // 监控界面door1 call机处理函数

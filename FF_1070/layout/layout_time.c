@@ -358,6 +358,12 @@ static void time_setting_btn_display(void)
         temp_date.month = 1;
         temp_date.day = 1;
     }
+
+    // 波斯历(calendar==0)：RTC/系统时间始终为公历，仅显示与编辑时转换为 Jalali
+    if (user_data_get()->setting.calendar == 0)
+    {
+        temp_date = gregorian2jalali(temp_date);
+    }
 }
 
 
@@ -396,9 +402,15 @@ static void LAYOUT_QUIT_FUNC(time)
 {
     if(time_change_flag == true)
     {
-        temp_tm.tm_year = temp_date.year ;
-        temp_tm.tm_mon = temp_date.month ;
-        temp_tm.tm_mday = temp_date.day;
+        struct date save_date = temp_date;
+        // 波斯历编辑值需先转回公历再写 RTC，否则会把 Jalali 数字当成公历写入
+        if (user_data_get()->setting.calendar == 0)
+        {
+            save_date = jalali2gregorian(save_date);
+        }
+        temp_tm.tm_year = save_date.year ;
+        temp_tm.tm_mon = save_date.month ;
+        temp_tm.tm_mday = save_date.day;
         temp_tm.tm_sec = 0;
         standby_timer_close();
         user_time_set(&temp_tm);

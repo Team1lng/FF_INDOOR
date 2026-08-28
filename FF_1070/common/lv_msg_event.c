@@ -227,15 +227,20 @@ bool goto_layout(const layout *en_layout)
 	playout = en_layout;
 	if ((old_layout != NULL) && (old_layout->quit != NULL))
 	{
+		printf("[layout_trace] %llu quit old=%p next=%p\n",
+			   user_timestamp_get(), old_layout, en_layout);
 		old_layout->quit();
-		
+		printf("[layout_trace] %llu quit done old=%p\n",
+			   user_timestamp_get(), old_layout);
 	}
 	lv_task_clean();
 	lv_anim_del_all();
 	lv_obj_clean(lv_scr_act());
 	refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
 	gui_refresh_area(&area, 1);
+	printf("[layout_trace] %llu enter next=%p\n", user_timestamp_get(), en_layout);
 	playout->enter();
+	printf("[layout_trace] %llu enter done next=%p\n", user_timestamp_get(), en_layout);
 	return true;
 }
 

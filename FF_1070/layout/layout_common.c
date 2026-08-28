@@ -40,10 +40,12 @@ void ringplay_keysound_finish_default_func(int index)
 void ringplay_keysound_start_default_func(int index)
 {
 	(void)index;
-	printf("[audio_trace] %llu touch-tone start\n", user_timestamp_get());
-	/* Cancel a pending PA-off from the previous click before opening PA. */
-	layout_media_power_amplifier_hold();
-	ring_volume_set(TOUCH_TONE_VOL);
+	printf("[media_audio_trace] %llu touch-tone start: layout=%p ao_remain=%d\n",
+		   user_timestamp_get(), cur_layout_get(), audio_output_buffer_query());
+	/* Enable PA (and cancel any pending PA-off) for the key tone. Without this
+	 * the amplifier stays off on every page except home-media/photo-list, so the
+	 * click sound is silent. */
+	layout_media_keytone_prepare();
 }
 /***
 ** 日期: 2022-04-28 09:53
@@ -54,6 +56,8 @@ void ringplay_keysound_start_default_func(int index)
 void layout_obj_click_down_func(lv_obj_t *obj)
 {
 	//***** 控制声音流向 *****/
+	printf("[ui_audio_trace] %llu click_down layout=%p ao_remain=%d\n",
+		   user_timestamp_get(), cur_layout_get(), audio_output_buffer_query());
 	touch_sound_play(ringplay_keysound_start_default_func, ringplay_keysound_finish_default_func);
 }
 
@@ -94,8 +98,8 @@ void ringplay_doorcall_finish_default_func(int index)
 ** 函数作用：door1 call 默认处理函数
 ** 返回参数说明：
 ***/
-/* Door-call while on intercom: stop intercom audio first, then enter camera.
- * Camera side delays door ring (like 20260715) to avoid AI-open ring dip. */
+/* External door events preempt intercom immediately. Do not wait for the
+ * current intercom ringtone to drain before switching the page. */
 static void layout_interrupt_intercom_for_door_call(void)
 {
 	const layout *cur = cur_layout_get();
@@ -107,8 +111,11 @@ static void layout_interrupt_intercom_for_door_call(void)
 	}
 
 	printf("[door_call] interrupt intercom before entering camera\n");
-	ringplay_play_stop();
+	ringplay_play_stop_async();
 	MsgCallEnd();
+	/* The current call must close its route first. Only stale callbacks after
+	 * MsgCallEnd() are prevented from stopping the upcoming door-call ring. */
+	intercom_door_call_audio_hold_set(true);
 	intercom_state_set(INTERCOM_STATE_IDLE);
 	intercom_hangup_flag_get_and_clear();
 	intercom_remote_ack_get_and_clear();
@@ -183,9 +190,15 @@ void layout_incoming_intercom_call_default(void)
 
 void layout_call_camera_default(void)
 {
+	layout_interrupt_intercom_for_door_call();
+
+	if (cur_layout_get() == pLAYOUT(motion_detection))
+	{
+		layout_motion_detection_prepare_camera_in();
+	}
 
 	power_amplifier_enable(false);
-	ringplay_play_stop();
+	ringplay_play_stop_async();
 	goto_layout(pLAYOUT(calling));
 
 } // lynn 26.3.14
@@ -208,14 +221,6 @@ static void gate_open_task(lv_task_t *task_t)
 // 	lv_task_del(elevator_call_task_t);
 // 	elevator_call_task_t = NULL;
 // }
-void open_ring_play_start_default_func(int index)
-{
-	ring_volume_set(OPEN_TONE_VOL);
-}
-void open_ring_play_finish_default_func(int index)
-{
-	// power_amplifier_enable(false);
-}
 /***
 ** 日期: 2022-05-12 10:27
 ** 作者: leo.liu
@@ -226,8 +231,7 @@ void layout_gate_open_default(void)
 {
 	if (gate_open_task_t == NULL)
 	{
-		gate_unlock_pin_ctrl(true);
-		ringplay_play_form_index(7, 100, open_ring_play_start_default_func, open_ring_play_finish_default_func, false);
+		gate_unlock_pin_ctrl(true); // gpio68 大门锁：开锁不播放铃声
 		gate_open_task_t = lv_layout_task_create(gate_open_task, GATE_OPEN_DELAY, LV_TASK_PRIO_LOW, NULL);
 		gate_open_task_t->clean_lock = false;
 	}
@@ -298,7 +302,8 @@ bool layout_hook_state_change_default(unsigned int cmd, unsigned int arg)
 		/* 摘机接听：须调 MsgCallAccept 与底层协议一致 */
 		if (cmd == true && intercom_state_get() == INTERCOM_STATE_CALLING_IN)
 		{
-			ringplay_play_stop();
+			/* Let the ring worker stop in the background before entering talk. */
+			ringplay_play_stop_async();
 			call_record_answered(0);
 			printf("=============>>> intercom in talking (hook)\n");
 			MsgCallAccept();
@@ -637,6 +642,8 @@ static void layout_media_pa_release_task_stop(void)
 	}
 
 	lv_task_del(media_pa_release_task);
+	printf("[media_audio_trace] %llu media PA release task canceled: settle=%d\n",
+		   user_timestamp_get(), media_pa_release_settle_count);
 	media_pa_release_task = NULL;
 	media_pa_release_settle_count = 0;
 }
@@ -652,6 +659,8 @@ static void layout_media_power_amplifier_release_task(lv_task_t *task)
 	/* Re-entered media/intercom: keep PA and drop the pending off. */
 	if (layout_media_keep_power_amplifier())
 	{
+		printf("[media_audio_trace] %llu media PA release aborted: re-entered layout=%p\n",
+			   user_timestamp_get(), cur_layout_get());
 		layout_media_pa_release_task_stop();
 		return;
 	}
@@ -659,6 +668,8 @@ static void layout_media_power_amplifier_release_task(lv_task_t *task)
 	/* Wait until key tone finishes. */
 	if (ringplay_ing_check())
 	{
+		printf("[media_audio_trace] %llu media PA release waiting: ringplay active\n",
+			   user_timestamp_get());
 		media_pa_release_settle_count = 0;
 		return;
 	}
@@ -672,6 +683,8 @@ static void layout_media_power_amplifier_release_task(lv_task_t *task)
 		int remain = audio_output_buffer_query();
 		if (remain > 0)
 		{
+			printf("[media_audio_trace] %llu media PA release waiting: ao_remain=%d\n",
+				   user_timestamp_get(), remain);
 			media_pa_release_settle_count = 0;
 			return;
 		}
@@ -681,17 +694,29 @@ static void layout_media_power_amplifier_release_task(lv_task_t *task)
 	if (media_pa_release_settle_count < MEDIA_PA_RELEASE_SETTLE_TICKS)
 	{
 		media_pa_release_settle_count++;
+		printf("[media_audio_trace] %llu media PA release settling: %d/%d\n",
+			   user_timestamp_get(), media_pa_release_settle_count,
+			   MEDIA_PA_RELEASE_SETTLE_TICKS);
 		return;
 	}
 
-	power_amplifier_enable(false);
-	printf("[audio_trace] %llu media PA release complete\n", user_timestamp_get());
+	/* End on a known zero-level DAC output before the PA-off test. */
+	audio_output_silence_drain(1024, 120);
+	/* Diagnostic only: keep PA_EN asserted to isolate GPIO9-off pop noise. */
+	printf("[media_audio_trace] %llu media PA release test: GPIO9 remains on\n",
+		   user_timestamp_get());
+	printf("[media_audio_trace] %llu media PA release complete\n", user_timestamp_get());
 	layout_media_pa_release_task_stop();
 }
 
 void layout_media_power_amplifier_hold(void)
 {
 	/* Cancel pending Media leave PA-off without forcing PA on. */
+	if (media_pa_release_task != NULL)
+	{
+		printf("[media_audio_trace] %llu media PA hold requested: layout=%p\n",
+			   user_timestamp_get(), cur_layout_get());
+	}
 	layout_media_pa_release_task_stop();
 }
 
@@ -712,12 +737,12 @@ void layout_media_audio_prepare(void)
 	layout_media_pa_release_task_stop();
 
 	/*
-	 * Media pages keep PA on for key-tone stability.
-	 * Order: open/flush AO first (PA may still be off), then enable PA.
-	 * power_amplifier_enable() is idempotent: no re-toggle if already on.
+	 * Media pages keep PA on for key-tone stability. Do not restart AO here:
+	 * entering the next media page can happen while the previous page's touch
+	 * tone is still draining, and cancel/restart would cut that tone abruptly.
+	 * audio_output_open() still handles a required parameter switch.
 	 */
 	audio_output_open(AUDIO_CHANNEL_MONO, AK_AUDIO_SAMPLE_RATE_16000);
-	audio_output_device_restart();
 	power_amplifier_enable(true);
 	ring_volume_set(TOUCH_TONE_VOL);
 }
@@ -730,14 +755,6 @@ void layout_media_power_amplifier_release(void)
 		return;
 	}
 
-	/*
-	 * Leaving Media: do NOT close PA immediately.
-	 * Key tone may still be playing; wait AO drain + settle, then soft off.
-	 *
-	 * NOTE: clean_lock semantics are inverted in this codebase:
-	 *   clean_lock == true  -> deleted by goto_layout()/lv_task_clean()
-	 *   clean_lock == false -> survives layout switch
-	 */
 	if (media_pa_release_task != NULL)
 	{
 		return;

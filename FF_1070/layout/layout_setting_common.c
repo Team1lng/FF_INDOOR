@@ -289,7 +289,7 @@ static lv_obj_t *setting_btn_sub_string_with_double_arrows_create(lv_obj_t *pare
 			printf("create setting sub string fail \n");
 			return btn;
 		}
-		lv_obj_set_pos(sub_obj, x + w - 175, y); // 留出空间给两个箭头
+		lv_obj_set_pos(sub_obj, x + w - 185, y); // 音量值在两箭头间对称居中(左/右间隙约7~8px)
 		lv_obj_set_size(sub_obj, 120, h);		 // 固定宽度显示子字符串
 		lv_obj_set_click(sub_obj, false);
 
@@ -313,9 +313,9 @@ static lv_obj_t *setting_btn_sub_string_with_double_arrows_create(lv_obj_t *pare
 		static rom_bin_info left_arrow_img = rom_bin_info_get(ROM_UI_MEDIA_LIST_PREV_PNG);
 		static rom_bin_info left_arrow_PRE_img = rom_bin_info_get(ROM_UI_TIME_PRE_LEFT_PNG);
 		lv_obj_t *left_arrow_btn = lv_btn_create(parent == NULL ? lv_scr_act() : parent, NULL);
-		lv_obj_set_ext_click_area(left_arrow_btn, 10, 10, 5, 5);
-		lv_obj_set_pos(left_arrow_btn, x + w - 210, y + (h - 28) / 2); // 左侧箭头位置
-		lv_obj_set_size(left_arrow_btn, 35, 30);
+		lv_obj_set_ext_click_area(left_arrow_btn, 12, 15, 10, 10);
+		lv_obj_set_pos(left_arrow_btn, x + w - 245, y + (h - 28) / 2); // 左侧箭头位置(左移避免与音量值重叠)
+		lv_obj_set_size(left_arrow_btn, 60, 36);
 		lv_obj_set_style_local_bg_opa(left_arrow_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
 		lv_obj_set_style_local_pattern_image(left_arrow_btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &left_arrow_img);
 		lv_obj_set_style_local_pattern_image(left_arrow_btn, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, &left_arrow_PRE_img);
@@ -330,12 +330,12 @@ static lv_obj_t *setting_btn_sub_string_with_double_arrows_create(lv_obj_t *pare
 		static rom_bin_info right_arrow_PRE_img = rom_bin_info_get(ROM_UI_TIME_PRE_RIGHT_PNG);
 		lv_obj_t *right_arrow_btn = lv_btn_create(parent == NULL ? lv_scr_act() : parent, NULL);
 		lv_obj_set_pos(right_arrow_btn, x + w - 50, y + (h - 28) / 2); // 右侧箭头位置
-		lv_obj_set_size(right_arrow_btn, 35, 30);
+		lv_obj_set_size(right_arrow_btn, 60, 36);
 		lv_obj_set_style_local_bg_opa(right_arrow_btn, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
 		lv_obj_set_style_local_pattern_image(right_arrow_btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, &right_arrow_img);
 		lv_obj_set_style_local_pattern_image(right_arrow_btn, LV_OBJ_PART_MAIN, LV_STATE_PRESSED, &right_arrow_PRE_img);
 		lv_obj_set_style_local_pattern_align(right_arrow_btn, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_ALIGN_CENTER);
-		lv_obj_set_ext_click_area(right_arrow_btn, 10, 10, 5, 5);
+		lv_obj_set_ext_click_area(right_arrow_btn, 15, 12, 10, 10);
 		obj_click_event_listen(right_arrow_btn, right_arrow_click_data);
 	}
 

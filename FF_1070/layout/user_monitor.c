@@ -201,9 +201,7 @@ bool monitor_close(void)
 {
 	// video_switch_disable();
 	video_display_preview_enable(false);
-	ak_sleep_ms(50);
 	video_input_skip_frame_count_set(1000);
-	ak_sleep_ms(50);
 	tp9950_vin_enable(montor_channel, false);
 	// tp9950_vin1_enable(false);
 	outdoor_power_enable(MON_CH_NONE, false);

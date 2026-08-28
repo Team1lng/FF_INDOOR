@@ -1,6 +1,7 @@
 #include "audio_output.h"
 #include "audio_config.h"
 #include "user_common.h"
+#include "user_time.h"
 #include <pthread.h>
 
 #include "ak_ao.h"
@@ -102,6 +103,8 @@ bool audio_output_open(enum ak_audio_channel_type ch, enum ak_audio_sample_rate 
 	bool reslut = true;
 	//  common_queue audio_data;
 	pthread_mutex_lock(&audio_output_mutex);
+	printf("[ui_audio_trace] %llu ao_open enter ch=%d rate=%d handle=%d\n",
+		   user_timestamp_get(), ch, rate, audio_output_handle_id);
 	/***** 设备已经打开 *****/
 	if ((audio_output_handle_id != -1) /*  && (audio_output_enable == true) */)
 	{
@@ -126,13 +129,22 @@ bool audio_output_open(enum ak_audio_channel_type ch, enum ak_audio_sample_rate 
 	int timeout = 100;
 	while (audio_output_buffer_query() > 2048)
 	{
+		printf("[ui_audio_trace] %llu ao_open wait remain=%d\n",
+			   user_timestamp_get(), audio_output_buffer_query());
 		usleep(1000 * 10);
 		timeout--;
 		if (timeout == 0)
 		{
 			if(audio_output_buffer_query() > 50*1024)
 			{
+				printf("[ui_audio_trace] %llu ao_open wait timeout remain=%d -> restart\n",
+					   user_timestamp_get(), audio_output_buffer_query());
 				audio_output_device_restart();
+			}
+			else
+			{
+				printf("[ui_audio_trace] %llu ao_open wait timeout remain=%d no-restart\n",
+					   user_timestamp_get(), audio_output_buffer_query());
 			}
 			printf("query audio buffer timeout!!!\n");
 			break;
@@ -251,18 +263,78 @@ bool audio_output_buffer_try_timeout(int ms)
 	return false;
 }
 
+bool audio_output_silence_drain(int bytes, int timeout_ms)
+{
+	static const unsigned char silence[2048] = {0};
+	int sent = 0;
+
+	if (bytes <= 0)
+	{
+		return audio_output_buffer_try_timeout(timeout_ms);
+	}
+
+	while (sent < bytes)
+	{
+		int chunk = bytes - sent;
+		if (chunk > (int)sizeof(silence))
+		{
+			chunk = sizeof(silence);
+		}
+
+		pthread_mutex_lock(&audio_output_mutex);
+		if (audio_output_handle_id == -1)
+		{
+			pthread_mutex_unlock(&audio_output_mutex);
+			printf("[media_audio_trace] %llu silence drain skipped: device closed\n",
+				   user_timestamp_get());
+			return true;
+		}
+
+		int played = 0;
+		ak_ao_send_frame(audio_output_handle_id, (unsigned char *)silence, chunk, &played);
+		pthread_mutex_unlock(&audio_output_mutex);
+		sent += chunk;
+	}
+
+	printf("[media_audio_trace] %llu silence drain queued: bytes=%d remain=%d\n",
+		   user_timestamp_get(), sent, audio_output_buffer_query());
+	bool drained = audio_output_buffer_try_timeout(timeout_ms);
+	printf("[media_audio_trace] %llu silence drain done: drained=%d remain=%d\n",
+		   user_timestamp_get(), drained, audio_output_buffer_query());
+	return drained;
+}
+
 
 
 bool audio_output_device_restart(void)
 {
+	int remain_before;
+	int remain_after;
+
 	pthread_mutex_lock(&audio_output_mutex);
 	if (audio_output_handle_id == -1)
 	{
+		printf("[media_audio_trace] %llu ao restart skipped: device closed\n",
+			   user_timestamp_get());
 		pthread_mutex_unlock(&audio_output_mutex);
 		return false;
 	}
+	{
+		struct ak_dev_buf_status status;
+		ak_ao_get_buf_status(audio_output_handle_id, &status);
+		remain_before = status.buf_remain_len;
+	}
+	printf("[media_audio_trace] %llu ao restart begin: remain=%d rate=%d ch=%d\n",
+		   user_timestamp_get(), remain_before, audio_output_sample, audio_output_channel);
 	ak_ao_cancel(audio_output_handle_id);
 	ak_ao_restart(audio_output_handle_id);
+	{
+		struct ak_dev_buf_status status;
+		ak_ao_get_buf_status(audio_output_handle_id, &status);
+		remain_after = status.buf_remain_len;
+	}
+	printf("[media_audio_trace] %llu ao restart end: remain=%d\n",
+		   user_timestamp_get(), remain_after);
 	pthread_mutex_unlock(&audio_output_mutex);
 	return true;
 }

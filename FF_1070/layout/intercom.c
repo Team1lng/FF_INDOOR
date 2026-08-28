@@ -406,6 +406,12 @@ void CallRequestPrcess(void)
   */
 void MsgCallRequest(unsigned char id)
 {
+    if (intercom_door_call_audio_hold_get())
+    {
+        printf("[intercom] new call clears stale door-call audio hold\n");
+        intercom_door_call_audio_hold_set(0);
+    }
+
     printf("[intercom] MsgCallRequest: schedule handshake to %u (local id=%u, status=%d)\n",
            (unsigned)id, (unsigned)NativeId, ConnectStatus);
     TempCallId = id;
@@ -457,7 +463,9 @@ void MsgCallEnd(void)
         TempCallId = 0xff;
         ///< 尽量避免通话的双方同时挂断通话造成串口冲突
         ///< Try to avoid the serial port conflict caused by both parties hanging up the call
-        BusDelay();
+        /* MsgCallEnd() may run in the LVGL event thread. The protocol
+         * retransmission timers handle collision recovery; sleeping here
+         * freezes the page and its countdown for up to about 800 ms. */
         ConnectStatus = RQ_OFFLINE;
         MessageSend(NativeId, CalledCaller, ConnectStatus, 0);
         ParamInit();

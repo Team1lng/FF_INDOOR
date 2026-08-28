@@ -267,13 +267,20 @@ bool power_amplifier_enable(bool en)
 	static int pa_level = -1; /* -1 unknown, 0 off, 1 on */
 
 	int want = en ? 1 : 0;
+
+	/* Real-time PA trace: report on every call the requested value, the actual
+	 * GPIO9 level read back from hardware, and the previous value, so it is easy
+	 * to confirm the command and the real PA state match. */
+	GPIO_LEVEL pa_real = GPIO_LEVEL_LOW;
+	gpio_level_read(POWER_AMPLIFIER_PIN, &pa_real);
+	printf("[audio_trace] %llu PA GPIO9 req=%d actual=%d prev=%d\n",
+		   user_timestamp_get(), want, (pa_real == GPIO_LEVEL_HIGH ? 1 : 0), pa_level);
+
 	if (pa_level == want)
 	{
 		return true;
 	}
 
-	printf("[audio_trace] %llu PA GPIO9 %d->%d\n",
-		   user_timestamp_get(), pa_level, want);
 	bool ok = gpio_level_set(POWER_AMPLIFIER_PIN, en ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
 	if (ok)
 	{
@@ -315,6 +322,8 @@ void door2_power_enable(bool en)
 #define AUDIO_DOOR1_PIN 56 // 77
 void audio_to_outdoor1_pin_ctrl(bool en)
 {
+	printf("[monitor_audio_trace] %llu route gpio56 door1=%d\n",
+		   user_timestamp_get(), en);
 	gpio_level_set(AUDIO_DOOR1_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
 }
 /***
@@ -326,6 +335,8 @@ void audio_to_outdoor1_pin_ctrl(bool en)
 #define AUDIO_DOOR2_PIN 36 // 78
 void audio_to_outdoor2_pin_ctrl(bool en)
 {
+	printf("[monitor_audio_trace] %llu route gpio36 door2=%d\n",
+		   user_timestamp_get(), en);
 	gpio_level_set(AUDIO_DOOR2_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
 }
 
@@ -334,6 +345,8 @@ void audio_to_outdoor2_pin_ctrl(bool en)
 // （true：L2 false：L1）
 void audio_to_inter_line_select_pin_ctrl(bool en)
 {
+	printf("[monitor_audio_trace] %llu route gpio35 inter=%d\n",
+		   user_timestamp_get(), en);
 	gpio_level_set(AUDIO_INTER_LINE_SELECT_PIN, en == true ? GPIO_LEVEL_HIGH : GPIO_LEVEL_LOW);
 }
 

@@ -63,6 +63,9 @@ handle_files() {
             echo "警告：源文件 $source_dir/$file 不存在，跳过"
         fi
     done
+
+    rm -rf "$dest_dir/rings"
+    cp -rf "$source_dir/rings" "$dest_dir/" || { echo "拷贝 rings 目录失败"; exit 1; }
 }
 
 # 执行外部make_image.sh脚本

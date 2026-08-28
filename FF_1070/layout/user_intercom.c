@@ -22,6 +22,7 @@ static volatile bool s_busy_flag = false; ///< 忙线标志
 static volatile bool s_unack_flag = false; ///< 无应答标志
 static volatile bool s_remote_ack = false; ///< 远端已接听标志
 static volatile bool s_hangup_flag = false; ///< 挂断事件标志
+static volatile bool s_door_call_audio_hold = false;
 
 /* ---------------------------------------------------------------
  * 状态读写
@@ -119,4 +120,15 @@ bool intercom_hangup_flag_get_and_clear(void)
     bool v = s_hangup_flag;
     s_hangup_flag = false;
     return v;
+}
+
+void intercom_door_call_audio_hold_set(bool hold)
+{
+    printf("[intercom_audio] door call audio hold=%d\n", hold);
+    s_door_call_audio_hold = hold;
+}
+
+bool intercom_door_call_audio_hold_get(void)
+{
+    return s_door_call_audio_hold;
 }

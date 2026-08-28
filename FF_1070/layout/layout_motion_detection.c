@@ -100,6 +100,11 @@ void layout_motion_detection_prepare_camera_in(void)
         refresh_area_t area = {0, 0, LV_HOR_RES_MAX, LV_VER_RES_MAX};
         gui_refresh_area(&area, 1);
     }
+    /* This path is used before entering the door-call page, so the normal
+     * motion_detection quit cleanup is intentionally skipped. Invalidate
+     * both the GUI and resident video layers before the next page starts. */
+    video_input_resident_bzero();
+    screen_force_refresh();
 
     ringplay_play_stop();
     jpg_encode_capture_enable(false);
@@ -792,6 +797,11 @@ static void LAYOUT_QUIT_FUNC(motion_detection)
         record_video_close();
         record_jpeg_close();
         monitor_close();
+        /* monitor_close() invalidates the input, but a frame already fetched
+         * by video_display_task can still complete afterward. Clear again
+         * after the stop request so the next page cannot inherit it. */
+        video_input_resident_bzero();
+        screen_force_refresh();
     }
 
     // 同步等待 VI/AI/VENC 设备彻底关闭，避免 quit 返回后 enter 并发操作资源

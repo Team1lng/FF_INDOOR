@@ -46,7 +46,6 @@ static void project_printf(void)
 
 static void start_daemon_process(void)
 {
-	return;
 	FILE *fp = popen("ps aux | grep daemon_process.sh | grep -v grep | wc -l", "r");
 	char buffer[3] = {0};
 	fgets(buffer, sizeof(buffer), fp);

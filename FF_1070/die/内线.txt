@@ -1,0 +1,147 @@
+[ui_audio_trace] 1048817443 ringplay idle count=101
+type:3,code:48,value:10 
+1, 326,177 
+[ui_audio_trace] 1048818570 click_down layout=0xe77fc ao_remain=0
+[ui_audio_trace] 1048818570 ringplay queue index=0 vol=100 ao_remain=0
+[ui_audio_trace] 1048818580 ringplay start index=0
+[media_audio_trace] 1048818600 touch-tone start: layout=0xe77fc ao_remain=0
+[audio_trace] 1048818601 PA GPIO9 req=1 actual=0 prev=0
+[audio_trace] 1048818601 ring_volume_set=2
+[audio_trace] 1048818601 PA GPIO9 req=1 actual=1 prev=1
+[ui_audio_trace] 1048818641 ao_open enter ch=1 rate=16000 handle=0
+play :0.mp3 
+type:3,code:48,value:0 
+0, 327,182 
+[ui_audio_trace] 1048818945 ringplay finish index=0
+type:3,code:48,value:10 
+1, 216,451 
+[ui_audio_trace] 1048819292 click_down layout=0xe77fc ao_remain=0
+[ui_audio_trace] 1048819292 ringplay queue index=0 vol=100 ao_remain=0
+[ui_audio_trace] 1048819302 ringplay start index=0
+[media_audio_trace] 1048819322 touch-tone start: layout=0xe77fc ao_remain=0
+[audio_trace] 1048819323 PA GPIO9 req=1 actual=1 prev=1
+[audio_trace] 1048819323 ring_volume_set=2
+[audio_trace] 1048819323 PA GPIO9 req=1 actual=1 prev=1
+[ui_audio_trace] 1048819363 ao_open enter ch=1 rate=16000 handle=0
+play :0.mp3 
+type:3,code:48,value:0 
+0, 217,452 
+[intercom] do_call_out: dest=2
+[intercom] MsgCallRequest: schedule handshake to 2 (local id=3, status=0)
+[timer] start call request timer, delay=13
+[mbTimerStart]: id 2, delay 936, callback 0x15ed0, argv (nil)
+[audio_trace] 1048819562 PA GPIO9 req=1 actual=1 prev=1
+[intercom] state 0 -> 2
+[ui_audio_trace] 1048819641 ringplay finish index=0
+[intercom_uart] alive fd=17 hold=0 status=0
+[ui_audio_trace] 1048820581 ringplay queue index=22 vol=100 ao_remain=0
+[ui_audio_trace] 1048820591 ringplay start index=22
+[ui_audio_trace] 1048820611 ao_open enter ch=1 rate=16000 handle=0
+[audio_trace] 1048820612 ring_volume_set=4
+[audio_trace] 1048820612 PA GPIO9 req=1 actual=1 prev=1
+[audio_trace] 1048820612 PA GPIO9 req=1 actual=1 prev=1
+play :22.mp3 
+[intercom] CallRequestPrcess: tx handshake to id:2 (was status 0)
+[intercom_tx] src=3, dest=2, cmd=0x01, param=0
+[SendMsgProcess] client:2  msg:01
+[mbTimerStart]: id 0, delay 1500, callback 0x16b84, argv (nil)
+[mbTimerStart]: id 3, delay 6, callback 0x15c40, argv (nil)
+[intercom_tx] src=3, dest=2, cmd=0x01, param=1
+[SendMsgProcess] client:2  msg:01
+[mbTimerStart]: id 0, delay 1500, callback 0x16b84, argv (nil)
+[mbTimerStart]: id 3, delay 6, callback 0x15c40, argv (nil)
+[mbTimerStart]: id 0, delay 1500, callback 0x16b84, argv (nil)
+[ui_audio_trace] 1048824911 ringplay queue index=22 vol=100 ao_remain=26240
+[ui_audio_trace] 1048824914 ringplay finish index=22
+[ui_audio_trace] 1048824931 ringplay start index=22
+[ui_audio_trace] 1048824951 ao_open enter ch=1 rate=16000 handle=0
+[ui_audio_trace] 1048824951 ao_open wait remain=25216
+[ui_audio_trace] 1048824971 ao_open wait remain=25216
+[ui_audio_trace] 1048824991 ao_open wait remain=24192
+[ui_audio_trace] 1048825012 ao_open wait remain=23168
+[ui_audio_trace] 1048825032 ao_open wait remain=23168
+[ui_audio_trace] 1048825052 ao_open wait remain=22144
+[ui_audio_trace] 1048825072 ao_open wait remain=21120
+[ui_audio_trace] 1048825092 ao_open wait remain=21120
+[ui_audio_trace] 1048825112 ao_open wait remain=20096
+[intercom_tx] src=3, dest=2, cmd=0x01, param=3
+[SendMsgProcess] client:2  msg:01
+[mbTimerStart]: id 3, delay 6, callback 0x15c40, argv (nil)
+[intercom_uart] alive fd=17 hold=0 status=1
+[ui_audio_trace] 1048825132 ao_open wait remain=20096
+[ui_audio_trace] 1048825153 ao_open wait remain=19072
+[ui_audio_trace] 1048825173 ao_open wait remain=18048
+[ui_audio_trace] 1048825193 ao_open wait remain=18048
+[ui_audio_trace] 1048825213 ao_open wait remain=17024
+[ui_audio_trace] 1048825233 ao_open wait remain=16000
+[ui_audio_trace] 1048825253 ao_open wait remain=16000
+[ui_audio_trace] 1048825273 ao_open wait remain=14976
+[ui_audio_trace] 1048825294 ao_open wait remain=14976
+[ui_audio_trace] 1048825314 ao_open wait remain=13952
+[ui_audio_trace] 1048825334 ao_open wait remain=12928
+[ui_audio_trace] 1048825354 ao_open wait remain=12928
+[ui_audio_trace] 1048825374 ao_open wait remain=11904
+[ui_audio_trace] 1048825394 ao_open wait remain=11008
+[ui_audio_trace] 1048825415 ao_open wait remain=11008
+[ui_audio_trace] 1048825435 ao_open wait remain=10752
+[ui_audio_trace] 1048825455 ao_open wait remain=8704
+[ui_audio_trace] 1048825466 ao_open wait remain=8704
+[ui_audio_trace] 1048825486 ao_open wait remain=8704
+[ui_audio_trace] 1048825497 ao_open wait remain=6656
+[ui_audio_trace] 1048825517 ao_open wait remain=6656
+[ui_audio_trace] 1048825538 ao_open wait remain=4608
+[ui_audio_trace] 1048825558 ao_open wait remain=2560
+[ui_audio_trace] 1048825578 ao_open wait remain=2560
+[audio_trace] 1048825598 ring_volume_set=4
+[audio_trace] 1048825598 PA GPIO9 req=1 actual=1 prev=1
+[audio_trace] 1048825599 PA GPIO9 req=1 actual=1 prev=1
+play :22.mp3 
+[ui_audio_trace] 1048826991 ringplay queue index=22 vol=100 ao_remain=26112
+[ui_audio_trace] 1048826994 ringplay finish index=22
+[ui_audio_trace] 1048827011 ringplay start index=22
+[ui_audio_trace] 1048827031 ao_open enter ch=1 rate=16000 handle=0
+[ui_audio_trace] 1048827031 ao_open wait remain=25088
+[ui_audio_trace] 1048827051 ao_open wait remain=25088
+[ui_audio_trace] 1048827072 ao_open wait remain=24064
+[ui_audio_trace] 1048827092 ao_open wait remain=23040
+[ui_audio_trace] 1048827112 ao_open wait remain=23040
+[ui_audio_trace] 1048827132 ao_open wait remain=22016
+[ui_audio_trace] 1048827152 ao_open wait remain=20992
+[ui_audio_trace] 1048827172 ao_open wait remain=20992
+[ui_audio_trace] 1048827193 ao_open wait remain=19968
+[ui_audio_trace] 1048827213 ao_open wait remain=19968
+[ui_audio_trace] 1048827233 ao_open wait remain=18944
+[ui_audio_trace] 1048827253 ao_open wait remain=17920
+[ui_audio_trace] 1048827273 ao_open wait remain=17920
+[ui_audio_trace] 1048827293 ao_open wait remain=16896
+[ui_audio_trace] 1048827313 ao_open wait remain=15872
+[ui_audio_trace] 1048827334 ao_open wait remain=15872
+[ui_audio_trace] 1048827354 ao_open wait remain=14848
+[ui_audio_trace] 1048827374 ao_open wait remain=14848
+[ui_audio_trace] 1048827394 ao_open wait remain=13824
+[ui_audio_trace] 1048827414 ao_open wait remain=12800
+[ui_audio_trace] 1048827434 ao_open wait remain=12800
+[ui_audio_trace] 1048827455 ao_open wait remain=11776
+[ui_audio_trace] 1048827475 ao_open wait remain=11008
+[ui_audio_trace] 1048827495 ao_open wait remain=11008
+[ui_audio_trace] 1048827515 ao_open wait remain=10496
+[ui_audio_trace] 1048827535 ao_open wait remain=8448
+[ui_audio_trace] 1048827555 ao_open wait remain=8448
+[ui_audio_trace] 1048827576 ao_open wait remain=6400
+[ui_audio_trace] 1048827596 ao_open wait remain=6400
+[ui_audio_trace] 1048827616 ao_open wait remain=4352
+[ui_audio_trace] 1048827636 ao_open wait remain=2304
+[ui_audio_trace] 1048827657 ao_open wait remain=2304
+[audio_trace] 1048827677 ring_volume_set=4
+[audio_trace] 1048827677 PA GPIO9 req=1 actual=1 prev=1
+[audio_trace] 1048827677 PA GPIO9 req=1 actual=1 prev=1
+play :22.mp3 
+[intercom_uart] alive fd=17 hold=0 status=1
+
+
+Connection closed.
+
+Disconnected from remote host(新思路低成本) at 14:40:11.
+
+Type `help' to learn how to use Xshell prompt.
+[C:\~]$ 

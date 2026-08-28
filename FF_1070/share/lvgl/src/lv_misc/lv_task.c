@@ -465,14 +465,16 @@ static uint32_t lv_task_time_remaining(lv_task_t *task)
 
 void lv_task_clean(void)
 {
-    void * node;
-    for(node = _lv_ll_get_head(&LV_GC_ROOT(_lv_task_ll)); node != NULL; node = _lv_ll_get_next(&LV_GC_ROOT(_lv_task_ll), node))
+    void *node = _lv_ll_get_head(&LV_GC_ROOT(_lv_task_ll));
+    while (node != NULL)
     {
-        lv_task_t *tmp =(lv_task_t *)node;
+        void *next = _lv_ll_get_next(&LV_GC_ROOT(_lv_task_ll), node);
+        lv_task_t *tmp = (lv_task_t *)node;
         if(tmp->clean_lock == true)
         {
             lv_task_del(tmp);
         }
+        node = next;
     }
 }
 
